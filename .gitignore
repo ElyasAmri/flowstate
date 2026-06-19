@@ -3,9 +3,8 @@
 .env.local
 .env.*.local
 
-# Maestro local config + session state (machine-local, not shared)
-.maestro/backends.json
-.maestro/session-memory.md
+# Maestro project config + local state (machine-local, not shared)
+.maestro/
 
 # Downloaded datasets (large; fetched from 4TU.ResearchData, not vendored).
 # Ignore the contents but keep the catalog -- it declares what we have, no data.
