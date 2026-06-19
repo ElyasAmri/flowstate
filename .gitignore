@@ -10,3 +10,6 @@
 # Ignore the contents but keep the catalog -- it declares what we have, no data.
 datasets/*
 !datasets/catalog.csv
+
+# Obsidian local vault config (UI state, not shared)
+docs/.obsidian/
