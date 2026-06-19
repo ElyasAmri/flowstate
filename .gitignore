@@ -1,0 +1,7 @@
+# Secrets and local environment -- never commit these
+.env
+.env.local
+.env.*.local
+
+# Maestro local config (backend wiring is machine-local)
+.maestro/backends.json
