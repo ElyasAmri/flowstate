@@ -1,8 +1,12 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import { listen } from "@tauri-apps/api/event";
+  import { onMount } from "svelte";
 
   // Manual, state-driven routing (same pattern as maestro's desktop app):
-  // a typed Route union held in $state, flipped by nav buttons -- no router lib.
+  // a typed Route union held in $state. Now flipped by the native menubar
+  // (see src-tauri/src/lib.rs) via a `navigate` event -- no router lib, no
+  // in-app nav buttons.
   type Route =
     | { name: "home" }
     | { name: "workflows" }
@@ -10,17 +14,21 @@
 
   let route = $state<Route>({ name: "home" });
 
+  onMount(() => {
+    const unlisten = listen<string>("navigate", (event) => {
+      route = { name: event.payload as Route["name"] };
+    });
+    return () => {
+      unlisten.then((off) => off());
+    };
+  });
+
   // Proves the frontend <-> Rust bridge: calls the `greet` command in
   // src-tauri/src/lib.rs.
   let greeting = $state("");
   async function ping() {
     greeting = await invoke<string>("greet", { name: "Flowstate" });
   }
-
-  const tab = "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors";
-  const active = "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-black";
-  const inactive =
-    "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10";
 </script>
 
 <div class="flex h-full flex-col">
@@ -31,20 +39,6 @@
       <span class="text-lg font-semibold tracking-tight">Flowstate</span>
       <span class="text-xs text-zinc-500">codified bureaucracy</span>
     </div>
-    <nav class="flex gap-1">
-      <button
-        class={`${tab} ${route.name === "home" ? active : inactive}`}
-        onclick={() => (route = { name: "home" })}>Home</button
-      >
-      <button
-        class={`${tab} ${route.name === "workflows" ? active : inactive}`}
-        onclick={() => (route = { name: "workflows" })}>Workflows</button
-      >
-      <button
-        class={`${tab} ${route.name === "documents" ? active : inactive}`}
-        onclick={() => (route = { name: "documents" })}>Documents</button
-      >
-    </nav>
   </header>
 
   <main class="min-h-0 flex-1 overflow-auto p-6">
