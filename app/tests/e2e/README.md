@@ -46,12 +46,9 @@ The test prints `[e2e] ...` progress and ends with
 
 ## What it asserts (disk-proof loop)
 
-1. App shell renders; navigate to the **flow selector** (the default view) by
-   emitting the native `navigate` event from page context
-   (`window.__TAURI__.event.emit("navigate", "flows")`) — WebDriver can't click
-   the native menubar. (Requires `app.withGlobalTauri: true`, set in
-   `tauri.conf.json`.) Then click the fixture's selector card
-   (`[data-flow-id="flow-residence-certificate"]`) to open it in the editor.
+1. App shell renders; the **flow selector** is the default view (navigation is
+   the in-app sidebar — there is no native menubar). Click the fixture's selector
+   card (`[data-flow-id="flow-residence-certificate"]`) to open it in the editor.
 2. The fixture flow loads with **8 nodes / 9 transitions**
    (`[data-testid="flow-counts"]`).
 3. On mount the editor autosaves the fixture →

@@ -1,17 +1,14 @@
 <script lang="ts">
-  import { listen } from "@tauri-apps/api/event";
-  import { onMount } from "svelte";
+  import Sidebar from "./lib/components/Sidebar.svelte";
   import FlowsList from "./lib/views/FlowsList.svelte";
   import FlowEditor from "./lib/views/FlowEditor.svelte";
   import Workflows from "./lib/views/Workflows.svelte";
   import Documents from "./lib/views/Documents.svelte";
 
-  // Manual, state-driven routing (same pattern as maestro's desktop app):
-  // a typed Route union held in $state. The flow selector is the default view;
-  // opening a flow threads its id into the editor route. In-app navigation is
-  // done by local handlers (onopen/onback); the native menubar (see
-  // src-tauri/src/lib.rs) emits id-free `navigate` events for the top-level
-  // views only -- it never opens a specific flow (that's the selector's job).
+  // Manual, state-driven routing: a typed Route union held in $state. The flow
+  // selector is the default view; opening a flow threads its id into the editor
+  // route. Top-level navigation is the in-app Sidebar; opening/closing a specific
+  // flow is handled by the selector (onopen) and the editor's back button.
   type Route =
     | { name: "flows" }
     | { name: "flow"; id: string }
@@ -20,30 +17,20 @@
 
   let route = $state<Route>({ name: "flows" });
 
-  // Route names the menubar may emit (it cannot carry a flow id).
-  type MenuRoute = "flows" | "workflows" | "documents";
-  const isMenuRoute = (n: string): n is MenuRoute =>
-    n === "flows" || n === "workflows" || n === "documents";
+  // The sidebar's active item. The editor route belongs to the "flows" section.
+  type NavName = "flows" | "workflows" | "documents";
+  const current = $derived<NavName>(route.name === "flow" ? "flows" : route.name);
 
-  onMount(() => {
-    const unlisten = listen<string>("navigate", (event) => {
-      if (isMenuRoute(event.payload)) route = { name: event.payload };
-    });
-    return () => {
-      unlisten.then((off) => off());
-    };
-  });
+  // The editor is a focused, full-screen mode (its own palette/canvas/inspector
+  // 3-pane layout + back button); the sidebar is hidden there to give the canvas
+  // maximum width.
+  const showSidebar = $derived(route.name !== "flow");
 </script>
 
-<div class="flex h-full flex-col">
-  <header
-    class="flex items-center justify-between gap-4 border-b border-black/10 px-4 py-3 dark:border-white/10"
-  >
-    <div class="flex items-baseline gap-2">
-      <span class="text-lg font-semibold tracking-tight">Flowstate</span>
-      <span class="text-xs text-zinc-500">codified bureaucracy</span>
-    </div>
-  </header>
+<div class="flex h-full">
+  {#if showSidebar}
+    <Sidebar {current} onnavigate={(name) => (route = { name })} />
+  {/if}
 
   <main class="min-h-0 flex-1 overflow-auto {route.name === 'flow' ? '' : 'p-6'}">
     {#if route.name === "flows"}

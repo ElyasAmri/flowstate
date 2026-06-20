@@ -3,8 +3,24 @@
 The desktop frontend (`app/`) is a Svelte 5 + Tailwind 4 Tauri app. Its main
 content area uses manual, state-driven routing: a typed `Route` union held in
 `$state` in `app/src/App.svelte`. The **flow selector is the default view**;
-in-app navigation (selector → editor → back) is driven by local handlers, while
-the native menubar emits id-free `navigate` events for the top-level views.
+top-level navigation is an in-app **sidebar** (`Sidebar.svelte`), and
+opening/closing a specific flow is handled by the selector and the editor's back
+button. There is no native window menubar.
+
+## Layout & navigation
+
+`App.svelte` is a horizontal flex of a left **sidebar** and a content `<main>`.
+`Sidebar.svelte` (`app/src/lib/components/Sidebar.svelte`) holds the
+**Flowstate** wordmark in its header and three nav items — Flows / Workflows /
+Documents (`data-nav="…"`, active item highlighted, `data-testid="sidebar"`).
+Clicking an item sets the route directly via an `onnavigate` callback (no Tauri
+event). There is no top header/brand bar; the wordmark lives only in the sidebar.
+
+The **flow editor is a focused, full-screen mode**: when `route.name === "flow"`
+the sidebar is hidden so the canvas gets maximum width (the editor already has
+its own palette/canvas/inspector 3-pane layout and a **← Flows** back button).
+The sidebar shows for `flows`/`workflows`/`documents`; the editor route
+highlights the "Flows" section.
 
 ## View components
 
@@ -21,9 +37,7 @@ Each route renders a dedicated view component under `app/src/lib/views/`.
 The `Route` union is `{ name: "flows" } | { name: "flow"; id } | { name:
 "workflows" } | { name: "documents" }` — the `flow` route carries the **id of
 the flow to open**, threaded from the selector. `App.svelte` wraps the editor in
-`{#key route.id}` so opening a different flow remounts a fresh editor. The
-native menubar can only carry a route *name* (no id), so it never opens a
-specific flow — that is the selector's job.
+`{#key route.id}` so opening a different flow remounts a fresh editor.
 
 ### Flow selector
 

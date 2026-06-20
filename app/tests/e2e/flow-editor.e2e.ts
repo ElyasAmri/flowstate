@@ -138,14 +138,9 @@ async function main(): Promise<void> {
     await waitFor("app shell", async () => (await bodyText(browser!)).includes("Flowstate"));
     log("app shell rendered");
 
-    // 2) The flow selector is the default view. Navigate to it explicitly via the
-    //    native `navigate` event (which WebDriver cannot click in the menubar, so
-    //    we emit it from page context -- App.svelte listens), then open the
-    //    fixture flow by clicking its selector card.
-    await browser.execute(() => {
-      // @ts-expect-error -- Tauri global injected into the webview at runtime.
-      window.__TAURI__.event.emit("navigate", "flows");
-    });
+    // 2) The flow selector is the default view (no menubar anymore -- navigation
+    //    is the in-app sidebar). Wait for the selector, then open the fixture
+    //    flow by clicking its selector card.
     await waitFor("flow selector rendered", async () => {
       const el = await browser!.$('[data-testid="flows-list"]');
       return await el.isExisting();
