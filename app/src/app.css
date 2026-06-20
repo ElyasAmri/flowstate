@@ -4,6 +4,15 @@
   color-scheme: light dark;
 }
 
+/* Make native controls (the <select> dropdown popup, scrollbars, etc.) follow
+   the dark theme. With only `light dark` the UA renders the select popup as a
+   stark white box in dark mode; forcing `dark` here matches the app's chrome. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
 html,
 body,
 #app {
