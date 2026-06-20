@@ -56,7 +56,7 @@
     <!-- Left column: neutral kind/binding icon with the type label beneath.
          Color lives only in the top accent bar -- the icon and text stay neutral. -->
     <div
-      class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
+      class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
     >
       <svg
         viewBox="0 0 24 24"
@@ -70,7 +70,7 @@
       >
         {@html kindIconPath[iconKey]}
       </svg>
-      <span class="w-full truncate text-center text-[11px] leading-none">{typeLabel}</span>
+      <span class="line-clamp-2 w-full text-center text-[11px] leading-tight">{typeLabel}</span>
     </div>
 
     <!-- Subtle vertical divider. -->
@@ -89,7 +89,7 @@
         {node.label}
       </span>
       {#if node.description}
-        <span class="mt-0.5 truncate text-[11px] leading-snug text-zinc-400 dark:text-zinc-500">
+        <span class="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-400 dark:text-zinc-500">
           {node.description}
         </span>
       {/if}

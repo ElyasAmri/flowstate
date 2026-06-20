@@ -9,7 +9,7 @@ import type { BoundingBox, Point } from "./viewport.svelte";
 
 /** Node card footprint in world units. Must match FlowNodeCard's box. */
 export const NODE_W = 240;
-export const NODE_H = 84;
+export const NODE_H = 96;
 
 export type PortSide = "in" | "out";
 
