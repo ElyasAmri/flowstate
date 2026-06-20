@@ -1,6 +1,6 @@
 <script lang="ts">
   import { NODE_KINDS, type NodeKind } from "../types";
-  import { kindDot } from "../kind-accent";
+  import { kindIconPath } from "../kind-icon";
 
   interface Props {
     onadd: (kind: NodeKind) => void;
@@ -17,15 +17,26 @@
         type="button"
         data-flow-kind={meta.kind}
         onclick={() => onadd(meta.kind)}
-        class="block w-full rounded-md border border-black/10 px-2.5 py-1.5 text-left text-sm
+        class="flex w-full items-start gap-2 rounded-md border border-black/10 px-2.5 py-1.5 text-left text-sm
           hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5"
         title={meta.blurb}
       >
-        <span class="flex items-center gap-1.5 font-medium">
-          <span class="h-2 w-2 shrink-0 rounded-full {kindDot[meta.kind]}"></span>
-          {meta.label}
+        <svg
+          viewBox="0 0 24 24"
+          class="mt-0.5 h-4 w-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          {@html kindIconPath[meta.kind]}
+        </svg>
+        <span class="min-w-0">
+          <span class="block font-medium">{meta.label}</span>
+          <span class="block text-[11px] leading-tight text-zinc-500">{meta.blurb}</span>
         </span>
-        <span class="block text-[11px] leading-tight text-zinc-500">{meta.blurb}</span>
       </button>
     {/each}
   </div>

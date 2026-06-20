@@ -2,6 +2,7 @@
   import type { FlowNode } from "../types";
   import { nodeKindMeta } from "../types";
   import { NODE_W, NODE_H } from "../geometry";
+  import { kindIconPath } from "../kind-icon";
 
   interface Props {
     node: FlowNode;
@@ -17,36 +18,69 @@
 
   let { node, selected, isStart, onbodydown, onportdown, onportup }: Props = $props();
 
-  import { kindDot } from "../kind-accent";
-
   const meta = $derived(nodeKindMeta(node.kind));
+  // Small subtle annotation shown by the type (not in the title).
+  const annotation = $derived(isStart ? "start" : (node.outcome ?? null));
+
   const portClass =
     "absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-400 " +
     "shadow transition-all hover:scale-125 hover:bg-sky-500 group-hover:bg-sky-400 dark:border-zinc-800";
 </script>
 
 <div
-  class="group absolute select-none rounded-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
+  class="group absolute select-none overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
       : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
 >
-  <!-- Card body: drag handle. Cursor grab affords moving. -->
+  <!-- Card body: drag handle. Two columns: kind (icon + type) | name + desc. -->
   <div
-    class="flex h-full cursor-grab flex-col justify-center px-3 active:cursor-grabbing"
+    class="flex h-full cursor-grab items-stretch active:cursor-grabbing"
     role="button"
     tabindex="-1"
     onpointerdown={(e) => onbodydown(node, e)}
   >
-    <span class="flex items-center gap-1.5 text-[11px] text-zinc-500">
-      <!-- Single subtle accent: a muted dot conveys the node kind. -->
-      <span class="h-2 w-2 shrink-0 rounded-full {kindDot[node.kind]}"></span>
-      {meta.label}{#if isStart}&nbsp;· start{/if}{#if node.outcome}&nbsp;· {node.outcome}{/if}
-    </span>
-    <span class="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-      {node.label}
-    </span>
+    <!-- Left column: monochrome kind icon with the type label beneath it. -->
+    <div
+      class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 px-2 text-zinc-500 dark:text-zinc-400"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-6 w-6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        {@html kindIconPath[node.kind]}
+      </svg>
+      <span class="text-[11px] leading-none">{meta.label}</span>
+    </div>
+
+    <!-- Subtle vertical divider. -->
+    <div class="my-2 w-px shrink-0 bg-zinc-200 dark:bg-zinc-700"></div>
+
+    <!-- Right column (main): node name + optional description. -->
+    <div class="flex min-w-0 flex-1 flex-col justify-center px-3 py-2">
+      {#if annotation}
+        <span
+          class="mb-0.5 inline-flex w-fit items-center rounded bg-zinc-100 px-1.5 py-px text-[10px] font-medium text-zinc-500 dark:bg-zinc-700/60 dark:text-zinc-300"
+        >
+          {annotation}
+        </span>
+      {/if}
+      <span class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        {node.label}
+      </span>
+      {#if node.description}
+        <span class="mt-0.5 truncate text-[11px] leading-snug text-zinc-400 dark:text-zinc-500">
+          {node.description}
+        </span>
+      {/if}
+    </div>
   </div>
 
   <!-- Input port (left). Connections complete on pointer-up here. -->
