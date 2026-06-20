@@ -4,7 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -21,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -55,16 +63,19 @@ fun App(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
     val client = remember { RemoteClient() }
-    // Tear the socket down when the app leaves composition.
     DisposableEffect(Unit) { onDispose { client.disconnect() } }
 
-    // The relay address lives in settings now; hold it in state seeded from
-    // prefs so a save on the settings screen is reflected here immediately.
     var relayUrl by remember { mutableStateOf(prefs.relayUrl) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
+    // Auto-connect on launch and whenever the saved address changes, so the
+    // remote screen stays free of connection chrome -- the relay address is a
+    // setting, not a per-use step.
+    LaunchedEffect(relayUrl) { client.connect(relayUrl) }
+
     if (showSettings) {
         SettingsScreen(
+            client = client,
             initial = relayUrl,
             onSave = { value ->
                 val trimmed = value.trim()
@@ -78,7 +89,7 @@ fun App(modifier: Modifier = Modifier) {
     } else {
         RemoteScreen(
             client = client,
-            relayUrl = relayUrl,
+            onReconnect = { client.connect(relayUrl) },
             onOpenSettings = { showSettings = true },
             modifier = modifier,
         )
@@ -88,7 +99,7 @@ fun App(modifier: Modifier = Modifier) {
 @Composable
 private fun RemoteScreen(
     client: RemoteClient,
-    relayUrl: String,
+    onReconnect: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -100,99 +111,75 @@ private fun RemoteScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Header: title + a path to settings.
+        // Minimal header: a status dot (tap to reconnect) and a way into
+        // settings. No address, no connect button on the control surface.
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
+            val dot = when (state) {
+                ConnState.Connected -> Color(0xFF4CAF50)
+                ConnState.Connecting -> Color(0xFFFFC107)
+                ConnState.Error -> Color(0xFFF44336)
+                ConnState.Disconnected -> Color.Gray
+            }
+            Box(
+                modifier = Modifier
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(dot)
+                    .clickable(onClick = onReconnect),
+            )
+            Spacer(Modifier.width(8.dp))
             Text(
-                "Flowstate Remote",
-                style = MaterialTheme.typography.headlineSmall,
+                if (connected) "" else "tap to reconnect",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = onOpenSettings, enabled = !connected) { Text("Settings") }
+            TextButton(onClick = onOpenSettings) { Text("Settings") }
         }
 
-        // The target relay, dim, so the presenter sees what they connect to.
-        Text(
-            relayUrl,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Spacer(Modifier.weight(1f))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Button(
-                onClick = { if (connected) client.disconnect() else client.connect(relayUrl) },
-                enabled = state != ConnState.Connecting,
-            ) {
-                Text(if (connected) "Disconnect" else "Connect")
-            }
-            val (label, color) = when (state) {
-                ConnState.Connected -> "connected" to Color(0xFF4CAF50)
-                ConnState.Connecting -> "connecting..." to Color(0xFFFFC107)
-                ConnState.Error -> "connection failed" to Color(0xFFF44336)
-                ConnState.Disconnected -> "disconnected" to Color.Gray
-            }
-            Text(label, color = color)
-        }
-
-        // Where the deck currently is, echoed back over the relay.
+        // Where the deck is, echoed back over the relay.
         val where = position?.let { p ->
-            if (p.overview) "overview" else "slide ${p.h + 1}.${p.v + 1} / ${p.total}"
+            if (p.overview) "overview" else "${p.h + 1}.${p.v + 1} / ${p.total}"
         } ?: "--"
-        Text(
-            where,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text(where, style = MaterialTheme.typography.displaySmall)
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
 
-        // Primary controls: previous / next, large touch targets.
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            BigButton("PREV", connected, Modifier.weight(1f)) { client.send("prev") }
-            BigButton("NEXT", connected, Modifier.weight(1f)) { client.send("next") }
+        // Small prev / next arrows -- the primary control.
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            ArrowButton("‹", connected) { client.send("prev") }
+            ArrowButton("›", connected) { client.send("next") }
         }
 
-        // Secondary controls.
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            OutlinedButton(
-                onClick = { client.send("first") },
-                enabled = connected,
-                modifier = Modifier.weight(1f),
-            ) { Text("First") }
-            OutlinedButton(
-                onClick = { client.send("overview") },
-                enabled = connected,
-                modifier = Modifier.weight(1f),
-            ) { Text("Overview") }
+        Spacer(Modifier.weight(1f))
+
+        // Secondary jumps.
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = { client.send("first") }, enabled = connected) { Text("First") }
+            OutlinedButton(onClick = { client.send("overview") }, enabled = connected) {
+                Text("Overview")
+            }
         }
     }
 }
 
 @Composable
 private fun SettingsScreen(
+    client: RemoteClient,
     initial: String,
     onSave: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val state by client.state.collectAsState()
     var draft by rememberSaveable { mutableStateOf(initial) }
 
     Column(
@@ -212,8 +199,7 @@ private fun SettingsScreen(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
             )
-            // Balance the back button so the title stays centered.
-            Spacer(Modifier.weight(0.001f))
+            Spacer(Modifier.width(64.dp))
         }
 
         OutlinedTextField(
@@ -225,26 +211,31 @@ private fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        val (label, color) = when (state) {
+            ConnState.Connected -> "connected" to Color(0xFF4CAF50)
+            ConnState.Connecting -> "connecting..." to Color(0xFFFFC107)
+            ConnState.Error -> "connection failed" to Color(0xFFF44336)
+            ConnState.Disconnected -> "disconnected" to Color.Gray
+        }
+        Text(label, color = color)
+
         Button(
             onClick = { onSave(draft) },
             enabled = draft.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Save") }
+        ) { Text("Save & connect") }
     }
 }
 
 @Composable
-private fun BigButton(
-    label: String,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
+private fun ArrowButton(glyph: String, enabled: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier
+            .width(96.dp)
+            .height(64.dp),
     ) {
-        Text(label, fontSize = 28.sp)
+        Text(glyph, fontSize = 30.sp)
     }
 }
