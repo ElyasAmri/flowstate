@@ -1,0 +1,19 @@
+{
+  "name": "flowstate-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Flowstate monorepo: desktop app, demo video, and presentation. (The Android client under crc/ is a separate Gradle project.)",
+  "workspaces": [
+    "app",
+    "video",
+    "presentation"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w app",
+    "build": "npm run build --workspaces --if-present",
+    "dev:app": "npm run dev -w app",
+    "dev:video": "npm run dev -w video",
+    "dev:slides": "npm run dev -w presentation",
+    "tauri": "npm run tauri -w app"
+  }
+}
