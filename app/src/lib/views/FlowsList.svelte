@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { tryInvoke } from "../flow/tauri";
-  import { blankFlow, residenceCertificateFlow } from "../flow/fixtures";
+  import { blankFlow, exampleChannels, residenceCertificateFlow } from "../flow/fixtures";
+  import { seedChannelsIfEmpty } from "../flow/channels";
 
   interface Props {
     /** Open the editor on the given flow id. */
@@ -46,6 +47,9 @@
     // example is always available, then re-list so the card reflects on-disk
     // truth. (Off-Tauri returns null above and is handled separately.)
     if (flowList.length === 0) {
+      // Seed the channels the worked example references first, so its channel
+      // nodes resolve to the right colors when the editor opens.
+      await seedChannelsIfEmpty(exampleChannels);
       await tryInvoke<void>("write_flow", {
         dir,
         name: residenceCertificateFlow.id,

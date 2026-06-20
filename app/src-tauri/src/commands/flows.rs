@@ -22,6 +22,7 @@ pub struct Position {
 /// `kind` and `outcome` are kept as free-form strings here: this layer only
 /// persists; the frontend's TypeScript union is the schema authority.
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct FlowNode {
     pub id: String,
     pub kind: String,
@@ -29,6 +30,9 @@ pub struct FlowNode {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub description: Option<String>,
     pub position: Position,
+    /// Set only on `channel` nodes: the id of the referenced channel.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub channel_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub outcome: Option<String>,
 }
@@ -253,18 +257,20 @@ mod tests {
             nodes: vec![
                 FlowNode {
                     id: "a".into(),
-                    kind: "start".into(),
+                    kind: "channel".into(),
                     label: "Start".into(),
                     description: None,
                     position: Position { x: 0.0, y: 0.0 },
+                    channel_id: Some("ch-intake".into()),
                     outcome: None,
                 },
                 FlowNode {
                     id: "b".into(),
-                    kind: "terminal".into(),
+                    kind: "channel".into(),
                     label: "End".into(),
                     description: None,
                     position: Position { x: 100.0, y: 0.0 },
+                    channel_id: Some("ch-intake".into()),
                     outcome: Some("approved".into()),
                 },
             ],
@@ -335,6 +341,9 @@ mod tests {
         // The on-disk JSON must match the TS shape the frontend sends/reads.
         assert!(raw.contains("\"startNodeId\""), "got: {raw}");
         assert!(!raw.contains("start_node_id"), "got: {raw}");
+        // channel_id serializes camelCase as channelId and round-trips.
+        assert!(raw.contains("\"channelId\""), "got: {raw}");
+        assert!(!raw.contains("channel_id"), "got: {raw}");
     }
 
     #[test]

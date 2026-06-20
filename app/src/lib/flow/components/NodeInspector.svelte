@@ -11,6 +11,10 @@
   const node = $derived(editor.selectedNode);
   const edges = $derived(node ? editor.outgoingEdges(node.id) : []);
   const targets = $derived(editor.flow.nodes.filter((n) => n.id !== node?.id));
+  // Channels available to assign, sorted by title for a stable picker.
+  const channelList = $derived(
+    Object.values(editor.channels).sort((a, b) => a.title.localeCompare(b.title)),
+  );
 
   const outcomes: TerminalOutcome[] = ["approved", "rejected", "issued"];
 </script>
@@ -53,7 +57,30 @@
         ></textarea>
       </label>
 
-      {#if node.kind === "terminal"}
+      {#if node.kind === "channel"}
+        <label class="block space-y-1 text-sm">
+          <span class="text-zinc-500">Channel</span>
+          <select
+            data-testid="node-channel"
+            class="w-full rounded-md border border-black/10 bg-transparent px-2 py-1.5 dark:border-white/10"
+            value={node.channelId ?? ""}
+            onchange={(e) =>
+              editor.updateNode(node.id, {
+                channelId: e.currentTarget.value || undefined,
+              })}
+          >
+            <option value="">Unassigned…</option>
+            {#each channelList as ch (ch.id)}
+              <option value={ch.id}>{ch.title}</option>
+            {/each}
+          </select>
+          {#if !channelList.length}
+            <span class="block text-[11px] text-zinc-400">
+              No channels in the registry yet.
+            </span>
+          {/if}
+        </label>
+
         <label class="block space-y-1 text-sm">
           <span class="text-zinc-500">Outcome</span>
           <select
@@ -61,10 +88,10 @@
             value={node.outcome ?? ""}
             onchange={(e) =>
               editor.updateNode(node.id, {
-                outcome: e.currentTarget.value as TerminalOutcome,
+                outcome: (e.currentTarget.value || undefined) as TerminalOutcome | undefined,
               })}
           >
-            <option value="" disabled>Choose…</option>
+            <option value="">None (not an ending)</option>
             {#each outcomes as o (o)}
               <option value={o}>{o}</option>
             {/each}

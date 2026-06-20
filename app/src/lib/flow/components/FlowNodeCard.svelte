@@ -1,13 +1,16 @@
 <script lang="ts">
-  import type { FlowNode } from "../types";
+  import type { ChannelRegistry, FlowNode } from "../types";
   import { nodeKindMeta } from "../types";
   import { NODE_W, NODE_H } from "../geometry";
   import { kindIconPath } from "../kind-icon";
+  import { iconKeyForNode, nodeColorClasses } from "../node-color";
 
   interface Props {
     node: FlowNode;
     selected: boolean;
     isStart: boolean;
+    /** Channel registry, for deriving this node's color and icon. */
+    channels: ChannelRegistry;
     /** Pointer-down on the card body: begin a node drag (or selection). */
     onbodydown: (node: FlowNode, e: PointerEvent) => void;
     /** Pointer-down on the output port: begin a connection drag. */
@@ -16,9 +19,15 @@
     onportup: (node: FlowNode, e: PointerEvent) => void;
   }
 
-  let { node, selected, isStart, onbodydown, onportdown, onportup }: Props = $props();
+  let { node, selected, isStart, channels, onbodydown, onportdown, onportup }: Props = $props();
 
   const meta = $derived(nodeKindMeta(node.kind));
+  const colors = $derived(nodeColorClasses(node, channels));
+  const iconKey = $derived(iconKeyForNode(node, channels));
+  // The referenced channel (when this is a channel node), for the type label.
+  const channel = $derived(node.channelId ? (channels[node.channelId] ?? null) : null);
+  // Type label: the channel's title for a resolved channel node, else the kind.
+  const typeLabel = $derived(node.kind === "channel" && channel ? channel.title : meta.label);
   // Small subtle annotation shown by the type (not in the title).
   const annotation = $derived(isStart ? "start" : (node.outcome ?? null));
 
@@ -34,6 +43,9 @@
       : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
 >
+  <!-- Left accent bar: the node's color in the 4-color scheme (calm, thin). -->
+  <div class="absolute inset-y-0 left-0 w-1 {colors.accent}"></div>
+
   <!-- Card body: drag handle. Two columns: kind (icon + type) | name + desc. -->
   <div
     class="flex h-full cursor-grab items-stretch active:cursor-grabbing"
@@ -41,10 +53,8 @@
     tabindex="-1"
     onpointerdown={(e) => onbodydown(node, e)}
   >
-    <!-- Left column: monochrome kind icon with the type label beneath it. -->
-    <div
-      class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 px-2 text-zinc-500 dark:text-zinc-400"
-    >
+    <!-- Left column: color-tinted kind/binding icon with the type label beneath. -->
+    <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 {colors.icon}">
       <svg
         viewBox="0 0 24 24"
         class="h-6 w-6"
@@ -55,9 +65,9 @@
         stroke-linejoin="round"
         aria-hidden="true"
       >
-        {@html kindIconPath[node.kind]}
+        {@html kindIconPath[iconKey]}
       </svg>
-      <span class="text-[11px] leading-none">{meta.label}</span>
+      <span class="w-full truncate text-center text-[11px] leading-none">{typeLabel}</span>
     </div>
 
     <!-- Subtle vertical divider. -->

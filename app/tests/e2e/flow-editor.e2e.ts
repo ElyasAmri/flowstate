@@ -179,6 +179,28 @@ async function main(): Promise<void> {
     }
     log("initial autosave verified on disk (8 nodes, camelCase shape)");
 
+    // 4b) Channel registry: opening the empty library seeds the example channels
+    //     the worked flow references. Prove the registry is on disk with the
+    //     tagged binding shape, and that the flow's start node references one.
+    const channelsDir = path.join(SANDBOX, ".flowstate", "channels");
+    const intakeFile = path.join(channelsDir, "ch-intake.json");
+    await waitFor("channel registry seeded (ch-intake on disk)", async () =>
+      existsSync(intakeFile),
+    );
+    {
+      const onDisk = existsSync(channelsDir) ? readdirSync(channelsDir) : [];
+      log(`on-disk .flowstate/channels: ${JSON.stringify(onDisk)}`);
+      const intake = JSON.parse(readFileSync(intakeFile, "utf8"));
+      assert.equal(intake.id, "ch-intake", "seeded channel id should match");
+      assert.equal(intake.binding.kind, "ui", "intake channel binding should be tagged ui");
+
+      const parsedFlow = JSON.parse(readFileSync(flowFile, "utf8"));
+      const start = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-start");
+      assert.equal(start.kind, "channel", "start node should be a channel node");
+      assert.equal(start.channelId, "ch-intake", "start node should reference the intake channel");
+    }
+    log("channel registry verified on disk (tagged binding, node references channel)");
+
     // 5) Canvas interaction: add a node via the palette (data-flow-kind) -> the
     //    count increments to 9 and the debounced autosave (write_flow) fires.
     await browser.execute(() => {

@@ -5,7 +5,14 @@
 // seam: `serialize()` returns the plain `FlowDefinition` so a later Tauri save
 // command can write it to the Flow Configuration without touching the views.
 
-import type { FlowDefinition, FlowEdge, FlowNode, NodeKind, Position } from "./types";
+import type {
+  ChannelRegistry,
+  FlowDefinition,
+  FlowEdge,
+  FlowNode,
+  NodeKind,
+  Position,
+} from "./types";
 import { FlowHistory } from "./history";
 import { tryInvoke } from "./tauri";
 
@@ -19,12 +26,27 @@ function makeId(prefix: string): string {
 
 /** Default label for a freshly-added node of a given kind. */
 function defaultLabel(kind: NodeKind): string {
-  return `New ${kind}`;
+  switch (kind) {
+    case "channel":
+      return "New channel";
+    case "agent":
+      return "New agent step";
+    case "action":
+      return "New action";
+    case "decision":
+      return "New decision";
+  }
 }
 
 export class FlowEditor {
   flow = $state<FlowDefinition>(undefined as unknown as FlowDefinition);
   selectedNodeId = $state<string | null>(null);
+  /**
+   * The channel registry (id -> definition) used to derive node colors/icons.
+   * Set by the view once channels are loaded; defaults to empty so the canvas
+   * renders (gray fallback) before it arrives.
+   */
+  channels = $state<ChannelRegistry>({});
   /** Last-known persistence status (drives the header save indicator). */
   saveState = $state<SaveState>("idle");
   /** Reactive history flags driving the undo/redo affordances. */
@@ -86,6 +108,11 @@ export class FlowEditor {
 
   select(nodeId: string | null): void {
     this.selectedNodeId = nodeId;
+  }
+
+  /** Replace the channel registry used for color/icon derivation. */
+  setChannels(registry: ChannelRegistry): void {
+    this.channels = registry;
   }
 
   /** Add a node at a position; returns its new id and selects it. */

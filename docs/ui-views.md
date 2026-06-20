@@ -90,15 +90,32 @@ The canvas supports n8n-style direct manipulation:
   Undo/redo revalidates the selection so the inspector never points at a deleted
   node, and autosave persists the result like any other edit.
 
-The flow model lives under `app/src/lib/flow/`:
+The flow model lives under `app/src/lib/flow/` and is built on the **channel
+model** (see `docs/channel-model.md`): the harness reaches the outside world only
+across registered, typed **channels**, and node color encodes what is across the
+boundary.
 
-- `types.ts` — `FlowDefinition`, `FlowNode` (kinds: start, collect, check,
-  decision, action, escalate, terminal), `FlowEdge` (with optional `guard`), and
-  `NODE_KINDS` display metadata.
-- `editor.svelte.ts` — the `FlowEditor` class: `$state`-backed flow + selection
-  with pure mutation helpers (`addNode`, `updateNode`, `moveNode`, `deleteNode`,
-  `addEdge`, `updateEdge`, `deleteEdge`), `undo()`/`redo()` with reactive
-  `canUndo`/`canRedo`, a `serialize()` persistence seam, and `save()`/`load()`.
+- `types.ts` — `FlowDefinition`, `FlowNode` (kinds: `channel`, `agent`, `action`,
+  `decision`), `FlowEdge` (with optional `guard`), the channel types
+  (`ChannelDefinition`, `ChannelBinding` = `ui | flow | service`,
+  `ChannelMessage`/`ChannelField`, `ChannelRegistry`), and `NODE_KINDS` display
+  metadata. A `channel` node references a channel by `channelId`; its color is
+  derived from that channel's binding (ui = green, flow = purple, service =
+  yellow). `agent` is gray-dark (AI, non-deterministic); `action`/`decision` are
+  gray-static. A flow starts at an inbound channel node and ends at an outbound
+  channel node (which may carry an `outcome`).
+- `node-color.ts` — pure derivation: `nodeColor(node, registry)` →
+  `green | purple | yellow | gray-static | gray-agent`, `iconKeyForNode` (picks a
+  binding-specific channel icon), and the muted `COLOR_CLASSES` palette (accent +
+  icon tint, not a full fill). Unit-tested in `tests/unit/node-color.test.ts`.
+- `channels.ts` — channel-registry persistence seam over the backend
+  `list_channels`/`read_channel`/`write_channel`/`delete_channel` commands
+  (`loadRegistry`, `seedChannelsIfEmpty`, `toRegistry`); returns empty off-Tauri.
+- `editor.svelte.ts` — the `FlowEditor` class: `$state`-backed flow + selection +
+  channel registry (`setChannels`) with pure mutation helpers (`addNode`,
+  `updateNode`, `moveNode`, `deleteNode`, `addEdge`, `updateEdge`, `deleteEdge`),
+  `undo()`/`redo()` with reactive `canUndo`/`canRedo`, a `serialize()` persistence
+  seam, and `save()`/`load()`.
 - `history.ts` — pure `FlowHistory<T>`: a snapshot list + cursor with
   `commit(state, coalesceKey?)`, `undo`/`redo`, `breakCoalescing`, `reset`, and a
   `MAX_HISTORY` (100) bound. Unit-tested in `tests/unit/history.test.ts`.
@@ -109,7 +126,12 @@ The flow model lives under `app/src/lib/flow/`:
   `nodesBounds`) shared by the edge layer (`components/FlowEdges.svelte`) and the
   live connection preview so finished and in-progress edges look identical.
 - `fixtures.ts` — a worked **Residence Certificate Request** flow the editor
-  opens on (structured-cloned so edits don't touch the fixture).
+  opens on plus the `exampleChannels` it references (structured-cloned so edits
+  don't touch the fixture). The channel registry is seeded into the library on a
+  fresh project's first run.
+
+The inspector shows a **channel picker** and an **outcome** field for `channel`
+nodes; the palette adds the four node kinds.
 
 Pointer interaction lives in `FlowCanvas.svelte` as a small `$state`
 interaction union (`idle` / `panning` / `draggingNode` / `connecting`); window

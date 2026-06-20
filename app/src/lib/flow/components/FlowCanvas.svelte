@@ -180,6 +180,7 @@
         {node}
         selected={node.id === editor.selectedNodeId}
         isStart={editor.flow.startNodeId === node.id}
+        channels={editor.channels}
         onbodydown={handleBodyDown}
         onportdown={handlePortDown}
         onportup={handlePortUp}

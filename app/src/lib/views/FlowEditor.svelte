@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { FlowEditor, type SaveState } from "../flow/editor.svelte";
-  import { blankFlow, residenceCertificateFlow } from "../flow/fixtures";
+  import { blankFlow, exampleChannels, residenceCertificateFlow } from "../flow/fixtures";
+  import { loadRegistry, toRegistry } from "../flow/channels";
   import type { NodeKind } from "../flow/types";
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
   import NodePalette from "../flow/components/NodePalette.svelte";
@@ -36,6 +37,13 @@
     void (async () => {
       const loaded = await editor.load(initialId);
       if (!loaded) await editor.save();
+      // Load the channel registry for color/icon derivation. Off-Tauri the
+      // backend yields an empty registry, so fall back to the bundled example
+      // channels (which the worked-example flow references) so colors resolve.
+      const registry = await loadRegistry();
+      editor.setChannels(
+        Object.keys(registry).length ? registry : toRegistry(exampleChannels),
+      );
     })();
 
     window.addEventListener("keydown", handleKeydown);

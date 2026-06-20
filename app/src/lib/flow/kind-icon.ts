@@ -1,28 +1,32 @@
-// Per-node-kind icon path data. Inline SVG (no dependency); monochrome so the
-// canvas stays calm -- icons inherit `currentColor` (a neutral zinc) and carry
-// no per-kind color. Each entry is the inner markup of a 24x24 `viewBox` icon
-// drawn with `stroke="currentColor"` (see KindIcon below / the card markup).
+// Per-node icon path data. Inline SVG (no dependency); icons are stroked
+// outlines (fill="none"), 2px, round caps/joins, drawn in a 24x24 viewBox. The
+// stroke is `currentColor` so the card can tint it per the 4-color scheme.
 //
-// Icons are stroked outlines (fill="none"), 2px, round caps/joins.
+// Keys are `IconKey`s (see node-color.ts): the four node kinds plus three
+// binding-specific channel icons so a person, a nested flow, and a service read
+// differently at a glance. A generic "channel" key is the fallback for an
+// unresolved channel reference.
 
-import type { NodeKind } from "./types";
+import type { IconKey } from "./node-color";
 
-/** Inner SVG markup for each kind's 24x24 stroked icon. */
-export const kindIconPath: Record<NodeKind, string> = {
-  // start: a play/triangle -- the entry point.
-  start: '<path d="M7 5l12 7-12 7z" />',
-  // collect: an inbox / tray gathering input.
-  collect:
-    '<path d="M4 13l3 5h10l3-5" /><path d="M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7" /><path d="M9 13h6" />',
-  // check: a checkmark in motion -- automated validation.
-  check: '<path d="M20 6L9 17l-5-5" />',
+/** Inner SVG markup for each icon key's 24x24 stroked icon. */
+export const kindIconPath: Record<IconKey, string> = {
+  // agent: a spark / star -- an AI doing non-deterministic work.
+  agent: '<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z" /><path d="M18 14l.9 2.3L21 17l-2.1.7L18 20l-.9-2.3L15 17l2.1-.7z" />',
+  // action: a lightning bolt -- deterministic internal computation.
+  action: '<path d="M13 2L4 14h7l-1 8 9-12h-7z" />',
   // decision: a diamond -- a branch point.
   decision: '<path d="M12 3l9 9-9 9-9-9z" />',
-  // action: a lightning bolt -- calls out to an external service.
-  action: '<path d="M13 2L4 14h7l-1 8 9-12h-7z" />',
-  // escalate: an upward arrow into a tray -- hand off to a human.
-  escalate: '<path d="M12 19V5" /><path d="M6 11l6-6 6 6" />',
-  // terminal: a stop/flag -- the end state.
-  terminal:
-    '<path d="M5 21V4h12l-2 4 2 4H5" /><line x1="5" y1="21" x2="5" y2="3" />',
+  // channel (generic / unresolved): two arrows crossing a boundary.
+  channel:
+    '<path d="M12 3v18" stroke-dasharray="3 3" /><path d="M3 9h6l-2-2m2 2-2 2" /><path d="M21 15h-6l2-2m-2 2 2 2" />',
+  // channel-ui: a person -- bound to a human-operated app.
+  "channel-ui":
+    '<circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" />',
+  // channel-flow: nested nodes -- bound to another flow.
+  "channel-flow":
+    '<rect x="3" y="4" width="7" height="6" rx="1.5" /><rect x="14" y="14" width="7" height="6" rx="1.5" /><path d="M10 7h3a2 2 0 0 1 2 2v5" />',
+  // channel-service: a server stack -- bound to a service.
+  "channel-service":
+    '<rect x="4" y="4" width="16" height="7" rx="1.5" /><rect x="4" y="13" width="16" height="7" rx="1.5" /><path d="M8 7.5h.01M8 16.5h.01" />',
 };
