@@ -35,7 +35,7 @@
 </script>
 
 <div
-  class="group absolute select-none rounded-xl border-2 shadow-sm transition-all duration-150
+  class="group absolute select-none rounded-xl border-2 shadow-sm transition-[box-shadow,transform] duration-150
     {accents[node.kind]}
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
