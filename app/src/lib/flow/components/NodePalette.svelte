@@ -14,6 +14,7 @@
     {#each NODE_KINDS as meta (meta.kind)}
       <button
         type="button"
+        data-flow-kind={meta.kind}
         onclick={() => onadd(meta.kind)}
         class="block w-full rounded-md border border-black/10 px-2.5 py-1.5 text-left text-sm
           hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5"

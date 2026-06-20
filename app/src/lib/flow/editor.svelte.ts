@@ -6,6 +6,10 @@
 // command can write it to the Flow Configuration without touching the views.
 
 import type { FlowDefinition, FlowEdge, FlowNode, NodeKind, Position } from "./types";
+import { tryInvoke } from "./tauri";
+
+/** Persistence status, surfaced in the editor header as a save indicator. */
+export type SaveState = "idle" | "saving" | "saved" | "error";
 
 /** Monotonic id helper so added nodes/edges get unique, readable ids. */
 function makeId(prefix: string): string {
@@ -20,9 +24,19 @@ function defaultLabel(kind: NodeKind): string {
 export class FlowEditor {
   flow = $state<FlowDefinition>(undefined as unknown as FlowDefinition);
   selectedNodeId = $state<string | null>(null);
+  /** Last-known persistence status (drives the header save indicator). */
+  saveState = $state<SaveState>("idle");
 
   constructor(initial: FlowDefinition) {
     this.flow = initial;
+  }
+
+  /**
+   * Bare file name this flow persists as (`flows/<name>.json`). Derived from the
+   * flow id, which the fixture already keeps to a safe slug.
+   */
+  get name(): string {
+    return this.flow.id;
   }
 
   /** The currently selected node, or null. */
@@ -94,5 +108,48 @@ export class FlowEditor {
   /** Plain, serializable snapshot for persistence. */
   serialize(): FlowDefinition {
     return $state.snapshot(this.flow);
+  }
+
+  /**
+   * Persist this flow to the backend flow library
+   * (`<project_dir>/.flowstate/flows/<name>.json`). No-op outside Tauri.
+   */
+  async save(): Promise<void> {
+    this.saveState = "saving";
+    try {
+      const dir = await tryInvoke<string>("project_dir");
+      if (dir === null) {
+        // Not running under Tauri (dev/build): nothing to persist against.
+        this.saveState = "idle";
+        return;
+      }
+      await tryInvoke<void>("write_flow", {
+        dir,
+        name: this.name,
+        flow: this.serialize(),
+      });
+      this.saveState = "saved";
+    } catch {
+      this.saveState = "error";
+    }
+  }
+
+  /**
+   * Load a flow by name from the backend library, replacing the current flow.
+   * Returns false (and leaves state untouched) outside Tauri or on error.
+   */
+  async load(name: string): Promise<boolean> {
+    const dir = await tryInvoke<string>("project_dir");
+    if (dir === null) return false;
+    try {
+      const loaded = await tryInvoke<FlowDefinition>("read_flow", { dir, name });
+      if (!loaded) return false;
+      this.flow = loaded;
+      this.selectedNodeId = null;
+      this.saveState = "saved";
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
