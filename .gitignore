@@ -13,3 +13,6 @@ datasets/*
 
 # Obsidian local vault config (UI state, not shared)
 docs/.obsidian/
+
+# Node workspaces -- hoisted dependencies (root node_modules)
+node_modules/
