@@ -139,7 +139,7 @@ export const residenceCertificateFlow: FlowDefinition = {
       channelId: "ch-id-registry",
       label: "Validate ID against registry",
       description: "Look up the national ID in the government registry.",
-      position: { x: 340, y: 220 },
+      position: { x: 400, y: 220 },
     },
     // Agent: score the address proof. (gray-dark, non-deterministic)
     {
@@ -147,14 +147,14 @@ export const residenceCertificateFlow: FlowDefinition = {
       kind: "agent",
       label: "Assess address proof",
       description: "AI reads the document and scores how well it proves residence.",
-      position: { x: 600, y: 220 },
+      position: { x: 720, y: 220 },
     },
     // Decision: branch on the agent's confidence. (gray-static)
     {
       id: "n-decision",
       kind: "decision",
       label: "Address proof sufficient?",
-      position: { x: 860, y: 220 },
+      position: { x: 1040, y: 220 },
     },
     // Outbound UI channel: hand ambiguous cases to a bureaucrat. (green)
     {
@@ -163,7 +163,7 @@ export const residenceCertificateFlow: FlowDefinition = {
       channelId: "ch-bureaucrat",
       label: "Bureaucrat reviews address",
       description: "Manual review when the address proof is ambiguous.",
-      position: { x: 860, y: 400 },
+      position: { x: 1040, y: 400 },
     },
     // Outbound service channel: issue the certificate. (yellow)
     {
@@ -172,7 +172,7 @@ export const residenceCertificateFlow: FlowDefinition = {
       channelId: "ch-notify",
       label: "Issue certificate",
       description: "Generate the certificate document.",
-      position: { x: 1120, y: 140 },
+      position: { x: 1360, y: 140 },
     },
     // Outbound UI channel returning the result: issued. (green)
     {
@@ -181,7 +181,7 @@ export const residenceCertificateFlow: FlowDefinition = {
       channelId: "ch-intake",
       label: "Certificate issued",
       outcome: "issued",
-      position: { x: 1380, y: 140 },
+      position: { x: 1680, y: 140 },
     },
     // Outbound UI channel returning the result: rejected. (green)
     {
@@ -190,7 +190,7 @@ export const residenceCertificateFlow: FlowDefinition = {
       channelId: "ch-intake",
       label: "Application rejected",
       outcome: "rejected",
-      position: { x: 600, y: 400 },
+      position: { x: 720, y: 400 },
     },
   ],
   edges: [
@@ -246,7 +246,7 @@ export function blankFlow(id: string): FlowDefinition {
         id: "n-start",
         kind: "channel",
         label: "Application received",
-        position: { x: 160, y: 200 },
+        position: { x: 178, y: 200 },
       },
     ],
     edges: [],

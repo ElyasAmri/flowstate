@@ -56,7 +56,7 @@
     <!-- Left column: neutral kind/binding icon with the type label beneath.
          Color lives only in the top accent bar -- the icon and text stay neutral. -->
     <div
-      class="flex w-20 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
+      class="flex w-24 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
     >
       <svg
         viewBox="0 0 24 24"
