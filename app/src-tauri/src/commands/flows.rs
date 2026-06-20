@@ -160,16 +160,42 @@ pub fn read_flow(dir: String, name: String) -> Result<FlowDefinition, String> {
 
 /// Serialize a flow to pretty JSON and write atomically (write-temp + rename) so
 /// a crash mid-write can never leave a half-written flow on disk.
+///
+/// The temp file name is unique per call (pid + monotonic counter + nanosecond
+/// timestamp) so two concurrent writes -- e.g. a save outlasting the autosave
+/// debounce while edits continue -- never race on a shared temp path. On a
+/// rename failure the temp file is removed best-effort so a failed write does
+/// not leave a stray `.tmp` behind.
 #[tauri::command]
 pub fn write_flow(dir: String, name: String, flow: FlowDefinition) -> Result<(), String> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{SystemTime, UNIX_EPOCH};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
     safe_name(&name)?;
     let json = serde_json::to_string_pretty(&flow).map_err(|e| e.to_string())?;
     let d = flows_dir(&dir);
     std::fs::create_dir_all(&d).map_err(|e| e.to_string())?;
     let path = d.join(format!("{name}.json"));
-    let tmp = d.join(format!(".{name}.json.tmp"));
+
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let tmp = d.join(format!(
+        ".{name}.json.{}-{}-{}.tmp",
+        std::process::id(),
+        seq,
+        nanos
+    ));
+
     std::fs::write(&tmp, json).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
+    if let Err(e) = std::fs::rename(&tmp, &path) {
+        // Best-effort cleanup so a failed write leaves no stray temp behind.
+        let _ = std::fs::remove_file(&tmp);
+        return Err(e.to_string());
+    }
     Ok(())
 }
 
@@ -273,6 +299,32 @@ mod tests {
         assert!(on_disk.is_file(), "flow file should exist");
         let back = read_flow(tmp.dir(), "demo".into()).expect("read");
         assert_eq!(back, flow, "read should equal what was written");
+    }
+
+    #[test]
+    fn sequential_writes_round_trip_and_leave_no_temp_files() {
+        let tmp = TempDir::new("seqwrites");
+        let mut first = sample_flow();
+        first.title = "First".into();
+        let mut second = sample_flow();
+        second.title = "Second".into();
+
+        // Two writes to the same flow, as autosave does while editing continues.
+        write_flow(tmp.dir(), "demo".into(), first).expect("first write");
+        write_flow(tmp.dir(), "demo".into(), second.clone()).expect("second write");
+
+        // The latest write wins on round-trip.
+        let back = read_flow(tmp.dir(), "demo".into()).expect("read");
+        assert_eq!(back, second, "read should equal the last write");
+
+        // No stray temp files left behind in the flows dir.
+        let leftovers: Vec<String> = std::fs::read_dir(flows_dir(&tmp.dir()))
+            .expect("read flows dir")
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".tmp"))
+            .collect();
+        assert!(leftovers.is_empty(), "no .tmp should remain, got: {leftovers:?}");
     }
 
     #[test]
