@@ -43,8 +43,8 @@
       : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
 >
-  <!-- Left accent bar: the node's color in the 4-color scheme (calm, thin). -->
-  <div class="absolute inset-y-0 left-0 w-1 {colors.accent}"></div>
+  <!-- Top accent bar: the node's color in the 4-color scheme (calm, thin). -->
+  <div class="absolute inset-x-0 top-0 h-1 {colors.accent}"></div>
 
   <!-- Card body: drag handle. Two columns: kind (icon + type) | name + desc. -->
   <div
@@ -53,8 +53,11 @@
     tabindex="-1"
     onpointerdown={(e) => onbodydown(node, e)}
   >
-    <!-- Left column: color-tinted kind/binding icon with the type label beneath. -->
-    <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 {colors.icon}">
+    <!-- Left column: neutral kind/binding icon with the type label beneath.
+         Color lives only in the top accent bar -- the icon and text stay neutral. -->
+    <div
+      class="flex w-16 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
+    >
       <svg
         viewBox="0 0 24 24"
         class="h-6 w-6"

@@ -10,12 +10,22 @@
 //
 // This module is pure (no runes, no DOM): it returns a semantic NodeColor and a
 // small palette of muted Tailwind class fragments so the card stays calm -- color
-// is an accent (icon tint + thin left border), not a full fill.
+// is an accent (icon tint + thin top border), not a full fill.
 
-import type { ChannelBindingKind, ChannelRegistry, FlowNode, NodeKind } from "./types";
+import type {
+  ChannelBindingKind,
+  ChannelRegistry,
+  FlowNode,
+  NodeKind,
+} from "./types";
 
 /** Semantic color of a node, independent of any specific CSS framework. */
-export type NodeColor = "green" | "purple" | "yellow" | "gray-static" | "gray-agent";
+export type NodeColor =
+  | "green"
+  | "purple"
+  | "yellow"
+  | "gray-static"
+  | "gray-agent";
 
 /** Map a channel binding kind to its node color. */
 export function colorForBinding(binding: ChannelBindingKind): NodeColor {
@@ -34,7 +44,10 @@ export function colorForBinding(binding: ChannelBindingKind): NodeColor {
  * an unresolved channel (missing id / not in registry) falls back to gray-static
  * so the canvas never throws on a dangling reference.
  */
-export function nodeColor(node: FlowNode, registry: ChannelRegistry): NodeColor {
+export function nodeColor(
+  node: FlowNode,
+  registry: ChannelRegistry,
+): NodeColor {
   switch (node.kind) {
     case "channel": {
       const ch = node.channelId ? registry[node.channelId] : undefined;
@@ -52,7 +65,7 @@ export function nodeColor(node: FlowNode, registry: ChannelRegistry): NodeColor 
 export interface ColorClasses {
   /** Text color for the kind icon. */
   icon: string;
-  /** Left accent bar color (a thin colored strip on the card's left edge). */
+  /** Top accent bar color (a thin colored strip on the card's top edge). */
   accent: string;
   /** A small swatch background (used by the palette legend). */
   swatch: string;
@@ -88,7 +101,10 @@ export const COLOR_CLASSES: Record<NodeColor, ColorClasses> = {
 };
 
 /** Convenience: the class set for a node (derives the color first). */
-export function nodeColorClasses(node: FlowNode, registry: ChannelRegistry): ColorClasses {
+export function nodeColorClasses(
+  node: FlowNode,
+  registry: ChannelRegistry,
+): ColorClasses {
   return COLOR_CLASSES[nodeColor(node, registry)];
 }
 
@@ -97,9 +113,16 @@ export function nodeColorClasses(node: FlowNode, registry: ChannelRegistry): Col
  * a nested flow, and a service read differently at a glance; everything else uses
  * its kind. Returns a key into `kindIconPath` in kind-icon.ts.
  */
-export type IconKey = NodeKind | "channel-ui" | "channel-flow" | "channel-service";
+export type IconKey =
+  | NodeKind
+  | "channel-ui"
+  | "channel-flow"
+  | "channel-service";
 
-export function iconKeyForNode(node: FlowNode, registry: ChannelRegistry): IconKey {
+export function iconKeyForNode(
+  node: FlowNode,
+  registry: ChannelRegistry,
+): IconKey {
   if (node.kind === "channel") {
     const ch = node.channelId ? registry[node.channelId] : undefined;
     if (ch) return `channel-${ch.binding.kind}` as IconKey;
