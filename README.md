@@ -102,19 +102,48 @@ guards, and the escalation points.
 
 ```
 app/            Tauri 2 desktop client (Vite + Svelte 5 + Tailwind 4)
+video/          Demo video (Remotion 4 + React 19)
+presentation/   Slide deck (Vite + reveal.js)
+crc/            Android client (Kotlin + Jetpack Compose; separate Gradle project)
 docs/           Design canvas (Obsidian) and specs
 datasets/       Process-mining + Arabic corpora (gitignored; see catalog.csv)
 .maestro/       Harness config, flows, agents (gitignored, machine-local)
 ```
 
+`app/`, `video/`, and `presentation/` are npm workspaces sharing one hoisted
+root `node_modules` and lockfile. `crc/` is a standalone Gradle project (build
+it with its own `./gradlew`).
+
 ## Build & Run
 
-<!-- TODO: fill in once the harness integration lands. -->
+Install everything once from the repo root (installs all three workspaces):
 
 ```
-cd app
 npm install
-npm run tauri dev
+```
+
+Then run whichever target you need (each starts a live dev server):
+
+```
+npm run dev:app      # Tauri desktop app (alias: npm run tauri)
+npm run dev:slides   # presentation -> Vite dev server (reveal.js deck)
+npm run dev:video    # video -> Remotion Studio (preview + edit)
+```
+
+### Presentation
+
+```
+npm run dev:slides              # serve the deck with hot reload (Vite)
+npm run build -w presentation   # type-check + bundle to presentation/dist
+npm run preview -w presentation # serve the production build locally
+```
+
+### Video
+
+```
+npm run dev:video               # open Remotion Studio to preview/scrub
+npm run render -w video         # render a composition to an mp4
+npm run build -w video          # bundle the project (no render)
 ```
 
 ## Deliverables
