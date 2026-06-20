@@ -2,7 +2,9 @@
 
 The desktop frontend (`app/`) is a Svelte 5 + Tailwind 4 Tauri app. Its main
 content area uses manual, state-driven routing: a typed `Route` union held in
-`$state` in `app/src/App.svelte`, flipped by the native menubar.
+`$state` in `app/src/App.svelte`. The **flow selector is the default view**;
+in-app navigation (selector → editor → back) is driven by local handlers, while
+the native menubar emits id-free `navigate` events for the top-level views.
 
 ## View components
 
@@ -11,28 +13,40 @@ Each route renders a dedicated view component under `app/src/lib/views/`.
 
 | Route name  | Component            | File                                  |
 | ----------- | -------------------- | ------------------------------------- |
-| `home`      | `Home.svelte`        | `app/src/lib/views/Home.svelte`       |
+| `flows`     | `FlowsList.svelte`   | `app/src/lib/views/FlowsList.svelte`  |
 | `flow`      | `FlowEditor.svelte`  | `app/src/lib/views/FlowEditor.svelte` |
 | `workflows` | `Workflows.svelte`   | `app/src/lib/views/Workflows.svelte`  |
 | `documents` | `Documents.svelte`   | `app/src/lib/views/Documents.svelte`  |
 
-Previously the markup for all three routes lived inline in `App.svelte`. It has
-been extracted into these separate components; `App.svelte` now only handles
-routing and delegates rendering to the views.
+The `Route` union is `{ name: "flows" } | { name: "flow"; id } | { name:
+"workflows" } | { name: "documents" }` — the `flow` route carries the **id of
+the flow to open**, threaded from the selector. `App.svelte` wraps the editor in
+`{#key route.id}` so opening a different flow remounts a fresh editor. The
+native menubar can only carry a route *name* (no id), so it never opens a
+specific flow — that is the selector's job.
 
-### Home
+### Flow selector
 
-`Home.svelte` shows the app title, a short description, and a **Check Rust
-bridge** button. The button calls the `greet` Tauri command (defined in
-`src-tauri/src/lib.rs`) via `invoke` and displays the returned greeting,
-demonstrating the frontend ↔ Rust bridge. The `invoke` import and the `ping`
-handler moved out of `App.svelte` and now live in this component.
+`FlowsList.svelte` is the **default landing view**. It lists the saved flows from
+the backend `list_flows` command (`FlowMeta[]`: `id`, `title`, `node_count`) as a
+grid of cards; clicking a card opens that flow in the editor
+(`onopen(id)` → `route = { name: "flow", id }`). A **New flow** action
+(`data-testid="new-flow"`) creates a fresh blank flow (`blankFlow(id)` from
+`fixtures.ts`), persists it via `write_flow`, and opens the editor on it. Outside
+Tauri (`list_flows` returns `null`) it gracefully shows the bundled
+**Residence Certificate Request** fixture as a single seed card, so there is
+always a way into the editor. Cards carry `data-testid="flow-card"` +
+`data-flow-id={id}`; the container is `data-testid="flows-list"`.
 
 ### Flow editor
 
 `FlowEditor.svelte` is the **Policy Maker's flow authoring tool**: an n8n-style
 visual editor for the deterministic state machine the harness later executes. It
-uses a three-pane layout — a **palette** (`NodePalette.svelte`) for adding typed
+takes a `flowId` prop (the flow to open) and an `onback` callback (a **← Flows**
+header button, `data-testid="back"`, returns to the selector). It seeds from the
+fixture when `flowId` is the fixture id, else from a blank template, then
+`editor.load(flowId)` replaces that with the saved copy if one exists. It uses a
+three-pane layout — a **palette** (`NodePalette.svelte`) for adding typed
 nodes, an interactive **canvas** (`FlowCanvas.svelte`), and an **inspector**
 (`NodeInspector.svelte`) for editing the selected node and its outgoing
 transitions (label + guard condition).

@@ -138,13 +138,25 @@ async function main(): Promise<void> {
     await waitFor("app shell", async () => (await bodyText(browser!)).includes("Flowstate"));
     log("app shell rendered");
 
-    // 2) Navigate to the Flow Editor. The route is flipped by the native menubar
-    //    emitting a `navigate` Tauri event, which WebDriver cannot click -- so we
-    //    emit that exact event from page context (App.svelte listens for it).
+    // 2) The flow selector is the default view. Navigate to it explicitly via the
+    //    native `navigate` event (which WebDriver cannot click in the menubar, so
+    //    we emit it from page context -- App.svelte listens), then open the
+    //    fixture flow by clicking its selector card.
     await browser.execute(() => {
       // @ts-expect-error -- Tauri global injected into the webview at runtime.
-      window.__TAURI__.event.emit("navigate", "flow");
+      window.__TAURI__.event.emit("navigate", "flows");
     });
+    await waitFor("flow selector rendered", async () => {
+      const el = await browser!.$('[data-testid="flows-list"]');
+      return await el.isExisting();
+    });
+    log("flow selector rendered");
+
+    await waitFor("fixture card present", async () => {
+      const el = await browser!.$(`[data-flow-id="${FLOW_ID}"]`);
+      return await el.isExisting();
+    });
+    await (await browser.$(`[data-flow-id="${FLOW_ID}"]`)).click();
     await waitFor("flow editor open (flow-counts present)", async () => {
       const el = await browser!.$('[data-testid="flow-counts"]');
       return (await el.isExisting()) && (await el.getText()).includes("nodes");

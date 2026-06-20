@@ -1,22 +1,40 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { FlowEditor, type SaveState } from "../flow/editor.svelte";
-  import { residenceCertificateFlow } from "../flow/fixtures";
+  import { blankFlow, residenceCertificateFlow } from "../flow/fixtures";
   import type { NodeKind } from "../flow/types";
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
   import NodePalette from "../flow/components/NodePalette.svelte";
   import NodeInspector from "../flow/components/NodeInspector.svelte";
 
-  // Open the editor on the worked example. Structured-clone so editing does not
-  // mutate the shared fixture module.
-  const editor = new FlowEditor(structuredClone(residenceCertificateFlow));
+  interface Props {
+    /** Which flow to open (a bare flow id from the selector). */
+    flowId: string;
+    /** Return to the flow selector. */
+    onback: () => void;
+  }
+
+  let { flowId, onback }: Props = $props();
+
+  // Seed the editor with the right template for this id, then try to replace it
+  // with the saved copy from the backend library. The fixture id seeds the
+  // worked example; any other id seeds a blank flow. Structured-clone so editing
+  // never mutates the shared fixture module. `flowId` is captured once: App.svelte
+  // wraps this view in {#key route.id}, so a different flow remounts it fresh.
+  // svelte-ignore state_referenced_locally
+  const initialId = flowId;
+  const seed =
+    initialId === residenceCertificateFlow.id
+      ? structuredClone(residenceCertificateFlow)
+      : blankFlow(initialId);
+  const editor = new FlowEditor(seed);
 
   // On mount, prefer a previously-saved copy of this flow from the backend
-  // library; otherwise seed the library with the fixture so there's always a
-  // file on disk to round-trip against. No-op (returns false) outside Tauri.
+  // library; otherwise persist the seed so there's always a file on disk to
+  // round-trip against. No-op (load returns false) outside Tauri.
   onMount(() => {
     void (async () => {
-      const loaded = await editor.load(editor.name);
+      const loaded = await editor.load(initialId);
       if (!loaded) await editor.save();
     })();
 
@@ -89,6 +107,13 @@
 <div class="flex h-full flex-col">
   <header class="flex items-baseline justify-between border-b border-black/10 px-4 py-2 dark:border-white/10">
     <div class="flex items-baseline gap-2">
+      <button
+        type="button"
+        class="self-center rounded px-2 py-1 text-xs text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+        title="Back to flows"
+        data-testid="back"
+        onclick={onback}>← Flows</button
+      >
       <h1 class="text-base font-semibold">{editor.flow.title}</h1>
       <span class="text-xs text-zinc-500">flow editor</span>
     </div>

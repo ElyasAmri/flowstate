@@ -111,3 +111,26 @@ export const residenceCertificateFlow: FlowDefinition = {
     { id: "e-issue-approved", from: "n-issue", to: "n-approved" },
   ],
 };
+
+/**
+ * A fresh, empty flow with a single start node. Used by "New flow" in the
+ * selector and as a fallback when an unknown flow id is opened. The id must be a
+ * safe bare file name (see the backend `safe_name` guard).
+ */
+export function blankFlow(id: string): FlowDefinition {
+  return {
+    id,
+    title: "Untitled flow",
+    startNodeId: "n-start",
+    nodes: [
+      {
+        id: "n-start",
+        kind: "start",
+        label: "Application received",
+        position: { x: 160, y: 200 },
+      },
+    ],
+    edges: [],
+  };
+}
+
