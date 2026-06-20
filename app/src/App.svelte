@@ -2,6 +2,7 @@
   import { listen } from "@tauri-apps/api/event";
   import { onMount } from "svelte";
   import Home from "./lib/views/Home.svelte";
+  import FlowEditor from "./lib/views/FlowEditor.svelte";
   import Workflows from "./lib/views/Workflows.svelte";
   import Documents from "./lib/views/Documents.svelte";
 
@@ -11,6 +12,7 @@
   // in-app nav buttons.
   type Route =
     | { name: "home" }
+    | { name: "flow" }
     | { name: "workflows" }
     | { name: "documents" };
 
@@ -36,9 +38,11 @@
     </div>
   </header>
 
-  <main class="min-h-0 flex-1 overflow-auto p-6">
+  <main class="min-h-0 flex-1 overflow-auto {route.name === 'flow' ? '' : 'p-6'}">
     {#if route.name === "home"}
       <Home />
+    {:else if route.name === "flow"}
+      <FlowEditor />
     {:else if route.name === "workflows"}
       <Workflows />
     {:else}

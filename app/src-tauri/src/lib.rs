@@ -19,6 +19,7 @@ pub fn run() {
             // is the route name. App.svelte listens for it.
             let view = SubmenuBuilder::new(app, "View")
                 .text("nav-home", "Home")
+                .text("nav-flow", "Flow Editor")
                 .text("nav-workflows", "Workflows")
                 .text("nav-documents", "Documents")
                 .build()?;
@@ -29,6 +30,7 @@ pub fn run() {
             app.on_menu_event(|app, event| {
                 let route = match event.id().as_ref() {
                     "nav-home" => "home",
+                    "nav-flow" => "flow",
                     "nav-workflows" => "workflows",
                     "nav-documents" => "documents",
                     _ => return,
