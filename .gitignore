@@ -19,3 +19,6 @@ node_modules/
 
 # E2E test sandbox (fresh flow library per run; never committed)
 .local/
+
+# Flow editor runtime library (written when the app runs against this dir)
+.flowstate/
