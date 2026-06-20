@@ -1,0 +1,20 @@
+/* Flowstate deck overrides. The reveal.js "black" theme provides the base. */
+
+.reveal h1 {
+  font-size: 3.2em;
+  letter-spacing: -0.02em;
+}
+
+.reveal .subtitle {
+  opacity: 0.7;
+  font-size: 0.7em;
+}
+
+.reveal .slides section {
+  text-align: left;
+}
+
+.reveal .slides section h1,
+.reveal .slides section h2 {
+  text-align: center;
+}

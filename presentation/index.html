@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flowstate</title>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- 1. Title -->
+        <section>
+          <h1>Flowstate</h1>
+          <p>Codify bureaucratic procedures as deterministic, agent-driven workflows.</p>
+          <p class="subtitle">Smart Government &amp; Citizen Services &middot; powered by Fanar</p>
+          <aside class="notes">One-line pitch. Team: Osama, Elyas.</aside>
+        </section>
+
+        <!-- 2. Problem -->
+        <section>
+          <h2>The Problem</h2>
+          <ul>
+            <li>Routine applications are delayed, inconsistent, and expensive when every case waits on a person.</li>
+            <li>Most cases are automatable; only a few are true exceptions.</li>
+            <li>We need accountability: replayable and appealable decisions.</li>
+            <li>Arabic / Gulf government context matters &mdash; dialect, local procedures.</li>
+          </ul>
+          <aside class="notes">25% of scoring: importance, impact, value prop.</aside>
+        </section>
+
+        <!-- 3. Solution Architecture -->
+        <section>
+          <h2>Solution Architecture</h2>
+          <ul>
+            <li><strong>Discovery</strong> &mdash; dataset &rarr; mining &rarr; draft flow.</li>
+            <li><strong>Users</strong> &mdash; policy maker, bureaucrat, consumer.</li>
+            <li><strong>Flow runtime</strong> &mdash; config + deterministic harness + interaction layer.</li>
+            <li><strong>Core services</strong> &mdash; audit / record store, case / identity store.</li>
+            <li><strong>External services</strong> &mdash; registry, eID, payment, notification.</li>
+            <li><strong>Fanar</strong> &mdash; model backend for harness and hotline.</li>
+          </ul>
+          <aside class="notes">See docs/Diagram.canvas. TODO: architecture diagram export.</aside>
+        </section>
+
+        <!-- 4. Agentic Workflow Design -->
+        <section>
+          <h2>Agentic Workflow Design</h2>
+          <ul>
+            <li><strong>Planning / decomposition</strong> &mdash; the flow: nodes and edges.</li>
+            <li><strong>Tool orchestration</strong> &mdash; per-tool allow / ask / deny gating.</li>
+            <li><strong>Memory &amp; state</strong> &mdash; case / identity store.</li>
+            <li><strong>Retrieval</strong> &mdash; extract policy + database into the config.</li>
+            <li><strong>Autonomous execution</strong> &mdash; harness runs the flow deterministically.</li>
+            <li><strong>Multi-agent</strong> &mdash; subagents per task (own model / prompt / tools).</li>
+          </ul>
+          <aside class="notes">30% of scoring. TODO: walk one concrete flow end-to-end.</aside>
+        </section>
+
+        <!-- 5. Use of Fanar + External Tools -->
+        <section>
+          <h2>Use of Fanar &amp; External Tools</h2>
+          <ul>
+            <li><strong>Fanar as harness backend</strong> &mdash; runs flow-runtime agents and mining.</li>
+            <li><strong>Fanar for the hotline</strong> &mdash; Arabic speech / dialect interaction.</li>
+            <li><strong>Arabic capability</strong> &mdash; dialects and surfaces (TODO).</li>
+            <li><strong>External tools</strong> &mdash; aiXamine safeguards, eID / registry / payment.</li>
+          </ul>
+          <aside class="notes">20% of scoring: meaningful integration, strengths, limitations.</aside>
+        </section>
+
+        <!-- 6. Demo -->
+        <section>
+          <h2>Demo</h2>
+          <ul>
+            <li>One bureaucratic procedure, automated end-to-end.</li>
+            <li>Happy path: routine application flows through automatically.</li>
+            <li>Exception path: genuine edge case escalates to a human.</li>
+            <li>Auditable record of every decision.</li>
+          </ul>
+          <aside class="notes">Demo procedure: TBD (pick from datasets/ triage).</aside>
+        </section>
+
+        <!-- 7. Evaluation & Next Steps -->
+        <section>
+          <h2>Evaluation &amp; Next Steps</h2>
+          <ul>
+            <li>Fanar vs. alternative model on key Arabic tasks (comparison TODO).</li>
+            <li>Where Fanar handled the task well; where we needed external tools.</li>
+            <li>Limitations encountered during development.</li>
+            <li>Recommendations for future Fanar improvements.</li>
+          </ul>
+          <aside class="notes">15% of scoring: assessment, experiments, lessons learned.</aside>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
