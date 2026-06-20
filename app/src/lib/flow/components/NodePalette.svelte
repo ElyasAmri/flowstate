@@ -1,5 +1,6 @@
 <script lang="ts">
   import { NODE_KINDS, type NodeKind } from "../types";
+  import { kindDot } from "../kind-accent";
 
   interface Props {
     onadd: (kind: NodeKind) => void;
@@ -20,7 +21,10 @@
           hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5"
         title={meta.blurb}
       >
-        <span class="font-medium">{meta.label}</span>
+        <span class="flex items-center gap-1.5 font-medium">
+          <span class="h-2 w-2 shrink-0 rounded-full {kindDot[meta.kind]}"></span>
+          {meta.label}
+        </span>
         <span class="block text-[11px] leading-tight text-zinc-500">{meta.blurb}</span>
       </button>
     {/each}
