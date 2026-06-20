@@ -44,6 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crc.ui.theme.CRCTheme
 
+// OBS scene names -- create scenes with these exact names in OBS.
+private const val DECK_SCENE = "Deck"
+private const val DEMO_SCENE = "Demo"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,34 +66,49 @@ class MainActivity : ComponentActivity() {
 fun App(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
-    val client = remember { RemoteClient() }
-    DisposableEffect(Unit) { onDispose { client.disconnect() } }
+    val relay = remember { RemoteClient() }
+    val obs = remember { ObsClient() }
+    DisposableEffect(Unit) {
+        onDispose {
+            relay.disconnect()
+            obs.disconnect()
+        }
+    }
 
     var relayUrl by remember { mutableStateOf(prefs.relayUrl) }
+    var obsUrl by remember { mutableStateOf(prefs.obsUrl) }
+    var obsPassword by remember { mutableStateOf(prefs.obsPassword) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
-    // Auto-connect on launch and whenever the saved address changes, so the
-    // remote screen stays free of connection chrome -- the relay address is a
-    // setting, not a per-use step.
-    LaunchedEffect(relayUrl) { client.connect(relayUrl) }
+    // Auto-connect both legs on launch and whenever their settings change, so
+    // the control surface carries no connection chrome.
+    LaunchedEffect(relayUrl) { relay.connect(relayUrl) }
+    LaunchedEffect(obsUrl, obsPassword) { obs.connect(obsUrl, obsPassword) }
 
     if (showSettings) {
         SettingsScreen(
-            client = client,
-            initial = relayUrl,
-            onSave = { value ->
-                val trimmed = value.trim()
-                prefs.relayUrl = trimmed
-                relayUrl = trimmed
+            relay = relay,
+            obs = obs,
+            initialRelay = relayUrl,
+            initialObsUrl = obsUrl,
+            initialObsPassword = obsPassword,
+            onSave = { r, u, p ->
+                relayUrl = r.trim().also { prefs.relayUrl = it }
+                obsUrl = u.trim().also { prefs.obsUrl = it }
+                obsPassword = p.also { prefs.obsPassword = it }
                 showSettings = false
             },
             onBack = { showSettings = false },
             modifier = modifier,
         )
     } else {
-        RemoteScreen(
-            client = client,
-            onReconnect = { client.connect(relayUrl) },
+        StageScreen(
+            relay = relay,
+            obs = obs,
+            onReconnect = {
+                relay.connect(relayUrl)
+                obs.connect(obsUrl, obsPassword)
+            },
             onOpenSettings = { showSettings = true },
             modifier = modifier,
         )
@@ -97,15 +116,18 @@ fun App(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun RemoteScreen(
-    client: RemoteClient,
+private fun StageScreen(
+    relay: RemoteClient,
+    obs: ObsClient,
     onReconnect: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val state by client.state.collectAsState()
-    val position by client.position.collectAsState()
-    val connected = state == ConnState.Connected
+    val relayState by relay.state.collectAsState()
+    val position by relay.position.collectAsState()
+    val obsState by obs.state.collectAsState()
+    val scene by obs.scene.collectAsState()
+    val connected = relayState == ConnState.Connected
 
     Column(
         modifier = modifier
@@ -114,32 +136,15 @@ private fun RemoteScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Minimal header: a status dot (tap to reconnect) and a way into
-        // settings. No address, no connect button on the control surface.
+        // Minimal header: two status dots (tap either to reconnect) + settings.
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            val dot = when (state) {
-                ConnState.Connected -> Color(0xFF4CAF50)
-                ConnState.Connecting -> Color(0xFFFFC107)
-                ConnState.Error -> Color(0xFFF44336)
-                ConnState.Disconnected -> Color.Gray
-            }
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(dot)
-                    .clickable(onClick = onReconnect),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                if (connected) "" else "tap to reconnect",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
+            StatusDot(relayState, onReconnect)
+            Spacer(Modifier.width(6.dp))
+            StatusDot(obsState, onReconnect)
+            Spacer(Modifier.weight(1f))
             TextButton(onClick = onOpenSettings) { Text("Settings") }
         }
 
@@ -151,42 +156,60 @@ private fun RemoteScreen(
         } ?: "--"
         Text(where, style = MaterialTheme.typography.displaySmall)
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
 
-        // Small prev / next arrows -- the primary control.
+        // Slide nav -- small prev / next arrows.
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            ArrowButton("‹", connected) { client.send("prev") }
-            ArrowButton("›", connected) { client.send("next") }
+            ArrowButton("‹", connected) { relay.send("prev") }
+            ArrowButton("›", connected) { relay.send("next") }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = { relay.send("first") }, enabled = connected) { Text("First") }
+            OutlinedButton(onClick = { relay.send("overview") }, enabled = connected) {
+                Text("Overview")
+            }
         }
 
         Spacer(Modifier.weight(1f))
 
-        // Secondary jumps.
+        // OBS scene switching -- the seamless cut to the live app. Active scene
+        // stays highlighted (filled), driven by OBS events.
+        Text(
+            "SCENE",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        val obsReady = obsState == ConnState.Connected
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = { client.send("first") }, enabled = connected) { Text("First") }
-            OutlinedButton(onClick = { client.send("overview") }, enabled = connected) {
-                Text("Overview")
-            }
+            SceneButton("Deck", scene == DECK_SCENE, obsReady) { obs.setScene(DECK_SCENE) }
+            SceneButton("Demo", scene == DEMO_SCENE, obsReady) { obs.setScene(DEMO_SCENE) }
         }
     }
 }
 
 @Composable
 private fun SettingsScreen(
-    client: RemoteClient,
-    initial: String,
-    onSave: (String) -> Unit,
+    relay: RemoteClient,
+    obs: ObsClient,
+    initialRelay: String,
+    initialObsUrl: String,
+    initialObsPassword: String,
+    onSave: (String, String, String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val state by client.state.collectAsState()
-    var draft by rememberSaveable { mutableStateOf(initial) }
+    val relayState by relay.state.collectAsState()
+    val obsState by obs.state.collectAsState()
+    var relayDraft by rememberSaveable { mutableStateOf(initialRelay) }
+    var obsDraft by rememberSaveable { mutableStateOf(initialObsUrl) }
+    var pwDraft by rememberSaveable { mutableStateOf(initialObsPassword) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -203,28 +226,60 @@ private fun SettingsScreen(
         }
 
         OutlinedTextField(
-            value = draft,
-            onValueChange = { draft = it },
-            label = { Text("Relay address") },
-            supportingText = { Text("ws://<deck-host>:5173/remote") },
+            value = relayDraft,
+            onValueChange = { relayDraft = it },
+            label = { Text("Deck relay") },
+            supportingText = { Text(connLabel("relay", relayState)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = obsDraft,
+            onValueChange = { obsDraft = it },
+            label = { Text("OBS WebSocket") },
+            supportingText = { Text(connLabel("OBS", obsState)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = pwDraft,
+            onValueChange = { pwDraft = it },
+            label = { Text("OBS password") },
+            supportingText = { Text("blank if OBS auth is disabled") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
 
-        val (label, color) = when (state) {
-            ConnState.Connected -> "connected" to Color(0xFF4CAF50)
-            ConnState.Connecting -> "connecting..." to Color(0xFFFFC107)
-            ConnState.Error -> "connection failed" to Color(0xFFF44336)
-            ConnState.Disconnected -> "disconnected" to Color.Gray
-        }
-        Text(label, color = color)
-
         Button(
-            onClick = { onSave(draft) },
-            enabled = draft.isNotBlank(),
+            onClick = { onSave(relayDraft, obsDraft, pwDraft) },
+            enabled = relayDraft.isNotBlank() && obsDraft.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Save & connect") }
     }
+}
+
+private fun connLabel(name: String, state: ConnState): String = when (state) {
+    ConnState.Connected -> "$name: connected"
+    ConnState.Connecting -> "$name: connecting..."
+    ConnState.Error -> "$name: connection failed"
+    ConnState.Disconnected -> "$name: disconnected"
+}
+
+@Composable
+private fun StatusDot(state: ConnState, onClick: () -> Unit) {
+    val color = when (state) {
+        ConnState.Connected -> Color(0xFF4CAF50)
+        ConnState.Connecting -> Color(0xFFFFC107)
+        ConnState.Error -> Color(0xFFF44336)
+        ConnState.Disconnected -> Color.Gray
+    }
+    Box(
+        modifier = Modifier
+            .size(14.dp)
+            .clip(CircleShape)
+            .background(color)
+            .clickable(onClick = onClick),
+    )
 }
 
 @Composable
@@ -237,5 +292,18 @@ private fun ArrowButton(glyph: String, enabled: Boolean, onClick: () -> Unit) {
             .height(64.dp),
     ) {
         Text(glyph, fontSize = 30.sp)
+    }
+}
+
+@Composable
+private fun SceneButton(label: String, active: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    if (active) {
+        Button(onClick = onClick, enabled = enabled, modifier = Modifier.width(130.dp)) {
+            Text(label)
+        }
+    } else {
+        OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.width(130.dp)) {
+            Text(label)
+        }
     }
 }
