@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json",
+    "test:unit": "vitest run",
     "test:e2e": "bun tests/e2e/flow-editor.e2e.ts"
   },
   "license": "MIT",
@@ -28,6 +29,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "vite": "^8.0.12",
+    "vitest": "^3.0.0",
     "webdriverio": "^9.0.0"
   }
 }

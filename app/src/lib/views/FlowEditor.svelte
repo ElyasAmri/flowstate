@@ -19,7 +19,36 @@
       const loaded = await editor.load(editor.name);
       if (!loaded) await editor.save();
     })();
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
   });
+
+  /** True when the keystroke targets a text field (let the browser handle it). */
+  function isTyping(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    if (!el) return false;
+    const tag = el.tagName;
+    return (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      el.isContentEditable
+    );
+  }
+
+  // Ctrl/Cmd+Z = undo; Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y = redo. Ignored while
+  // typing in a field so the browser's own text undo still works there.
+  function handleKeydown(e: KeyboardEvent) {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    if (isTyping(e.target)) return;
+    const key = e.key.toLowerCase();
+    if (key === "z" && !e.shiftKey) {
+      if (editor.undo()) e.preventDefault();
+    } else if ((key === "z" && e.shiftKey) || key === "y") {
+      if (editor.redo()) e.preventDefault();
+    }
+  }
 
   // Debounced autosave: whenever the flow changes, persist ~400ms later. We read
   // the flow fields the effect should depend on, then schedule the write.
@@ -64,6 +93,26 @@
       <span class="text-xs text-zinc-500">flow editor</span>
     </div>
     <div class="flex items-baseline gap-3">
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          class="rounded px-2 py-1 text-xs text-zinc-600 enabled:hover:bg-black/5 disabled:opacity-40 dark:text-zinc-300 dark:enabled:hover:bg-white/10"
+          title="Undo (Ctrl+Z)"
+          aria-label="Undo"
+          data-testid="undo"
+          disabled={!editor.canUndo}
+          onclick={() => editor.undo()}>↶ Undo</button
+        >
+        <button
+          type="button"
+          class="rounded px-2 py-1 text-xs text-zinc-600 enabled:hover:bg-black/5 disabled:opacity-40 dark:text-zinc-300 dark:enabled:hover:bg-white/10"
+          title="Redo (Ctrl+Shift+Z)"
+          aria-label="Redo"
+          data-testid="redo"
+          disabled={!editor.canRedo}
+          onclick={() => editor.redo()}>↷ Redo</button
+        >
+      </div>
       {#if saveLabel[editor.saveState]}
         <span
           class="text-xs {editor.saveState === 'error'

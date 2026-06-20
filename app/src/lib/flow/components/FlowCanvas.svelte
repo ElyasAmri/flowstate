@@ -126,6 +126,9 @@
   function endGesture() {
     window.removeEventListener("pointermove", onWindowMove);
     window.removeEventListener("pointerup", onWindowUp);
+    // A finished node drag is one undo step; tell the editor to stop coalescing
+    // so the next drag starts a fresh history entry.
+    if (interaction.kind === "draggingNode") editor.endDrag();
     interaction = { kind: "idle" };
   }
 

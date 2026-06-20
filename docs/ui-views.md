@@ -53,6 +53,14 @@ The canvas supports n8n-style direct manipulation:
   zoom out / zoom % (click to reset to 100%) / zoom in / **fit to view**. The
   canvas also **fits-on-open** (one `requestAnimationFrame` after mount) so the
   fixture flow frames nicely.
+- **Undo / redo** — every mutation records a whole-flow snapshot. Header buttons
+  (`data-testid="undo"`/`"redo"`) and keys **Ctrl/Cmd+Z** (undo),
+  **Ctrl/Cmd+Shift+Z** and **Ctrl/Cmd+Y** (redo); the key handler ignores events
+  while typing in an input/textarea/select/contentEditable. A whole node **drag
+  coalesces** into one undo step (committed on drag end), as does a typing burst
+  into one inspector field (keyed `node:<id>:<field>` / `edge:<id>:<field>`).
+  Undo/redo revalidates the selection so the inspector never points at a deleted
+  node, and autosave persists the result like any other edit.
 
 The flow model lives under `app/src/lib/flow/`:
 
@@ -61,7 +69,11 @@ The flow model lives under `app/src/lib/flow/`:
   `NODE_KINDS` display metadata.
 - `editor.svelte.ts` — the `FlowEditor` class: `$state`-backed flow + selection
   with pure mutation helpers (`addNode`, `updateNode`, `moveNode`, `deleteNode`,
-  `addEdge`, `updateEdge`, `deleteEdge`) and a `serialize()` persistence seam.
+  `addEdge`, `updateEdge`, `deleteEdge`), `undo()`/`redo()` with reactive
+  `canUndo`/`canRedo`, a `serialize()` persistence seam, and `save()`/`load()`.
+- `history.ts` — pure `FlowHistory<T>`: a snapshot list + cursor with
+  `commit(state, coalesceKey?)`, `undo`/`redo`, `breakCoalescing`, `reset`, and a
+  `MAX_HISTORY` (100) bound. Unit-tested in `tests/unit/history.test.ts`.
 - `viewport.svelte.ts` — the `Viewport` class: `$state` pan + zoom with pure
   `screenToWorld` / `worldToScreen` transforms, zoom-toward-cursor math, and
   `fitTo(box, viewSize)` / `reset()` / `zoomStep()` for the controls.

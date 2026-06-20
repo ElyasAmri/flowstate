@@ -6,6 +6,7 @@
 // command can write it to the Flow Configuration without touching the views.
 
 import type { FlowDefinition, FlowEdge, FlowNode, NodeKind, Position } from "./types";
+import { FlowHistory } from "./history";
 import { tryInvoke } from "./tauri";
 
 /** Persistence status, surfaced in the editor header as a save indicator. */
@@ -26,9 +27,42 @@ export class FlowEditor {
   selectedNodeId = $state<string | null>(null);
   /** Last-known persistence status (drives the header save indicator). */
   saveState = $state<SaveState>("idle");
+  /** Reactive history flags driving the undo/redo affordances. */
+  canUndo = $state(false);
+  canRedo = $state(false);
+
+  // Whole-flow snapshot history. The initial flow is the baseline; undo never
+  // goes past it. Plain (non-rune) object: it stores defensive clones.
+  private history: FlowHistory<FlowDefinition>;
 
   constructor(initial: FlowDefinition) {
     this.flow = initial;
+    this.history = new FlowHistory<FlowDefinition>($state.snapshot(initial));
+  }
+
+  /**
+   * Record the current flow as a history entry, then refresh the reactive
+   * undo/redo flags. `coalesceKey` folds a burst (one drag, one field's typing)
+   * into a single undo step -- see FlowHistory.
+   */
+  private commit(coalesceKey?: string): void {
+    this.history.commit($state.snapshot(this.flow), coalesceKey);
+    this.canUndo = this.history.canUndo;
+    this.canRedo = this.history.canRedo;
+  }
+
+  /** Replace the flow from a restored snapshot and revalidate selection. */
+  private restore(snapshot: FlowDefinition): void {
+    this.flow = snapshot;
+    // The inspector must never point at a node that no longer exists.
+    if (
+      this.selectedNodeId !== null &&
+      !this.flow.nodes.some((n) => n.id === this.selectedNodeId)
+    ) {
+      this.selectedNodeId = null;
+    }
+    this.canUndo = this.history.canUndo;
+    this.canRedo = this.history.canRedo;
   }
 
   /**
@@ -60,6 +94,7 @@ export class FlowEditor {
     const node: FlowNode = { id, kind, label: defaultLabel(kind), position };
     this.flow.nodes.push(node);
     this.selectedNodeId = id;
+    this.commit();
     return id;
   }
 
@@ -68,10 +103,22 @@ export class FlowEditor {
     const node = this.flow.nodes.find((n) => n.id === id);
     if (!node) return;
     Object.assign(node, patch);
+    // Coalesce a typing burst into one field of one node into a single step.
+    const field = Object.keys(patch)[0] ?? "?";
+    this.commit(`node:${id}:${field}`);
   }
 
   moveNode(id: string, position: Position): void {
-    this.updateNode(id, { position });
+    const node = this.flow.nodes.find((n) => n.id === id);
+    if (!node) return;
+    node.position = position;
+    // Coalesce all moves during one drag of this node into a single step.
+    this.commit(`drag:${id}`);
+  }
+
+  /** End an in-progress drag so the next drag is its own undo step. */
+  endDrag(): void {
+    this.history.breakCoalescing();
   }
 
   /** Delete a node and any edges touching it. */
@@ -83,6 +130,7 @@ export class FlowEditor {
     if (this.flow.startNodeId === id) {
       this.flow.startNodeId = this.flow.nodes[0]?.id ?? "";
     }
+    this.commit();
   }
 
   /** Connect two nodes; ignores self-loops and exact duplicates. */
@@ -92,6 +140,7 @@ export class FlowEditor {
     if (exists) return null;
     const id = makeId("e");
     this.flow.edges.push({ id, from, to });
+    this.commit();
     return id;
   }
 
@@ -99,10 +148,30 @@ export class FlowEditor {
     const edge = this.flow.edges.find((e) => e.id === id);
     if (!edge) return;
     Object.assign(edge, patch);
+    // Coalesce a typing burst into one field of one edge into a single step.
+    const field = Object.keys(patch)[0] ?? "?";
+    this.commit(`edge:${id}:${field}`);
   }
 
   deleteEdge(id: string): void {
     this.flow.edges = this.flow.edges.filter((e) => e.id !== id);
+    this.commit();
+  }
+
+  /** Undo the last edit. Returns false when already at the baseline. */
+  undo(): boolean {
+    const snapshot = this.history.undo();
+    if (snapshot === null) return false;
+    this.restore(snapshot);
+    return true;
+  }
+
+  /** Redo the last undone edit. Returns false when at the tip. */
+  redo(): boolean {
+    const snapshot = this.history.redo();
+    if (snapshot === null) return false;
+    this.restore(snapshot);
+    return true;
   }
 
   /** Plain, serializable snapshot for persistence. */
@@ -146,6 +215,11 @@ export class FlowEditor {
       if (!loaded) return false;
       this.flow = loaded;
       this.selectedNodeId = null;
+      // A fresh load is a new baseline: undo must not cross back into the
+      // previously-edited flow.
+      this.history.reset($state.snapshot(this.flow));
+      this.canUndo = false;
+      this.canRedo = false;
       this.saveState = "saved";
       return true;
     } catch {
