@@ -135,6 +135,35 @@ describe("node-kind mapping", () => {
     expect(yaml).toContain("    to: dev");
   });
 
+  it("input (manual trigger) -> entry log, fields folded into vars", () => {
+    const f = flow({
+      startNodeId: "in",
+      vars: [{ name: "outcome", value: "" }],
+      nodes: [
+        node("in", "input", {
+          inputs: [
+            { name: "national_id", value: "19880421" },
+            { name: "applicant_name", value: "Layla" },
+          ],
+        }),
+        node("end", "action", { op: "log" }),
+      ],
+      edges: [edge("in", "end")],
+    });
+    const { yaml, errors } = compileFlow(f);
+    expect(errors).toEqual([]);
+    expect(yaml).toContain("initial: in");
+    // The typed case data becomes flow vars alongside declared state.
+    expect(yaml).toContain("  outcome: ''");
+    expect(yaml).toContain("  national_id: '19880421'");
+    expect(yaml).toContain("  applicant_name: Layla");
+    // The node itself is the entry log.
+    expect(yaml).toContain("    action: log");
+    expect(yaml).toContain(
+      "Manual input received (national_id, applicant_name).",
+    );
+  });
+
   it("decision -> pass-through log labelled Decision", () => {
     const f = flow({
       nodes: [
@@ -249,7 +278,8 @@ describe("bundled runnable fixture", () => {
     const { yaml, errors } = compileFlow(residenceCertificateRunnable);
     expect(errors).toEqual([]);
     // Spot-check the mappings that matter for a real run.
-    expect(yaml).toContain("initial: n-start");
+    expect(yaml).toContain("initial: n-input"); // the manual-input trigger
+    expect(yaml).toContain("  national_id: '19880421'"); // input fields folded into vars
     expect(yaml).toContain("    agent: arabic-reasoner"); // Fanar reasoning node
     expect(yaml).toContain("    kind: user"); // bureaucrat escalation gate
     expect(yaml).toContain("    action: shell"); // deterministic ID validation

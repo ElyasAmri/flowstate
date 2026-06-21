@@ -262,14 +262,8 @@ export const residenceCertificateRunnable: FlowDefinition = {
     "Executable twin of the showcase: auto-issues clean applications, escalates " +
     "ambiguous address proofs to a bureaucrat, rejects invalid identities. Compiles " +
     "to a maestro flow.",
-  startNodeId: "n-start",
+  startNodeId: "n-input",
   vars: [
-    { name: "national_id", value: "19880421" },
-    { name: "applicant_name", value: "Layla Al-Marri" },
-    {
-      name: "address_proof",
-      value: "Ooredoo utility bill this month; name and Doha address match.",
-    },
     { name: "addr_verdict", value: "" },
     { name: "outcome", value: "" },
     { name: "decision_reason", value: "" },
@@ -277,11 +271,20 @@ export const residenceCertificateRunnable: FlowDefinition = {
   ],
   nodes: [
     {
-      id: "n-start",
-      kind: "channel",
-      channelId: "ch-intake",
-      label: "Application received",
-      description: "Consumer submits national ID and proof of address.",
+      id: "n-input",
+      kind: "input",
+      label: "Application intake",
+      description:
+        "Manual trigger: type the citizen's application to run the flow.",
+      inputs: [
+        { name: "national_id", value: "19880421" },
+        { name: "applicant_name", value: "Layla Al-Marri" },
+        {
+          name: "address_proof",
+          value:
+            "Ooredoo utility bill this month; name and Doha address match.",
+        },
+      ],
       position: { x: 80, y: 220 },
     },
     {
@@ -354,7 +357,7 @@ export const residenceCertificateRunnable: FlowDefinition = {
     },
   ],
   edges: [
-    { id: "e-start-check", from: "n-start", to: "n-check-id" },
+    { id: "e-input-check", from: "n-input", to: "n-check-id" },
     {
       id: "e-check-score",
       from: "n-check-id",

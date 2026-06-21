@@ -6,6 +6,7 @@
     type NodeKind,
     type TerminalOutcome,
     type VarAssignment,
+    type VarDecl,
   } from "../types";
 
   interface Props {
@@ -51,6 +52,22 @@
   function withRemoved(list: VarAssignment[] | undefined, i: number): VarAssignment[] {
     return (list ?? []).filter((_, idx) => idx !== i);
   }
+
+  // --- manual-input field helpers (VarDecl: name + literal value) ------------
+
+  /** Replace an input node's field list. */
+  function setInputs(id: string, next: VarDecl[]): void {
+    editor.updateNode(id, { inputs: next });
+  }
+  function addInput(list: VarDecl[] | undefined): VarDecl[] {
+    return [...(list ?? []), { name: "", value: "" }];
+  }
+  function patchInput(list: VarDecl[] | undefined, i: number, patch: Partial<VarDecl>): VarDecl[] {
+    return (list ?? []).map((f, idx) => (idx === i ? { ...f, ...patch } : f));
+  }
+  function removeInput(list: VarDecl[] | undefined, i: number): VarDecl[] {
+    return (list ?? []).filter((_, idx) => idx !== i);
+  }
 </script>
 
 <aside
@@ -92,6 +109,46 @@
           oninput={(e) => editor.updateNode(node.id, { description: e.currentTarget.value })}
         ></textarea>
       </label>
+
+      <!-- input: the case data the operator types to start the flow (becomes vars) -->
+      {#if node.kind === "input"}
+        <div class="space-y-1 text-sm">
+          <span class="text-zinc-500">Case data</span>
+          <p class="text-[11px] text-zinc-400">
+            Each field becomes a flow variable. Nodes read it as
+            <span class="font-mono">{"{{name}}"}</span>.
+          </p>
+          {#each node.inputs ?? [] as f, i (i)}
+            <div class="flex items-center gap-1">
+              <input
+                placeholder="name"
+                class="w-1/2 rounded border border-black/10 bg-transparent px-1.5 py-1 font-mono text-xs dark:border-white/10"
+                value={f.name}
+                oninput={(e) => setInputs(node.id, patchInput(node.inputs, i, { name: e.currentTarget.value }))}
+              />
+              <input
+                placeholder="value"
+                class="flex-1 rounded border border-black/10 bg-transparent px-1.5 py-1 text-xs dark:border-white/10"
+                value={f.value}
+                oninput={(e) => setInputs(node.id, patchInput(node.inputs, i, { value: e.currentTarget.value }))}
+              />
+              <button
+                type="button"
+                class="text-rose-500 hover:text-rose-700"
+                title="Remove"
+                onclick={() => setInputs(node.id, removeInput(node.inputs, i))}>✕</button
+              >
+            </div>
+          {/each}
+          <button
+            type="button"
+            class="text-[11px] text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
+            onclick={() => setInputs(node.id, addInput(node.inputs))}
+          >
+            + add field
+          </button>
+        </div>
+      {/if}
 
       <!-- agent: which agent runs + the prompt it receives -->
       {#if node.kind === "agent"}

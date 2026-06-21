@@ -19,6 +19,7 @@
 
 /** The kind of a node, which determines its role in the executed flow. */
 export type NodeKind =
+  | "input" // manual trigger: the operator types the case data that starts the flow
   | "channel" // crosses a boundary; references a channel by id
   | "agent" // an AI agent reasons / classifies / extracts / drafts
   | "action" // deterministic internal logic / computation
@@ -86,6 +87,12 @@ export interface FlowNode {
   sendTo?: string;
   /** `action`/`op === "set"`: the variable assignments to apply. */
   assignments?: VarAssignment[];
+  /**
+   * `input`: the case data the operator enters to start the flow (an n8n-style
+   * manual trigger). Each becomes a flow `var` at compile time, so downstream
+   * nodes read it as `{{name}}`.
+   */
+  inputs?: VarDecl[];
 }
 
 /** A directed connection between two nodes. */
@@ -194,6 +201,11 @@ export interface NodeKindMeta {
 }
 
 export const NODE_KINDS: NodeKindMeta[] = [
+  {
+    kind: "input",
+    label: "Manual input",
+    blurb: "Trigger: type the case data to start the flow.",
+  },
   {
     kind: "channel",
     label: "Channel",

@@ -38,6 +38,8 @@ function makeId(prefix: string): string {
 /** Default label for a freshly-added node of a given kind. */
 function defaultLabel(kind: NodeKind): string {
   switch (kind) {
+    case "input":
+      return "Manual input";
     case "channel":
       return "New channel";
     case "agent":

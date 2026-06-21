@@ -25,7 +25,8 @@ export type NodeColor =
   | "purple"
   | "yellow"
   | "gray-static"
-  | "gray-agent";
+  | "gray-agent"
+  | "blue"; // the manual-input trigger -- the flow's entry point
 
 /** Map a channel binding kind to its node color. */
 export function colorForBinding(binding: ChannelBindingKind): NodeColor {
@@ -49,6 +50,8 @@ export function nodeColor(
   registry: ChannelRegistry,
 ): NodeColor {
   switch (node.kind) {
+    case "input":
+      return "blue";
     case "channel": {
       const ch = node.channelId ? registry[node.channelId] : undefined;
       return ch ? colorForBinding(ch.binding.kind) : "gray-static";
@@ -97,6 +100,11 @@ export const COLOR_CLASSES: Record<NodeColor, ColorClasses> = {
     icon: "text-zinc-700 dark:text-zinc-200",
     accent: "bg-zinc-700 dark:bg-zinc-300",
     swatch: "bg-zinc-700 dark:bg-zinc-300",
+  },
+  blue: {
+    icon: "text-sky-600 dark:text-sky-400",
+    accent: "bg-sky-500",
+    swatch: "bg-sky-500",
   },
 };
 

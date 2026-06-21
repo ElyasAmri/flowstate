@@ -117,10 +117,21 @@ export function compileFlow(flow: FlowDefinition): CompileResult {
   lines.push("version: 1");
   lines.push(`initial: ${scalar(flow.startNodeId)}`);
 
-  if (flow.vars && flow.vars.length) {
+  // Flow state = declared vars plus every manual-input node's fields (the case
+  // data the operator typed). Input fields win on a name clash, so the manual
+  // input is what the run actually starts from. Order preserved, input appended.
+  const vars = new Map<string, string>();
+  for (const v of flow.vars ?? []) vars.set(v.name, v.value);
+  for (const node of flow.nodes) {
+    if (node.kind === "input") {
+      for (const f of node.inputs ?? [])
+        if (f.name.trim()) vars.set(f.name, f.value);
+    }
+  }
+  if (vars.size) {
     lines.push("vars:");
-    for (const v of flow.vars)
-      lines.push(`  ${key(v.name)}: ${scalar(v.value)}`);
+    for (const [name, value] of vars)
+      lines.push(`  ${key(name)}: ${scalar(value)}`);
   }
 
   lines.push("nodes:");
@@ -169,6 +180,20 @@ function emitNodeBody(
   errors: string[],
 ): void {
   switch (node.kind) {
+    case "input": {
+      // The manual trigger. Its fields already seeded the flow `vars`; the node
+      // itself is the entry point -- a log that confirms the case came in.
+      const fields = (node.inputs ?? [])
+        .map((f) => f.name.trim())
+        .filter(Boolean);
+      const summary = fields.length
+        ? `Manual input received (${fields.join(", ")}).`
+        : "Manual input received.";
+      lines.push("    kind: action");
+      lines.push("    action: log");
+      lines.push(`    message: ${scalar(summary)}`);
+      return;
+    }
     case "agent": {
       const ref = node.agentRef?.trim() || "arabic-reasoner";
       lines.push("    kind: agent");
