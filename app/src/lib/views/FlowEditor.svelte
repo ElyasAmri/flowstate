@@ -12,6 +12,7 @@
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
   import NodePalette from "../flow/components/NodePalette.svelte";
   import NodeInspector from "../flow/components/NodeInspector.svelte";
+  import RunPanel from "../flow/components/RunPanel.svelte";
 
   interface Props {
     /** Which flow to open (a bare flow id from the selector). */
@@ -144,6 +145,9 @@
       ? { ok: true, lines: [`Compiled to ${r.path ?? ".maestro/flows"}`, `Run it in maestro:  /flow ${editor.name}`] }
       : { ok: false, lines: r.errors };
   }
+
+  // The in-app run panel (runs the current in-memory flow).
+  let running = $state(false);
 </script>
 
 <div class="flex h-full flex-col">
@@ -193,11 +197,18 @@
       </span>
       <button
         type="button"
-        class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        class="rounded border border-emerald-600 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
         title="Compile this flow to a runnable maestro flow under .maestro/flows/"
         data-testid="compile"
         disabled={compiling}
         onclick={handleCompile}>{compiling ? "Compiling…" : "Compile ▸"}</button
+      >
+      <button
+        type="button"
+        class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+        title="Run this flow in the app"
+        data-testid="run"
+        onclick={() => (running = true)}>Run ▸</button
       >
     </div>
   </header>
@@ -232,3 +243,7 @@
     <NodeInspector {editor} />
   </div>
 </div>
+
+{#if running}
+  <RunPanel flow={editor.serialize()} onclose={() => (running = false)} />
+{/if}

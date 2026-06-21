@@ -1,6 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
-use commands::{channels, flows};
+use commands::{channels, flows, run};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -22,7 +22,9 @@ pub fn run() {
             channels::list_channels,
             channels::read_channel,
             channels::write_channel,
-            channels::delete_channel
+            channels::delete_channel,
+            run::run_shell,
+            run::run_agent
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
