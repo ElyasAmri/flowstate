@@ -17,6 +17,7 @@ pub fn run() {
             flows::list_flows,
             flows::read_flow,
             flows::write_flow,
+            flows::write_maestro_flow,
             flows::delete_flow,
             channels::list_channels,
             channels::read_channel,

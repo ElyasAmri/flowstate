@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { FlowEditor, type SaveState } from "../flow/editor.svelte";
-  import { blankFlow, exampleChannels, residenceCertificateFlow } from "../flow/fixtures";
+  import {
+    blankFlow,
+    exampleChannels,
+    residenceCertificateFlow,
+    residenceCertificateRunnable,
+  } from "../flow/fixtures";
   import { loadRegistry, toRegistry } from "../flow/channels";
   import type { NodeKind } from "../flow/types";
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
@@ -24,10 +29,9 @@
   // wraps this view in {#key route.id}, so a different flow remounts it fresh.
   // svelte-ignore state_referenced_locally
   const initialId = flowId;
-  const seed =
-    initialId === residenceCertificateFlow.id
-      ? structuredClone(residenceCertificateFlow)
-      : blankFlow(initialId);
+  const bundled = [residenceCertificateFlow, residenceCertificateRunnable];
+  const fixture = bundled.find((f) => f.id === initialId);
+  const seed = fixture ? structuredClone(fixture) : blankFlow(initialId);
   const editor = new FlowEditor(seed);
 
   // On mount, prefer a previously-saved copy of this flow from the backend
@@ -124,6 +128,22 @@
     dropY += 24;
     dropX += 24;
   }
+
+  // Compile-to-maestro result, shown as a dismissable bar under the header.
+  let compileResult = $state<{ ok: boolean; lines: string[] } | null>(null);
+  let compiling = $state(false);
+
+  async function handleCompile() {
+    compiling = true;
+    // Flush pending edits first so we compile exactly what's on screen.
+    clearTimeout(saveTimer);
+    await editor.save();
+    const r = await editor.compileToMaestro();
+    compiling = false;
+    compileResult = r.ok
+      ? { ok: true, lines: [`Compiled to ${r.path ?? ".maestro/flows"}`, `Run it in maestro:  /flow ${editor.name}`] }
+      : { ok: false, lines: r.errors };
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -171,8 +191,38 @@
       <span class="text-xs text-zinc-500" data-testid="flow-counts">
         {editor.flow.nodes.length} nodes · {editor.flow.edges.length} transitions
       </span>
+      <button
+        type="button"
+        class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        title="Compile this flow to a runnable maestro flow under .maestro/flows/"
+        data-testid="compile"
+        disabled={compiling}
+        onclick={handleCompile}>{compiling ? "Compiling…" : "Compile ▸"}</button
+      >
     </div>
   </header>
+
+  {#if compileResult}
+    <div
+      class="flex items-start justify-between gap-3 border-b px-4 py-2 text-xs {compileResult.ok
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+        : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'}"
+      data-testid="compile-result"
+    >
+      <div class="space-y-0.5">
+        <p class="font-medium">{compileResult.ok ? "Compiled" : "Cannot compile yet"}</p>
+        {#each compileResult.lines as line (line)}
+          <p class="font-mono">{line}</p>
+        {/each}
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded px-1.5 py-0.5 hover:bg-black/5 dark:hover:bg-white/10"
+        title="Dismiss"
+        onclick={() => (compileResult = null)}>✕</button
+      >
+    </div>
+  {/if}
 
   <div class="flex min-h-0 flex-1">
     <NodePalette onadd={handleAdd} />

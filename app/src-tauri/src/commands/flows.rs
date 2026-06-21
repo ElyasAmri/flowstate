@@ -92,6 +92,47 @@ fn flows_dir(dir: &str) -> PathBuf {
     Path::new(dir).join(".flowstate").join("flows")
 }
 
+/// `<dir>/.maestro/flows` -- where compiled, runnable maestro flows land. The
+/// harness loads these with `/flow <name>`; the editor's `.flowstate/` library
+/// holds the authored source, this holds the compiled YAML.
+fn maestro_flows_dir(dir: &str) -> PathBuf {
+    Path::new(dir).join(".maestro").join("flows")
+}
+
+/// Atomic write (temp + rename) into `dir`, so a crash mid-write can never leave
+/// a half-written file. The temp name is unique per call (pid + counter + nanos)
+/// so concurrent writes never race on a shared temp path.
+fn atomic_write(target: &Path, contents: &str) -> Result<(), String> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{SystemTime, UNIX_EPOCH};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    let d = target.parent().ok_or("target has no parent directory")?;
+    std::fs::create_dir_all(d).map_err(|e| e.to_string())?;
+    let stem = target
+        .file_name()
+        .and_then(|s| s.to_str())
+        .ok_or("target has no file name")?;
+    let seq = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let tmp = d.join(format!(
+        ".{stem}.{}-{}-{}.tmp",
+        std::process::id(),
+        seq,
+        nanos
+    ));
+
+    std::fs::write(&tmp, contents).map_err(|e| e.to_string())?;
+    if let Err(e) = std::fs::rename(&tmp, target) {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(e.to_string());
+    }
+    Ok(())
+}
+
 /// Reject any name that could escape the flows directory.
 fn safe_name(name: &str) -> Result<(), String> {
     if name.is_empty()
@@ -203,6 +244,17 @@ pub fn write_flow(dir: String, name: String, flow: FlowDefinition) -> Result<(),
     Ok(())
 }
 
+/// Write a compiled maestro flow (YAML) to `<dir>/.maestro/flows/<name>.yaml`.
+/// This is the runnable artifact the editor produces from an authored flow; the
+/// harness loads it with `/flow <name>`. Returns the path written, for the UI.
+#[tauri::command]
+pub fn write_maestro_flow(dir: String, name: String, yaml: String) -> Result<String, String> {
+    safe_name(&name)?;
+    let path = maestro_flows_dir(&dir).join(format!("{name}.yaml"));
+    atomic_write(&path, &yaml)?;
+    Ok(path.display().to_string())
+}
+
 /// Delete a flow. A missing file is not an error (idempotent).
 #[tauri::command]
 pub fn delete_flow(dir: String, name: String) -> Result<(), String> {
@@ -228,10 +280,8 @@ mod tests {
             use std::sync::atomic::{AtomicU64, Ordering};
             static COUNTER: AtomicU64 = AtomicU64::new(0);
             let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-            let path = std::env::temp_dir().join(format!(
-                "flowstate-flows-{tag}-{}-{n}",
-                std::process::id()
-            ));
+            let path = std::env::temp_dir()
+                .join(format!("flowstate-flows-{tag}-{}-{n}", std::process::id()));
             let _ = std::fs::remove_dir_all(&path);
             std::fs::create_dir_all(&path).expect("create temp dir");
             TempDir { path }
@@ -330,7 +380,10 @@ mod tests {
             .map(|e| e.file_name().to_string_lossy().into_owned())
             .filter(|n| n.ends_with(".tmp"))
             .collect();
-        assert!(leftovers.is_empty(), "no .tmp should remain, got: {leftovers:?}");
+        assert!(
+            leftovers.is_empty(),
+            "no .tmp should remain, got: {leftovers:?}"
+        );
     }
 
     #[test]
@@ -380,6 +433,34 @@ mod tests {
         assert!(!flows_dir(&tmp.dir()).join("gone.json").exists());
         // Deleting again is a no-op, not an error.
         delete_flow(tmp.dir(), "gone".into()).expect("idempotent delete");
+    }
+
+    #[test]
+    fn write_maestro_flow_lands_under_dot_maestro() {
+        let tmp = TempDir::new("maestro");
+        let yaml = "version: 1\ninitial: a\nnodes:\n  a:\n    kind: action\n    action: log\n    message: hi\n    terminal: success\n";
+        let path = write_maestro_flow(tmp.dir(), "residence".into(), yaml.into()).expect("write");
+        let on_disk = maestro_flows_dir(&tmp.dir()).join("residence.yaml");
+        assert!(on_disk.is_file(), "compiled flow should exist at {path}");
+        let back = std::fs::read_to_string(&on_disk).expect("read back");
+        assert_eq!(back, yaml, "compiled YAML round-trips verbatim");
+        // No stray temp files left behind.
+        let leftovers: Vec<String> = std::fs::read_dir(maestro_flows_dir(&tmp.dir()))
+            .expect("read dir")
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".tmp"))
+            .collect();
+        assert!(
+            leftovers.is_empty(),
+            "no .tmp should remain, got: {leftovers:?}"
+        );
+    }
+
+    #[test]
+    fn write_maestro_flow_rejects_unsafe_name() {
+        let tmp = TempDir::new("maestro-unsafe");
+        assert!(write_maestro_flow(tmp.dir(), "../escape".into(), "x".into()).is_err());
     }
 
     #[test]

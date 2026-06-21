@@ -33,6 +33,23 @@ export interface Position {
   y: number;
 }
 
+/** The deterministic operation an `action` node performs when compiled. */
+export type ActionOp =
+  | "shell" // run a shell command; branch on its exit code / output
+  | "set" // assign flow variables from expressions
+  | "log" // emit a message (also the pass-through used for decisions/channels)
+  | "send"; // send a message into another node's mailbox
+
+/**
+ * One `var = expression` assignment. `expr` is written in the harness guard
+ * language: a bare word is a VARIABLE path (e.g. `outcome.text`); a literal
+ * string must be quoted inside the expression (e.g. `"issued"`).
+ */
+export interface VarAssignment {
+  var: string;
+  expr: string;
+}
+
 /** A single node in the flow graph. */
 export interface FlowNode {
   id: string;
@@ -52,6 +69,23 @@ export interface FlowNode {
    * `channel` node that returns a result to the consumer.
    */
   outcome?: TerminalOutcome;
+
+  // --- executable detail (used by the compiler; optional while authoring) ---
+
+  /** `agent`: which agent definition runs (a `.maestro/agents/<id>.md`). */
+  agentRef?: string;
+  /** `agent`: the instruction sent to the agent for this step. */
+  prompt?: string;
+  /** `action`: which deterministic operation this node performs. */
+  op?: ActionOp;
+  /** `action`/`op === "shell"`: the command to run. */
+  command?: string;
+  /** `action`/`op === "log" | "send"`: the message body. */
+  message?: string;
+  /** `action`/`op === "send"`: target node id whose mailbox receives the message. */
+  sendTo?: string;
+  /** `action`/`op === "set"`: the variable assignments to apply. */
+  assignments?: VarAssignment[];
 }
 
 /** A directed connection between two nodes. */
@@ -63,6 +97,14 @@ export interface FlowEdge {
   label?: string;
   /** The condition under which the harness takes this branch. */
   guard?: string;
+  /** Variable assignments applied when this branch is taken (compiled to `set`). */
+  set?: VarAssignment[];
+}
+
+/** A flow-level variable with its initial (literal) value. */
+export interface VarDecl {
+  name: string;
+  value: string;
 }
 
 /** A complete authored flow. */
@@ -72,6 +114,8 @@ export interface FlowDefinition {
   description?: string;
   /** Id of the entry node -- an `inbound` channel node. */
   startNodeId: string;
+  /** Flow-level state: variables with literal initial values. */
+  vars?: VarDecl[];
   nodes: FlowNode[];
   edges: FlowEdge[];
 }
@@ -117,7 +161,12 @@ export interface ChannelField {
 }
 
 /** The primitive types a channel field may carry. */
-export type ChannelFieldType = "string" | "number" | "boolean" | "date" | "file";
+export type ChannelFieldType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "date"
+  | "file";
 
 /** A registered channel: a typed boundary the harness exchanges messages over. */
 export interface ChannelDefinition {
@@ -145,10 +194,22 @@ export interface NodeKindMeta {
 }
 
 export const NODE_KINDS: NodeKindMeta[] = [
-  { kind: "channel", label: "Channel", blurb: "Cross a boundary via a registered channel." },
-  { kind: "agent", label: "Agent", blurb: "An AI agent reasons, classifies, or drafts." },
+  {
+    kind: "channel",
+    label: "Channel",
+    blurb: "Cross a boundary via a registered channel.",
+  },
+  {
+    kind: "agent",
+    label: "Agent",
+    blurb: "An AI agent reasons, classifies, or drafts.",
+  },
   { kind: "action", label: "Action", blurb: "Deterministic internal logic." },
-  { kind: "decision", label: "Decision", blurb: "Branch on data with guarded edges." },
+  {
+    kind: "decision",
+    label: "Decision",
+    blurb: "Branch on data with guarded edges.",
+  },
 ];
 
 /** Look up display metadata for a node kind. */

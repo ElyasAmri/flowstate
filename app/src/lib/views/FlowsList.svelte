@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { tryInvoke } from "../flow/tauri";
-  import { blankFlow, exampleChannels, residenceCertificateFlow } from "../flow/fixtures";
+  import {
+    blankFlow,
+    exampleChannels,
+    residenceCertificateFlow,
+    residenceCertificateRunnable,
+  } from "../flow/fixtures";
   import { seedChannelsIfEmpty } from "../flow/channels";
 
   interface Props {
@@ -26,37 +31,36 @@
   let flows = $state<FlowMeta[]>([]);
   let creating = $state(false);
 
+  // The bundled worked examples: the channel-model showcase and its runnable
+  // (compilable) twin. Both are always available in the selector.
+  const bundled = [residenceCertificateFlow, residenceCertificateRunnable];
+
   async function refresh() {
     const dir = await tryInvoke<string>("project_dir");
     if (dir === null) {
-      // Off-Tauri: surface the fixture so the selector is never a dead end.
-      flows = [
-        {
-          id: residenceCertificateFlow.id,
-          title: residenceCertificateFlow.title,
-          node_count: residenceCertificateFlow.nodes.length,
-        },
-      ];
+      // Off-Tauri: surface the fixtures so the selector is never a dead end.
+      flows = bundled.map((f) => ({ id: f.id, title: f.title, node_count: f.nodes.length }));
       status = "unavailable";
       return;
     }
     const list = await tryInvoke<FlowMeta[]>("list_flows", { dir });
     let flowList = list ?? [];
-    // First run under Tauri: an empty library means a fresh project. Seed the
-    // worked example into it (write_flow) so the selector is never empty and the
-    // example is always available, then re-list so the card reflects on-disk
-    // truth. (Off-Tauri returns null above and is handled separately.)
-    if (flowList.length === 0) {
-      // Seed the channels the worked example references first, so its channel
-      // nodes resolve to the right colors when the editor opens.
-      await seedChannelsIfEmpty(exampleChannels);
-      await tryInvoke<void>("write_flow", {
-        dir,
-        name: residenceCertificateFlow.id,
-        flow: residenceCertificateFlow,
-      });
+    // Seed the channels the worked examples reference on a fresh library so
+    // their channel nodes resolve to the right colors when the editor opens.
+    if (flowList.length === 0) await seedChannelsIfEmpty(exampleChannels);
+    // Ensure both bundled examples exist in the library (fresh project OR an
+    // existing one that predates the runnable twin), then re-list so the cards
+    // reflect on-disk truth.
+    let changed = false;
+    for (const fx of bundled) {
+      if (!flowList.some((f) => f.id === fx.id)) {
+        await tryInvoke<void>("write_flow", { dir, name: fx.id, flow: fx });
+        changed = true;
+      }
+    }
+    if (changed) {
       const seeded = await tryInvoke<FlowMeta[]>("list_flows", { dir });
-      flowList = seeded ?? [];
+      flowList = seeded ?? flowList;
     }
     flows = flowList;
     status = "ready";

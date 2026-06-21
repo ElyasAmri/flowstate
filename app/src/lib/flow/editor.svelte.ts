@@ -12,9 +12,20 @@ import type {
   FlowNode,
   NodeKind,
   Position,
+  VarDecl,
 } from "./types";
 import { FlowHistory } from "./history";
+import { compileFlow } from "./compile";
 import { tryInvoke } from "./tauri";
+
+/** Outcome of compiling the flow to a runnable maestro flow. */
+export interface CompileOutcome {
+  ok: boolean;
+  /** Blocking compile/validation problems (empty when `ok`). */
+  errors: string[];
+  /** Where the compiled YAML was written (present when `ok` under Tauri). */
+  path?: string;
+}
 
 /** Persistence status, surfaced in the editor header as a save indicator. */
 export type SaveState = "idle" | "saving" | "saved" | "error";
@@ -156,7 +167,9 @@ export class FlowEditor {
   /** Delete a node and any edges touching it. */
   deleteNode(id: string): void {
     this.flow.nodes = this.flow.nodes.filter((n) => n.id !== id);
-    this.flow.edges = this.flow.edges.filter((e) => e.from !== id && e.to !== id);
+    this.flow.edges = this.flow.edges.filter(
+      (e) => e.from !== id && e.to !== id,
+    );
     if (this.selectedNodeId === id) this.selectedNodeId = null;
     // Keep startNodeId valid if the start node was removed.
     if (this.flow.startNodeId === id) {
@@ -176,7 +189,10 @@ export class FlowEditor {
     return id;
   }
 
-  updateEdge(id: string, patch: Partial<Omit<FlowEdge, "id" | "from" | "to">>): void {
+  updateEdge(
+    id: string,
+    patch: Partial<Omit<FlowEdge, "id" | "from" | "to">>,
+  ): void {
     const edge = this.flow.edges.find((e) => e.id === id);
     if (!edge) return;
     Object.assign(edge, patch);
@@ -187,6 +203,37 @@ export class FlowEditor {
 
   deleteEdge(id: string): void {
     this.flow.edges = this.flow.edges.filter((e) => e.id !== id);
+    this.commit();
+  }
+
+  /** Flow-level variables (lazily initialized to an empty list). */
+  get vars(): VarDecl[] {
+    return this.flow.vars ?? [];
+  }
+
+  /** Append a new flow variable with a placeholder name. */
+  addVar(): void {
+    if (!this.flow.vars) this.flow.vars = [];
+    this.flow.vars.push({
+      name: `var_${this.flow.vars.length + 1}`,
+      value: "",
+    });
+    this.commit();
+  }
+
+  /** Patch a flow variable by index. */
+  updateVar(index: number, patch: Partial<VarDecl>): void {
+    const v = this.flow.vars?.[index];
+    if (!v) return;
+    Object.assign(v, patch);
+    const field = Object.keys(patch)[0] ?? "?";
+    this.commit(`var:${index}:${field}`);
+  }
+
+  /** Remove a flow variable by index. */
+  removeVar(index: number): void {
+    if (!this.flow.vars) return;
+    this.flow.vars.splice(index, 1);
     this.commit();
   }
 
@@ -209,6 +256,35 @@ export class FlowEditor {
   /** Plain, serializable snapshot for persistence. */
   serialize(): FlowDefinition {
     return $state.snapshot(this.flow);
+  }
+
+  /**
+   * Compile this flow to a runnable maestro flow and write it to
+   * `<project>/.maestro/flows/<name>.yaml` (the harness loads it with
+   * `/flow <name>`). Returns the compile errors without writing if the flow is
+   * not yet runnable. Off-Tauri the compile still runs but there's nowhere to
+   * write, so it reports that.
+   */
+  async compileToMaestro(): Promise<CompileOutcome> {
+    const { yaml, errors } = compileFlow(this.serialize());
+    if (errors.length) return { ok: false, errors };
+    const dir = await tryInvoke<string>("project_dir");
+    if (dir === null) {
+      return {
+        ok: false,
+        errors: ["Not running under Tauri -- cannot write the compiled flow."],
+      };
+    }
+    try {
+      const path = await tryInvoke<string>("write_maestro_flow", {
+        dir,
+        name: this.name,
+        yaml,
+      });
+      return { ok: true, errors: [], path: path ?? undefined };
+    } catch (e) {
+      return { ok: false, errors: [String(e)] };
+    }
   }
 
   /**
@@ -257,7 +333,10 @@ export class FlowEditor {
     const dir = await tryInvoke<string>("project_dir");
     if (dir === null) return false;
     try {
-      const loaded = await tryInvoke<FlowDefinition>("read_flow", { dir, name });
+      const loaded = await tryInvoke<FlowDefinition>("read_flow", {
+        dir,
+        name,
+      });
       if (!loaded) return false;
       this.flow = loaded;
       this.selectedNodeId = null;

@@ -20,7 +20,8 @@ export const exampleChannels: ChannelDefinition[] = [
   {
     id: "ch-intake",
     title: "Consumer application app",
-    description: "The citizen-facing app that submits the request and shows the result.",
+    description:
+      "The citizen-facing app that submits the request and shows the result.",
     direction: "both",
     binding: { kind: "ui" },
     accepts: [
@@ -146,7 +147,8 @@ export const residenceCertificateFlow: FlowDefinition = {
       id: "n-score-address",
       kind: "agent",
       label: "Assess address proof",
-      description: "AI reads the document and scores how well it proves residence.",
+      description:
+        "AI reads the document and scores how well it proves residence.",
       position: { x: 720, y: 220 },
     },
     // Decision: branch on the agent's confidence. (gray-static)
@@ -224,9 +226,219 @@ export const residenceCertificateFlow: FlowDefinition = {
       label: "ambiguous",
       guard: "address.confidence < 0.9",
     },
-    { id: "e-escalate-issue", from: "n-escalate", to: "n-issue", label: "approved" },
-    { id: "e-escalate-reject", from: "n-escalate", to: "n-rejected", label: "denied" },
+    {
+      id: "e-escalate-issue",
+      from: "n-escalate",
+      to: "n-issue",
+      label: "approved",
+    },
+    {
+      id: "e-escalate-reject",
+      from: "n-escalate",
+      to: "n-rejected",
+      label: "denied",
+    },
     { id: "e-issue-approved", from: "n-issue", to: "n-approved" },
+  ],
+};
+
+/**
+ * The runnable twin of `residenceCertificateFlow`: the same procedure, carrying
+ * the executable detail the compiler needs (agent prompts, action ops, flow
+ * vars, branch guards in the harness expression language, and per-branch `set`s).
+ * Clicking "Compile" on this one produces a clean `.maestro/flows/<id>.yaml` the
+ * harness runs with `/flow <id>`.
+ *
+ * It differs from the showcase only where execution demands it: identity
+ * validation is a deterministic shell action (a service channel can't yield an
+ * exit code to branch on), and the address agent emits a VERDICT the decision
+ * branches on -- carried through a variable, because a node's guards see only the
+ * immediately preceding node's outcome.
+ */
+export const residenceCertificateRunnable: FlowDefinition = {
+  id: "residence-certificate-runnable",
+  title: "Residence Certificate (runnable)",
+  description:
+    "Executable twin of the showcase: auto-issues clean applications, escalates " +
+    "ambiguous address proofs to a bureaucrat, rejects invalid identities. Compiles " +
+    "to a maestro flow.",
+  startNodeId: "n-start",
+  vars: [
+    { name: "national_id", value: "19880421" },
+    { name: "applicant_name", value: "Layla Al-Marri" },
+    {
+      name: "address_proof",
+      value: "Ooredoo utility bill this month; name and Doha address match.",
+    },
+    { name: "addr_verdict", value: "" },
+    { name: "outcome", value: "" },
+    { name: "decision_reason", value: "" },
+    { name: "certificate_url", value: "" },
+  ],
+  nodes: [
+    {
+      id: "n-start",
+      kind: "channel",
+      channelId: "ch-intake",
+      label: "Application received",
+      description: "Consumer submits national ID and proof of address.",
+      position: { x: 80, y: 220 },
+    },
+    {
+      id: "n-check-id",
+      kind: "action",
+      op: "shell",
+      label: "Validate ID against registry",
+      description:
+        "Deterministic registry check: a valid ID is 8 digits, not leading zero.",
+      command:
+        "$id = '{{national_id}}'\n" +
+        "if ($id -match '^[1-9][0-9]{7}$') { Write-Output 'MATCH'; exit 0 }\n" +
+        "Write-Error 'national id not found in registry'; exit 1",
+      position: { x: 400, y: 220 },
+    },
+    {
+      id: "n-score-address",
+      kind: "agent",
+      agentRef: "arabic-reasoner",
+      label: "Assess address proof",
+      description: "Fanar reads the proof and returns a verdict.",
+      prompt:
+        "Assess whether the proof of address confirms the applicant resides at the stated address.\n\n" +
+        "Applicant: {{applicant_name}}\nNational ID: {{national_id}}\nProof: {{address_proof}}\n\n" +
+        "Explain briefly, then end with EXACTLY one line:\n" +
+        "  VERDICT: sufficient    -- clearly proves residence; auto-issue\n" +
+        "  VERDICT: ambiguous     -- unclear; a bureaucrat must review\n" +
+        "  VERDICT: insufficient  -- does not prove residence; reject",
+      position: { x: 720, y: 220 },
+    },
+    {
+      id: "n-decision",
+      kind: "decision",
+      label: "Address proof sufficient?",
+      position: { x: 1040, y: 220 },
+    },
+    {
+      id: "n-escalate",
+      kind: "channel",
+      channelId: "ch-bureaucrat",
+      label: "Bureaucrat reviews address",
+      description:
+        "Review {{applicant_name}} (ID {{national_id}}). Proof: {{address_proof}}\n\n" +
+        "Notes: {{decision_reason}}\n\nApprove to issue the certificate, or reject to deny.",
+      position: { x: 1040, y: 400 },
+    },
+    {
+      id: "n-issue",
+      kind: "channel",
+      channelId: "ch-notify",
+      label: "Issue certificate",
+      description: "Generate the certificate document.",
+      position: { x: 1360, y: 140 },
+    },
+    {
+      id: "n-approved",
+      kind: "channel",
+      channelId: "ch-intake",
+      label: "Certificate issued",
+      outcome: "issued",
+      position: { x: 1680, y: 140 },
+    },
+    {
+      id: "n-rejected",
+      kind: "channel",
+      channelId: "ch-intake",
+      label: "Application rejected",
+      outcome: "rejected",
+      position: { x: 720, y: 400 },
+    },
+  ],
+  edges: [
+    { id: "e-start-check", from: "n-start", to: "n-check-id" },
+    {
+      id: "e-check-score",
+      from: "n-check-id",
+      to: "n-score-address",
+      label: "ID valid",
+      guard: "outcome.exit == 0",
+    },
+    {
+      id: "e-check-reject",
+      from: "n-check-id",
+      to: "n-rejected",
+      label: "ID invalid",
+      set: [
+        { var: "outcome", expr: '"rejected"' },
+        {
+          var: "decision_reason",
+          expr: '"National ID failed registry validation."',
+        },
+      ],
+    },
+    {
+      id: "e-score-decision",
+      from: "n-score-address",
+      to: "n-decision",
+      set: [
+        { var: "addr_verdict", expr: "outcome.verdict" },
+        { var: "decision_reason", expr: "outcome.text" },
+      ],
+    },
+    {
+      id: "e-decision-issue",
+      from: "n-decision",
+      to: "n-issue",
+      label: "sufficient",
+      guard: 'addr_verdict == "sufficient"',
+      set: [{ var: "outcome", expr: '"issued"' }],
+    },
+    {
+      id: "e-decision-escalate",
+      from: "n-decision",
+      to: "n-escalate",
+      label: "ambiguous",
+      guard: 'addr_verdict == "ambiguous"',
+    },
+    {
+      id: "e-decision-reject",
+      from: "n-decision",
+      to: "n-rejected",
+      label: "insufficient",
+      set: [{ var: "outcome", expr: '"rejected"' }],
+    },
+    {
+      id: "e-escalate-issue",
+      from: "n-escalate",
+      to: "n-issue",
+      label: "approved",
+      guard: 'outcome.verdict == "approve"',
+      set: [
+        { var: "outcome", expr: '"issued"' },
+        {
+          var: "decision_reason",
+          expr: '"Approved by the bureaucrat after review."',
+        },
+      ],
+    },
+    {
+      id: "e-escalate-reject",
+      from: "n-escalate",
+      to: "n-rejected",
+      label: "denied",
+      set: [
+        { var: "outcome", expr: '"rejected"' },
+        {
+          var: "decision_reason",
+          expr: '"Denied by the bureaucrat after review."',
+        },
+      ],
+    },
+    {
+      id: "e-issue-approved",
+      from: "n-issue",
+      to: "n-approved",
+      set: [{ var: "certificate_url", expr: '"cert://residence/issued"' }],
+    },
   ],
 };
 
