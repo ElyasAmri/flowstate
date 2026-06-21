@@ -12,16 +12,32 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 /// A 2D position on the editor canvas. Mirrors `Position` in `types.ts`.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
 }
 
+/// One `var = expression` assignment. Mirrors `VarAssignment` in `types.ts`.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct VarAssignment {
+    pub var: String,
+    pub expr: String,
+}
+
+/// A flow variable with its literal initial value. Mirrors `VarDecl` in `types.ts`.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct VarDecl {
+    pub name: String,
+    pub value: String,
+}
+
 /// A single node in the flow graph. Mirrors `FlowNode` in `types.ts`.
 /// `kind` and `outcome` are kept as free-form strings here: this layer only
-/// persists; the frontend's TypeScript union is the schema authority.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+/// persists; the frontend's TypeScript union is the schema authority. Every
+/// executable-detail field is optional and skipped when empty so the on-disk
+/// JSON stays byte-stable with what the editor sends.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct FlowNode {
     pub id: String,
@@ -35,10 +51,27 @@ pub struct FlowNode {
     pub channel_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub outcome: Option<String>,
+    // --- executable detail (the compiler reads these; persist them verbatim) ---
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub agent_ref: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub prompt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub op: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub command: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub send_to: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub assignments: Vec<VarAssignment>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub inputs: Vec<VarDecl>,
 }
 
 /// A directed connection between two nodes. Mirrors `FlowEdge` in `types.ts`.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct FlowEdge {
     pub id: String,
     pub from: String,
@@ -47,6 +80,9 @@ pub struct FlowEdge {
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub guard: Option<String>,
+    /// Variable assignments applied when this branch is taken.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub set: Vec<VarAssignment>,
 }
 
 /// A complete authored flow. Mirrors `FlowDefinition` in `types.ts`.
@@ -58,6 +94,9 @@ pub struct FlowDefinition {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub description: Option<String>,
     pub start_node_id: String,
+    /// Flow-level state: variables with literal initial values.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub vars: Vec<VarDecl>,
     pub nodes: Vec<FlowNode>,
     pub edges: Vec<FlowEdge>,
 }
@@ -304,34 +343,101 @@ mod tests {
             title: "Demo Flow".into(),
             description: None,
             start_node_id: "a".into(),
+            vars: vec![],
             nodes: vec![
                 FlowNode {
                     id: "a".into(),
                     kind: "channel".into(),
                     label: "Start".into(),
-                    description: None,
                     position: Position { x: 0.0, y: 0.0 },
                     channel_id: Some("ch-intake".into()),
-                    outcome: None,
+                    ..Default::default()
                 },
                 FlowNode {
                     id: "b".into(),
                     kind: "channel".into(),
                     label: "End".into(),
-                    description: None,
                     position: Position { x: 100.0, y: 0.0 },
                     channel_id: Some("ch-intake".into()),
                     outcome: Some("approved".into()),
+                    ..Default::default()
                 },
             ],
             edges: vec![FlowEdge {
                 id: "e1".into(),
                 from: "a".into(),
                 to: "b".into(),
-                label: None,
-                guard: None,
+                ..Default::default()
             }],
         }
+    }
+
+    /// A flow exercising every executable-detail field, to prove they survive a
+    /// write/read round-trip (the schema-drift regression test).
+    fn rich_flow() -> FlowDefinition {
+        FlowDefinition {
+            id: "rich".into(),
+            title: "Rich Flow".into(),
+            description: Some("carries executable detail".into()),
+            start_node_id: "in".into(),
+            vars: vec![VarDecl {
+                name: "outcome".into(),
+                value: "".into(),
+            }],
+            nodes: vec![
+                FlowNode {
+                    id: "in".into(),
+                    kind: "input".into(),
+                    label: "Intake".into(),
+                    position: Position { x: 0.0, y: 0.0 },
+                    inputs: vec![VarDecl {
+                        name: "national_id".into(),
+                        value: "19880421".into(),
+                    }],
+                    ..Default::default()
+                },
+                FlowNode {
+                    id: "ag".into(),
+                    kind: "agent".into(),
+                    label: "Assess".into(),
+                    position: Position { x: 100.0, y: 0.0 },
+                    agent_ref: Some("arabic-reasoner".into()),
+                    prompt: Some("Assess and emit a VERDICT.".into()),
+                    ..Default::default()
+                },
+                FlowNode {
+                    id: "sh".into(),
+                    kind: "action".into(),
+                    label: "Issue".into(),
+                    position: Position { x: 200.0, y: 0.0 },
+                    op: Some("shell".into()),
+                    command: Some("echo hi".into()),
+                    ..Default::default()
+                },
+            ],
+            edges: vec![FlowEdge {
+                id: "e1".into(),
+                from: "ag".into(),
+                to: "sh".into(),
+                guard: Some("outcome.verdict == \"ok\"".into()),
+                set: vec![VarAssignment {
+                    var: "outcome".into(),
+                    expr: "\"issued\"".into(),
+                }],
+                ..Default::default()
+            }],
+        }
+    }
+
+    #[test]
+    fn write_read_preserves_executable_detail() {
+        let tmp = TempDir::new("rich");
+        let flow = rich_flow();
+        write_flow(tmp.dir(), "rich".into(), flow.clone()).expect("write");
+        let back = read_flow(tmp.dir(), "rich".into()).expect("read");
+        // The whole struct must round-trip -- vars, inputs, agentRef/prompt, op/
+        // command, edge guard + set all survive. This is the schema-drift guard.
+        assert_eq!(back, flow);
     }
 
     #[test]
