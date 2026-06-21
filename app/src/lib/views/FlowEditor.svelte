@@ -90,8 +90,22 @@
     }
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => void editor.save(), 400);
-    return () => clearTimeout(saveTimer);
+    // On teardown (flow switch via {#key} remount, or unmount) flush a pending
+    // write instead of dropping it: editing then immediately switching/leaving
+    // would otherwise lose the last <400ms of edits. `save()` is a no-op when
+    // clean, so an already-saved flow flushes nothing.
+    return () => {
+      clearTimeout(saveTimer);
+      void editor.save();
+    };
   });
+
+  /** Persist any pending edits, then return to the flow selector. */
+  function handleBack() {
+    clearTimeout(saveTimer);
+    void editor.save();
+    onback();
+  }
 
   // Human-readable save indicator.
   const saveLabel: Record<SaveState, string> = {
@@ -120,7 +134,7 @@
         class="self-center rounded px-2 py-1 text-xs text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
         title="Back to flows"
         data-testid="back"
-        onclick={onback}>← Flows</button
+        onclick={handleBack}>← Flows</button
       >
       <h1 class="text-base font-semibold">{editor.flow.title}</h1>
       <span class="text-xs text-zinc-500">flow editor</span>

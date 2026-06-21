@@ -57,6 +57,11 @@ export class FlowEditor {
   // goes past it. Plain (non-rune) object: it stores defensive clones.
   private history: FlowHistory<FlowDefinition>;
 
+  // Serialized form of the last flow successfully written to disk (or loaded
+  // from it). `null` means nothing has been persisted yet, so the first save
+  // always proceeds. Drives `isDirty()` so autosave can skip no-op writes.
+  private lastSaved: string | null = null;
+
   constructor(initial: FlowDefinition) {
     this.flow = initial;
     this.history = new FlowHistory<FlowDefinition>($state.snapshot(initial));
@@ -207,23 +212,37 @@ export class FlowEditor {
   }
 
   /**
+   * True when the current flow differs from the last persisted copy. A fresh
+   * editor (nothing saved yet) is dirty so the first save always runs.
+   */
+  isDirty(): boolean {
+    return JSON.stringify(this.serialize()) !== this.lastSaved;
+  }
+
+  /**
    * Persist this flow to the backend flow library
-   * (`<project_dir>/.flowstate/flows/<name>.json`). No-op outside Tauri.
+   * (`<project_dir>/.flowstate/flows/<name>.json`). No-op outside Tauri or when
+   * the flow is unchanged since the last successful save.
    */
   async save(): Promise<void> {
+    // Skip redundant writes (and the "Saving…" flicker) when nothing changed.
+    if (!this.isDirty()) return;
     this.saveState = "saving";
     try {
       const dir = await tryInvoke<string>("project_dir");
       if (dir === null) {
         // Not running under Tauri (dev/build): nothing to persist against.
+        // Leave `lastSaved` untouched so we don't mark a never-written flow clean.
         this.saveState = "idle";
         return;
       }
+      const flow = this.serialize();
       await tryInvoke<void>("write_flow", {
         dir,
         name: this.name,
-        flow: this.serialize(),
+        flow,
       });
+      this.lastSaved = JSON.stringify(flow);
       this.saveState = "saved";
     } catch {
       this.saveState = "error";
@@ -247,6 +266,9 @@ export class FlowEditor {
       this.history.reset($state.snapshot(this.flow));
       this.canUndo = false;
       this.canRedo = false;
+      // The loaded copy is exactly what's on disk: mark clean so autosave waits
+      // for an actual edit before writing again.
+      this.lastSaved = JSON.stringify(this.serialize());
       this.saveState = "saved";
       return true;
     } catch {
