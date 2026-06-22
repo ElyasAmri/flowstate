@@ -1,7 +1,7 @@
 <script lang="ts">
   // In-app navigation rail. Replaces the former native window menubar: clicking
   // an item sets the route directly via `onnavigate` (no Tauri event round-trip).
-  type NavName = "flows" | "workflows" | "documents";
+  type NavName = "flows";
 
   interface Props {
     /** The active top-level route, for highlighting. */
@@ -14,8 +14,6 @@
 
   const items: { name: NavName; label: string }[] = [
     { name: "flows", label: "Flows" },
-    { name: "workflows", label: "Workflows" },
-    { name: "documents", label: "Documents" },
   ];
 </script>
 

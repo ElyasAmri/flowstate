@@ -11,16 +11,15 @@ button. There is no native window menubar.
 
 `App.svelte` is a horizontal flex of a left **sidebar** and a content `<main>`.
 `Sidebar.svelte` (`app/src/lib/components/Sidebar.svelte`) holds the
-**Flowstate** wordmark in its header and three nav items — Flows / Workflows /
-Documents (`data-nav="…"`, active item highlighted, `data-testid="sidebar"`).
+**Flowstate** wordmark in its header and a single nav item — Flows
+(`data-nav="…"`, active item highlighted, `data-testid="sidebar"`).
 Clicking an item sets the route directly via an `onnavigate` callback (no Tauri
 event). There is no top header/brand bar; the wordmark lives only in the sidebar.
 
 The **flow editor is a focused, full-screen mode**: when `route.name === "flow"`
 the sidebar is hidden so the canvas gets maximum width (the editor already has
 its own palette/canvas/inspector 3-pane layout and a **← Flows** back button).
-The sidebar shows for `flows`/`workflows`/`documents`; the editor route
-highlights the "Flows" section.
+The sidebar shows for `flows`; the editor route highlights the "Flows" section.
 
 ## View components
 
@@ -31,11 +30,9 @@ Each route renders a dedicated view component under `app/src/lib/views/`.
 | ----------- | -------------------- | ------------------------------------- |
 | `flows`     | `FlowsList.svelte`   | `app/src/lib/views/FlowsList.svelte`  |
 | `flow`      | `FlowEditor.svelte`  | `app/src/lib/views/FlowEditor.svelte` |
-| `workflows` | `Workflows.svelte`   | `app/src/lib/views/Workflows.svelte`  |
-| `documents` | `Documents.svelte`   | `app/src/lib/views/Documents.svelte`  |
 
-The `Route` union is `{ name: "flows" } | { name: "flow"; id } | { name:
-"workflows" } | { name: "documents" }` — the `flow` route carries the **id of
+The `Route` union is `{ name: "flows" } | { name: "flow"; id }` — the `flow`
+route carries the **id of
 the flow to open**, threaded from the selector. `App.svelte` wraps the editor in
 `{#key route.id}` so opening a different flow remounts a fresh editor.
 
@@ -140,16 +137,6 @@ active. No canvas/graph libraries — hand-rolled SVG + CSS transform.
 
 Unlike the other views this route is full-bleed: `App.svelte` drops the default
 `p-6` padding for `route.name === "flow"`.
-
-### Workflows
-
-`Workflows.svelte` is a placeholder: a "Workflows" header with an empty-state
-message ("Nothing here yet.").
-
-### Documents
-
-`Documents.svelte` is a placeholder: a "Documents" header with an empty-state
-message ("Nothing here yet.").
 
 ## Style
 
