@@ -23,4 +23,8 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# Lets a running maestro drive this app's windows/DOM over its /ext bridge.
+# Relative path to the sibling maestro checkout (../../../maestro from this
+# manifest); switch to a git or published dep before this ships independently.
+maestro-tauri-connect = { path = "../../../maestro/crates/maestro-tauri-connect" }
 

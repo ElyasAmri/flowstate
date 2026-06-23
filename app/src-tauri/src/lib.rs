@@ -11,6 +11,13 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            // Let a running maestro drive this app through its `desktop` tool.
+            // The connector dials maestro's /ext bridge in the background and is
+            // a no-op until one is running, so this is always safe to call.
+            maestro_tauri_connect::attach(app.handle().clone());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             flows::project_dir,
