@@ -45,7 +45,7 @@ const SANDBOX = process.env.FLOWSTATE_PROJECT_DIR || path.join(repoRoot, ".local
 const PORT = 4444;
 
 // The fixture the editor opens on; persisted as flows/<id>.json.
-const FLOW_ID = "flow-residence-certificate";
+const FLOW_ID = "residence-certificate-runnable";
 
 function fail(msg: string): never {
   console.error(`[e2e] FAIL: ${msg}`);
@@ -93,7 +93,7 @@ async function waitFor(
 
 const bodyText = (b: Browser): Promise<string> => b.execute(() => document.body.innerText || "");
 
-// Read the data-testid="flow-counts" text, e.g. "8 nodes · 9 transitions".
+// Read the data-testid="flow-counts" text, e.g. "8 nodes · 10 transitions".
 const countsText = async (b: Browser): Promise<string> =>
   (await (await b.$('[data-testid="flow-counts"]')).getText()).trim();
 
@@ -158,7 +158,7 @@ async function main(): Promise<void> {
     });
     log(`flow editor open; counts = "${await countsText(browser)}"`);
 
-    // 3) The fixture seeds 8 nodes / 9 transitions.
+    // 3) The fixture seeds 8 nodes / 10 transitions.
     await waitFor("fixture loaded (8 nodes)", async () =>
       (await countsText(browser!)).startsWith("8 nodes"),
     );
@@ -175,7 +175,7 @@ async function main(): Promise<void> {
       const parsed = JSON.parse(readFileSync(flowFile, "utf8"));
       assert.equal(parsed.id, FLOW_ID, "persisted flow id should match the fixture");
       assert.equal(parsed.nodes.length, 8, "persisted flow should start with 8 nodes");
-      assert.equal(parsed.startNodeId, "n-start", "persisted flow should carry camelCase startNodeId");
+      assert.equal(parsed.startNodeId, "n-input", "persisted flow should carry camelCase startNodeId");
     }
     log("initial autosave verified on disk (8 nodes, camelCase shape)");
 
@@ -195,9 +195,11 @@ async function main(): Promise<void> {
       assert.equal(intake.binding.kind, "ui", "intake channel binding should be tagged ui");
 
       const parsedFlow = JSON.parse(readFileSync(flowFile, "utf8"));
-      const start = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-start");
-      assert.equal(start.kind, "channel", "start node should be a channel node");
-      assert.equal(start.channelId, "ch-intake", "start node should reference the intake channel");
+      const start = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-input");
+      assert.equal(start.kind, "input", "start node should be the input (intake) node");
+      const result = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-approved");
+      assert.equal(result.kind, "channel", "result node should be a channel node");
+      assert.equal(result.channelId, "ch-intake", "result node should reference the intake channel");
     }
     log("channel registry verified on disk (tagged binding, node references channel)");
 

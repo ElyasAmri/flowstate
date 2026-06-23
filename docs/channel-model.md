@@ -88,13 +88,14 @@ model already carries everything needed for it: the binding stores the target
 
 ## Worked example: Residence Certificate Request
 
-The `residenceCertificateFlow` fixture is authored entirely in this model:
+The `residenceCertificateRunnable` fixture is authored entirely in this model:
 
-- **`ch-intake`** (ui, inbound) — the consumer app submits the application. The
-  flow's start node binds this channel. 🟢
-- **`ch-id-registry`** (service, external, outbound) — validate the national ID. 🟡
-- An **agent** node classifies the address proof (confidence score). ⬛
-- A **decision** node branches on that confidence. ⬜
+- An **input** node starts the flow — the manual intake that supplies the
+  applicant's national ID, name, and proof of address. ⬛
+- An **action** (`shell`) node validates the national ID deterministically (a
+  service channel can't yield an exit code to branch on).
+- An **agent** node classifies the address proof (emits a VERDICT). ⬛
+- A **decision** node branches on that verdict. ⬜
 - **`ch-bureaucrat`** (ui, outbound) — a human reviews ambiguous cases. 🟢
 - **`ch-notify`** (service, internal, outbound) — issue the certificate / notify. 🟡
 - Two **outbound** channel nodes bound to `ch-intake` return the result to the

@@ -4,7 +4,6 @@
   import {
     blankFlow,
     exampleChannels,
-    residenceCertificateFlow,
     residenceCertificateRunnable,
   } from "../flow/fixtures";
   import { seedChannelsIfEmpty } from "../flow/channels";
@@ -31,9 +30,9 @@
   let flows = $state<FlowMeta[]>([]);
   let creating = $state(false);
 
-  // The bundled worked examples: the channel-model showcase and its runnable
-  // (compilable) twin. Both are always available in the selector.
-  const bundled = [residenceCertificateFlow, residenceCertificateRunnable];
+  // The bundled worked example: the runnable Residence Certificate flow. It is
+  // always available in the selector.
+  const bundled = [residenceCertificateRunnable];
 
   async function refresh() {
     const dir = await tryInvoke<string>("project_dir");
@@ -45,12 +44,12 @@
     }
     const list = await tryInvoke<FlowMeta[]>("list_flows", { dir });
     let flowList = list ?? [];
-    // Seed the channels the worked examples reference on a fresh library so
-    // their channel nodes resolve to the right colors when the editor opens.
+    // Seed the channels the worked example references on a fresh library so
+    // its channel nodes resolve to the right colors when the editor opens.
     if (flowList.length === 0) await seedChannelsIfEmpty(exampleChannels);
-    // Ensure both bundled examples exist in the library (fresh project OR an
-    // existing one that predates the runnable twin), then re-list so the cards
-    // reflect on-disk truth.
+    // Ensure the bundled example exists in the library (fresh project OR an
+    // existing one that predates it), then re-list so the cards reflect on-disk
+    // truth.
     let changed = false;
     for (const fx of bundled) {
       if (!flowList.some((f) => f.id === fx.id)) {

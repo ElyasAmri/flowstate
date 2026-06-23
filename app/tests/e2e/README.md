@@ -48,11 +48,11 @@ The test prints `[e2e] ...` progress and ends with
 
 1. App shell renders; the **flow selector** is the default view (navigation is
    the in-app sidebar — there is no native menubar). Click the fixture's selector
-   card (`[data-flow-id="flow-residence-certificate"]`) to open it in the editor.
-2. The fixture flow loads with **8 nodes / 9 transitions**
+   card (`[data-flow-id="residence-certificate-runnable"]`) to open it in the editor.
+2. The fixture flow loads with **8 nodes / 10 transitions**
    (`[data-testid="flow-counts"]`).
 3. On mount the editor autosaves the fixture →
-   `<sandbox>/.flowstate/flows/flow-residence-certificate.json` exists and parses
+   `<sandbox>/.flowstate/flows/residence-certificate-runnable.json` exists and parses
    to 8 nodes with the camelCase `startNodeId` shape.
 4. Add a node via the palette (`[data-flow-kind="action"]`) → count → **9 nodes**.
 5. The debounced autosave fires → `[data-testid="save-state"]` shows **Saved**.
