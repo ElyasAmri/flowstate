@@ -89,7 +89,12 @@ export function nodesBounds(
   let maxY = -Infinity;
   for (const n of nodes) {
     const group = groups?.get(n.channelId ?? "");
-    const h = group && group.length > 1 ? groupCardHeight(group.length) : NODE_H;
+    // Skip nodes that are just slots inside a channel group (their position is
+    // placeholder and may be way off-screen).
+    if (group && group.length > 1 && n.id !== group[0].id) continue;
+    const h = group && group.length > 1 ? groupCardHeight(group.length)
+      : n.kind === "channel" ? groupCardHeight(1)
+      : NODE_H;
     minX = Math.min(minX, n.position.x);
     minY = Math.min(minY, n.position.y);
     maxX = Math.max(maxX, n.position.x + NODE_W);

@@ -258,12 +258,26 @@
           onportdown={handlePortDown}
           onportup={handlePortUp}
         />
+      {:else if item.node.kind === "channel"}
+        <!-- Standalone channel with a single node – render as a 1-slot group -->
+        <FlowChannelCard
+          node={item.node}
+          siblings={[]}
+          channels={editor.channels}
+          selected={editor.selectedNodeId === item.node.id}
+          isEntry={isEntryChannel(item.node, editor.channels, editor.flow.edges)}
+          activeNodeId={activeNodeId}
+          onbodydown={handleBodyDown}
+          onbodydblclick={handleBodyDblClick}
+          onportdown={handlePortDown}
+          onportup={handlePortUp}
+        />
       {:else}
         <FlowNodeCard
           node={item.node}
           active={item.node.id === activeNodeId}
           selected={item.node.id === editor.selectedNodeId}
-          isEntry={isEntryChannel(item.node, editor.channels, editor.flow.edges)}
+          isEntry={false}
           channels={editor.channels}
           onbodydown={handleBodyDown}
           onbodydblclick={handleBodyDblClick}

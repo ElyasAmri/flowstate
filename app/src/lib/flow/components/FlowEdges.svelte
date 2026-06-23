@@ -27,7 +27,7 @@
   /** Port position, accounting for channel-group slot offsets. */
   function portPos(node: FlowNode, side: "in" | "out"): Point {
     const group = channelGroups?.get(node.channelId ?? "");
-    if (group && group.length > 1) {
+    if (node.kind === "channel" && group) {
       return groupPortPosition(node, side, group);
     }
     return portPosition(node, side);

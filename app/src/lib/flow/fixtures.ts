@@ -145,7 +145,41 @@ export const residenceCertificateRunnable: FlowDefinition = {
       description:
         "Inbound door: the citizen submits their application across the " +
         "consumer app to trigger the flow.",
-      position: { x: 80, y: 240 },
+      position: { x: 80, y: 160 },
+    },
+    {
+      id: "n-approved",
+      kind: "channel",
+      channelId: "ch-intake",
+      label: "Certificate issued",
+      outcome: "issued",
+      position: { x: 80, y: -999 },
+    },
+    {
+      id: "n-rejected",
+      kind: "channel",
+      channelId: "ch-intake",
+      label: "Application rejected",
+      outcome: "rejected",
+      position: { x: 80, y: -999 },
+    },
+    {
+      id: "n-escalate",
+      kind: "channel",
+      channelId: "ch-bureaucrat",
+      label: "Reviewer reviews address",
+      description:
+        "Review {{applicant_name}} (ID {{national_id}}). Proof: {{address_proof}}\n\n" +
+        "Notes: {{decision_reason}}\n\nApprove to issue the certificate, or reject to deny.",
+      position: { x: 80, y: 420 },
+    },
+    {
+      id: "n-issue",
+      kind: "channel",
+      channelId: "ch-notify",
+      label: "Issue certificate",
+      description: "Generate the certificate document.",
+      position: { x: 80, y: 560 },
     },
     {
       id: "n-check-id",
@@ -158,7 +192,7 @@ export const residenceCertificateRunnable: FlowDefinition = {
         'id="{{national_id}}"\n' +
         'if echo "$id" | grep -Eq \'^[1-9][0-9]{7}$\'; then echo MATCH; exit 0; fi\n' +
         'echo "national id not found in registry" >&2; exit 1',
-      position: { x: 520, y: 240 },
+      position: { x: 520, y: 160 },
     },
     {
       id: "n-score-address",
@@ -173,47 +207,13 @@ export const residenceCertificateRunnable: FlowDefinition = {
         "  VERDICT: sufficient    -- clearly proves residence; auto-issue\n" +
         "  VERDICT: ambiguous     -- unclear; a reviewer must review\n" +
         "  VERDICT: insufficient  -- does not prove residence; reject",
-      position: { x: 960, y: 240 },
+      position: { x: 960, y: 160 },
     },
     {
       id: "n-decision",
       kind: "decision",
       label: "Address proof sufficient?",
-      position: { x: 1400, y: 240 },
-    },
-    {
-      id: "n-escalate",
-      kind: "channel",
-      channelId: "ch-bureaucrat",
-      label: "Reviewer reviews address",
-      description:
-        "Review {{applicant_name}} (ID {{national_id}}). Proof: {{address_proof}}\n\n" +
-        "Notes: {{decision_reason}}\n\nApprove to issue the certificate, or reject to deny.",
-      position: { x: 1400, y: 500 },
-    },
-    {
-      id: "n-issue",
-      kind: "channel",
-      channelId: "ch-notify",
-      label: "Issue certificate",
-      description: "Generate the certificate document.",
-      position: { x: 1840, y: 240 },
-    },
-    {
-      id: "n-approved",
-      kind: "channel",
-      channelId: "ch-intake",
-      label: "Certificate issued",
-      outcome: "issued",
-      position: { x: 2280, y: 240 },
-    },
-    {
-      id: "n-rejected",
-      kind: "channel",
-      channelId: "ch-intake",
-      label: "Application rejected",
-      outcome: "rejected",
-      position: { x: 960, y: 500 },
+      position: { x: 1400, y: 160 },
     },
   ],
   edges: [
