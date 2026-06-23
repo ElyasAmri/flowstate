@@ -41,9 +41,13 @@ export function groupPortPosition(
   side: PortSide,
   allSlots: FlowNode[],
 ): Point {
+  // Use the group origin (the primary node's position) for x, and slot
+  // index for y. Sibling nodes have potentially unrelated x/y from when
+  // they were individual cards.
+  const origin = allSlots[0].position;
   return {
-    x: node.position.x + (side === "out" ? NODE_W : 0),
-    y: node.position.y + groupSlotY(node, allSlots),
+    x: origin.x + (side === "out" ? NODE_W : 0),
+    y: origin.y + groupSlotY(node, allSlots),
   };
 }
 
@@ -66,18 +70,30 @@ export function edgeMidpoint(from: Point, to: Point): Point {
   return { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
 }
 
+/**
+ * Compute the full height of a channel group card given its member count.
+ */
+export function groupCardHeight(slotCount: number): number {
+  return HEADER_H + Math.max(slotCount, 1) * SLOT_H;
+}
+
 /** World-space bounding box enclosing all nodes (each node's full card). */
-export function nodesBounds(nodes: FlowNode[]): BoundingBox | null {
+export function nodesBounds(
+  nodes: FlowNode[],
+  groups?: Map<string, FlowNode[]>,
+): BoundingBox | null {
   if (nodes.length === 0) return null;
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const n of nodes) {
+    const group = groups?.get(n.channelId ?? "");
+    const h = group && group.length > 1 ? groupCardHeight(group.length) : NODE_H;
     minX = Math.min(minX, n.position.x);
     minY = Math.min(minY, n.position.y);
     maxX = Math.max(maxX, n.position.x + NODE_W);
-    maxY = Math.max(maxY, n.position.y + NODE_H);
+    maxY = Math.max(maxY, n.position.y + h);
   }
   return { minX, minY, maxX, maxY };
 }

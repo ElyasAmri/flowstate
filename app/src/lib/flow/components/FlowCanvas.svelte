@@ -36,7 +36,7 @@
 
   /** Frame all nodes within the viewport (the n8n "fit view"). */
   function fitView() {
-    const box = nodesBounds(editor.flow.nodes);
+    const box = nodesBounds(editor.flow.nodes, channelGroups);
     if (box) viewport.fitTo(box, viewSize());
   }
 
