@@ -302,6 +302,18 @@ pub fn delete_flow(dir: String, name: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Delete a compiled maestro flow (`.maestro/flows/<name>.yaml`). A missing file
+/// is not an error (idempotent) -- the flow may never have been compiled.
+#[tauri::command]
+pub fn delete_maestro_flow(dir: String, name: String) -> Result<(), String> {
+    safe_name(&name)?;
+    let p = maestro_flows_dir(&dir).join(format!("{name}.yaml"));
+    if p.is_file() {
+        std::fs::remove_file(&p).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -531,6 +543,18 @@ mod tests {
         assert!(!flows_dir(&tmp.dir()).join("gone.json").exists());
         // Deleting again is a no-op, not an error.
         delete_flow(tmp.dir(), "gone".into()).expect("idempotent delete");
+    }
+
+    #[test]
+    fn delete_maestro_flow_removes_yaml_and_is_idempotent() {
+        let tmp = TempDir::new("delete-maestro");
+        write_maestro_flow(tmp.dir(), "gone".into(), "version: 1\n".into()).expect("write");
+        assert!(maestro_flows_dir(&tmp.dir()).join("gone.yaml").is_file());
+
+        delete_maestro_flow(tmp.dir(), "gone".into()).expect("delete");
+        assert!(!maestro_flows_dir(&tmp.dir()).join("gone.yaml").exists());
+        // Deleting a missing compiled flow is a no-op, not an error.
+        delete_maestro_flow(tmp.dir(), "gone".into()).expect("idempotent delete");
     }
 
     #[test]

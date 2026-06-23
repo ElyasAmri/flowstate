@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { FlowEditor, type SaveState } from "../flow/editor.svelte";
+  import { FlowEditor, slugifyFlowName, type SaveState } from "../flow/editor.svelte";
   import {
     blankFlow,
     exampleChannels,
@@ -165,6 +165,43 @@
   function handleNodeActivate(node: FlowNode) {
     if (isEntryChannel(node, editor.channels, editor.flow.edges)) openSubmit(node.id);
   }
+
+  // Inline rename of the flow (title + file name). `renaming` holds the draft
+  // title while the input is open; committing slugs it to the file name too.
+  let renaming = $state<string | null>(null);
+  let renameError = $state<string | null>(null);
+
+  function startRename() {
+    renameError = null;
+    renaming = editor.flow.title;
+  }
+
+  async function commitRename() {
+    if (renaming === null) return;
+    const draft = renaming;
+    const r = await editor.rename(draft);
+    if (r.ok) {
+      renaming = null;
+      renameError = null;
+    } else {
+      renameError = r.error;
+    }
+  }
+
+  function cancelRename() {
+    renaming = null;
+    renameError = null;
+  }
+
+  function onRenameKey(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void commitRename();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelRename();
+    }
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -177,8 +214,35 @@
         data-testid="back"
         onclick={handleBack}>← Flows</button
       >
-      <h1 class="text-base font-semibold">{editor.flow.title}</h1>
-      <span class="text-xs text-zinc-500">flow editor</span>
+      {#if renaming !== null}
+        <!-- svelte-ignore a11y_autofocus -->
+        <input
+          type="text"
+          class="rounded border border-emerald-500 bg-transparent px-1.5 py-0.5 text-base font-semibold outline-none"
+          autofocus
+          data-testid="rename-input"
+          bind:value={renaming}
+          onkeydown={onRenameKey}
+          onblur={commitRename}
+        />
+        <span class="text-xs text-zinc-400" data-testid="rename-slug">
+          {slugifyFlowName(renaming) || "…"}.json
+        </span>
+        {#if renameError}
+          <span class="text-xs text-rose-500" data-testid="rename-error">{renameError}</span>
+        {/if}
+      {:else}
+        <h1 class="text-base font-semibold">{editor.flow.title}</h1>
+        <button
+          type="button"
+          class="rounded px-1 py-0.5 text-xs text-zinc-500 hover:bg-black/5 dark:hover:bg-white/10"
+          title="Rename flow (and its file name)"
+          aria-label="Rename flow"
+          data-testid="rename"
+          onclick={startRename}>✎</button
+        >
+        <span class="text-xs text-zinc-500">flow editor</span>
+      {/if}
     </div>
     <div class="flex items-baseline gap-3">
       <div class="flex items-center gap-1">

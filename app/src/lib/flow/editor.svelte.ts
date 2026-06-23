@@ -36,6 +36,19 @@ function makeId(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Turn a human title into a safe bare file name (the flow id / file stem):
+ * lowercase, non-alphanumerics collapsed to single hyphens, trimmed. Mirrors the
+ * backend's `safe_name` constraints (no `/ \ : ..`). Returns "" if nothing
+ * usable remains, which callers treat as an invalid rename.
+ */
+export function slugifyFlowName(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /** Default label for a freshly-added node of a given kind. */
 function defaultLabel(kind: NodeKind): string {
   switch (kind) {
@@ -360,6 +373,75 @@ export class FlowEditor {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Rename the flow: set its display `title` and, when the derived file name
+   * changes, move it on disk -- write under the new name, then delete the old
+   * `.json` and its compiled `.maestro/flows/<old>.yaml`. Recompiles under the
+   * new name. Returns the new file name on success, or an error string.
+   *
+   * Off-Tauri it still updates the in-memory title/id (so the UI reflects it) but
+   * cannot touch disk; that's reported as success with the new name.
+   */
+  async rename(title: string): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+    const trimmed = title.trim();
+    if (!trimmed) return { ok: false, error: "Name cannot be empty." };
+    const newName = slugifyFlowName(trimmed);
+    if (!newName) {
+      return { ok: false, error: "Name must contain a letter or digit." };
+    }
+
+    const oldName = this.name;
+    const dir = await tryInvoke<string>("project_dir");
+
+    // Off-Tauri: just update the in-memory document; nothing to move on disk.
+    if (dir === null) {
+      this.flow.title = trimmed;
+      this.flow.id = newName;
+      this.commit();
+      return { ok: true, name: newName };
+    }
+
+    // A new file name would collide with an existing flow: refuse rather than
+    // clobber it.
+    if (newName !== oldName) {
+      try {
+        const existing = await tryInvoke<FlowDefinition>("read_flow", {
+          dir,
+          name: newName,
+        });
+        if (existing) {
+          return { ok: false, error: `A flow named "${newName}" already exists.` };
+        }
+      } catch {
+        // read_flow throws when there is no such flow -- that's the happy path.
+      }
+    }
+
+    // Apply the rename to the document, then persist under the new name.
+    this.flow.title = trimmed;
+    this.flow.id = newName;
+    this.commit();
+
+    try {
+      const flow = this.serialize();
+      await tryInvoke<void>("write_flow", { dir, name: newName, flow });
+      this.lastSaved = JSON.stringify(flow);
+      this.saveState = "saved";
+
+      // Move the compiled artifact and drop the old files. Only when the file
+      // name actually changed (a title-only edit keeps the same files).
+      if (newName !== oldName) {
+        await this.compileToMaestro();
+        await tryInvoke<void>("delete_flow", { dir, name: oldName });
+        await tryInvoke<void>("delete_maestro_flow", { dir, name: oldName });
+      }
+      return { ok: true, name: newName };
+    } catch (e) {
+      this.saveState = "error";
+      return { ok: false, error: String(e) };
     }
   }
 }
