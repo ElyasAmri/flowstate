@@ -1,20 +1,494 @@
-/* Flowstate deck overrides. The reveal.js "black" theme provides the base. */
+/* =========================================================================
+   Flowstate deck. Calm design system on top of reveal.js (black base).
+   Color is RESERVED for where it carries meaning: the node-taxonomy and the
+   flow-diagram slides (green = ui, purple = flow, yellow = service, gray =
+   agent/action/decision). Everywhere else is monochrome + one accent.
+   ========================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  /* reveal base scale: the single lever for overall sizing */
+  --r-main-font-size: 30px;
+
+  --bg: #0a0d13;
+  --text: #e9edf3;
+  --muted: #97a2b2;
+  --faint: #616c7e;
+
+  --accent: #34d399; /* the one non-semantic accent, used sparingly */
+
+  /* semantic node colors: only used on the taxonomy + flow slides */
+  --ui: #34d399;
+  --flow: #a78bfa;
+  --service: #f5c451;
+  --agent: #aeb6c4;
+  --static: #c7cdd6;
+
+  --border: rgba(255, 255, 255, 0.09);
+  --panel: rgba(255, 255, 255, 0.035);
+  --panel-2: rgba(255, 255, 255, 0.055);
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ----- Background: one subtle, slow glow + faint masked grid ------------ */
+.reveal,
+html,
+body {
+  background-color: var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  background:
+    radial-gradient(42% 50% at 22% 14%, rgba(52, 211, 153, 0.1), transparent 70%),
+    radial-gradient(40% 48% at 82% 84%, rgba(167, 139, 250, 0.08), transparent 70%);
+  filter: blur(10px);
+  animation: drift 30s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 78% 78% at 50% 45%, #000 45%, transparent 100%);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5%, 1%, 0) scale(1.06);
+  }
+}
+
+/* Lift the deck above the fixed background glow WITHOUT touching `position`:
+   reveal.js positions `.slides` absolutely and centers/scales it via a
+   transform, so overriding `position` here breaks its layout math. `.slides`
+   is already a positioned element, so a bare z-index is enough. */
+.reveal .slides {
+  z-index: 1;
+}
+
+/* ----- Typography ------------------------------------------------------- */
+.reveal {
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-transform: none;
+  text-shadow: none;
+  color: #fff;
+}
 
 .reveal h1 {
-  font-size: 3.2em;
-  letter-spacing: -0.02em;
+  font-size: 2.9em;
+  margin-bottom: 0.3em;
+}
+.reveal h2 {
+  font-size: 1.5em;
+  margin-bottom: 0.55em;
+}
+.reveal h3 {
+  font-size: 1em;
+  margin-bottom: 0.2em;
+}
+
+.reveal p,
+.reveal li {
+  line-height: 1.5;
+  font-size: 0.82em;
+}
+.reveal strong {
+  color: #fff;
+  font-weight: 600;
+}
+.reveal code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text);
+}
+
+/* Gradient brand text: ONLY the title + closing hero */
+.grad {
+  background: linear-gradient(110deg, var(--ui) 0%, var(--flow) 55%, var(--service) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* The single restrained accent for one emphasized phrase */
+.accent {
+  color: var(--accent);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.52em;
+  color: var(--faint);
+  margin-bottom: 0.9em;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 0.95em;
 }
 
 .reveal .subtitle {
-  opacity: 0.7;
-  font-size: 0.7em;
+  color: var(--muted);
+  font-size: 0.62em;
 }
 
 .reveal .slides section {
   text-align: left;
 }
-
-.reveal .slides section h1,
-.reveal .slides section h2 {
+.reveal .slides section.center {
   text-align: center;
+}
+.reveal .slides section.center .lead {
+  margin-inline: auto;
+}
+
+/* ----- Layout helpers --------------------------------------------------- */
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1em;
+  align-items: center;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6em;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6em;
+}
+
+/* ----- Bullet lists ----------------------------------------------------- */
+.reveal ul {
+  list-style: none;
+  margin-left: 0;
+}
+.reveal ul li {
+  position: relative;
+  padding-left: 1.2em;
+  margin-bottom: 0.45em;
+}
+.reveal ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.38em;
+  height: 0.38em;
+  border-radius: 2px;
+  background: var(--faint);
+  transform: rotate(45deg);
+}
+
+/* ----- Cards (uniform, no per-card color) ------------------------------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.75em 0.85em;
+  backdrop-filter: blur(6px);
+}
+.card h3 {
+  margin: 0 0 0.2em;
+}
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78em;
+}
+
+/* Node-kind card: the colored accent bar is the WHOLE point here */
+.node {
+  position: relative;
+  overflow: hidden;
+}
+.node::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--c, var(--static));
+}
+.node .tag {
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  color: var(--c, var(--static));
+}
+.node.ui {
+  --c: var(--ui);
+}
+.node.flow {
+  --c: var(--flow);
+}
+.node.service {
+  --c: var(--service);
+}
+.node.agent {
+  --c: var(--agent);
+}
+
+/* ----- Flow pipeline (semantic color lives here too) -------------------- */
+.pipe {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: 0.5em 0 0.3em;
+}
+.pnode {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--c, var(--static));
+  border-radius: 10px;
+  padding: 0.5em 0.6em;
+  min-width: 5.2em;
+  text-align: left;
+}
+.pnode b {
+  display: block;
+  font-size: 0.7em;
+  color: #fff;
+  font-weight: 600;
+}
+.pnode small {
+  display: block;
+  font-size: 0.5em;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 0.15em;
+}
+.pnode.ui {
+  --c: var(--ui);
+}
+.pnode.service {
+  --c: var(--service);
+}
+.pnode.agent {
+  --c: var(--agent);
+}
+.pnode.decision,
+.pnode.action {
+  --c: var(--static);
+}
+.arrow {
+  align-self: center;
+  width: 1.8em;
+  height: 2px;
+  background: var(--faint);
+  position: relative;
+  flex: 0 0 auto;
+}
+.arrow::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  border: 4px solid transparent;
+  border-left-color: var(--faint);
+}
+.branchcol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  justify-content: center;
+}
+
+.legend {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.5em;
+  font-size: 0.55em;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.legend i {
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* ----- Stats (monochrome) ---------------------------------------------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9em;
+}
+.stat .num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.2em;
+  line-height: 1;
+  color: #fff;
+}
+.stat .lbl {
+  color: var(--muted);
+  font-size: 0.7em;
+  margin-top: 0.3em;
+}
+
+/* ----- Code blocks ------------------------------------------------------ */
+.reveal pre {
+  width: 100%;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 0.42em;
+  margin: 0;
+}
+.reveal pre code {
+  border-radius: 12px;
+  padding: 1em 1.2em;
+  font-family: var(--font-mono);
+  max-height: 360px;
+}
+.codecap {
+  font-family: var(--font-mono);
+  font-size: 0.54em;
+  color: var(--faint);
+  margin-bottom: 0.5em;
+}
+
+/* ----- Pills ------------------------------------------------------------ */
+.pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  padding: 0.3em 0.75em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+}
+/* a single tasteful glow, reserved for the Fanar brand badge */
+.pill.glow {
+  border-color: rgba(52, 211, 153, 0.35);
+  color: var(--accent);
+}
+
+/* ----- "powered by Fanar" lockup (real logo, tinted via mask) ----------- */
+.poweredby {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+}
+.pb-label {
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  color: var(--faint);
+}
+.fanar-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+/* The Fanar lighthouse mark. The SVG ships with fill="currentColor"; used as a
+   mask its alpha is what matters, so background-color sets the rendered color
+   (aspect ratio 31:53). */
+.fanar-mark {
+  display: inline-block;
+  height: 1.5em;
+  width: 0.88em;
+  background-color: var(--text);
+  -webkit-mask: url(/fanar-logo.svg) no-repeat center / contain;
+  mask: url(/fanar-logo.svg) no-repeat center / contain;
+}
+.fanar-word {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* ----- Closing-slide team column ---------------------------------------- */
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  justify-content: center;
+}
+.member {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+}
+/* Circular placeholder avatar (swap for a photo later) */
+.member .avatar {
+  width: 3em;
+  height: 3em;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+.member .name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5em;
+  color: var(--text);
+}
+
+/* ----- Chrome ----------------------------------------------------------- */
+.reveal .progress {
+  height: 2px;
+  color: var(--accent);
+}
+.reveal .slide-number {
+  font-family: var(--font-mono);
+  background: transparent;
+  color: var(--faint);
+}
+.reveal .controls {
+  color: var(--muted);
+}
+
+.brand {
+  position: fixed;
+  left: 24px;
+  bottom: 16px;
+  z-index: 30;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--faint);
+}
+.brand b {
+  color: var(--text);
+  font-weight: 600;
 }

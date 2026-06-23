@@ -6,90 +6,322 @@
     <title>Flowstate</title>
   </head>
   <body>
+    <div class="brand">Osama &amp; Elyas</div>
     <div class="reveal">
       <div class="slides">
-        <!-- 1. Title -->
-        <section>
-          <h1>Flowstate</h1>
-          <p>Codify bureaucratic procedures as deterministic, agent-driven workflows.</p>
-          <p class="subtitle">Smart Government &amp; Citizen Services &middot; powered by Fanar</p>
-          <aside class="notes">One-line pitch. Team: Osama, Elyas.</aside>
+        <!-- 1. TITLE -->
+        <section data-background-gradient="radial-gradient(60% 60% at 50% 40%, #11161f 0%, #0a0d13 70%)" class="center">
+          <h1 class="grad">Flowstate</h1>
+          <p class="lead" style="font-size: 1.05em; max-width: 30ch">
+            Routine procedures, <strong>codified.</strong>
+          </p>
+          <div class="poweredby" style="margin-top: 1.9em">
+            <span class="pb-label">Powered by</span>
+            <span class="fanar-lockup">
+              <span class="fanar-mark"></span>
+              <span class="fanar-word">Fanar</span>
+            </span>
+          </div>
+          <aside class="notes">
+            One line: we turn a government procedure into a deterministic state machine an
+            agent harness runs. Routine cases flow through, only exceptions reach a human.
+          </aside>
         </section>
 
-        <!-- 2. Problem -->
+        <!-- 2. PROBLEM -->
         <section>
-          <h2>The Problem</h2>
-          <ul>
-            <li>Routine applications are delayed, inconsistent, and expensive when every case waits on a person.</li>
-            <li>Most cases are automatable; only a few are true exceptions.</li>
-            <li>We need accountability: replayable and appealable decisions.</li>
-            <li>Arabic / Gulf government context matters &mdash; dialect, local procedures.</li>
-          </ul>
-          <aside class="notes">25% of scoring: importance, impact, value prop.</aside>
+          <p class="eyebrow">The problem</p>
+          <h2>Every case waits on a&nbsp;person.</h2>
+          <div class="cols" style="margin-top: 0.6em">
+            <ul>
+              <li class="fragment"><strong>Slow.</strong> Routine applications queue behind a human reviewer.</li>
+              <li class="fragment"><strong>Inconsistent.</strong> The same case decided two ways on two desks.</li>
+              <li class="fragment"><strong>Expensive.</strong> Human time spent on cases that never needed it.</li>
+              <li class="fragment"><strong>Opaque.</strong> No replayable, appealable record of <em>why</em>.</li>
+            </ul>
+            <div class="card fragment">
+              <h3>Yet…</h3>
+              <p style="font-size: 0.95em; color: var(--text)">
+                Most applications are <strong>routine</strong>. Only a few are genuine exceptions.
+                We pay the full human cost for all of them.
+              </p>
+            </div>
+          </div>
+          <aside class="notes">25% of scoring: importance, societal impact, value prop. Gulf/Arabic context: dialect + local procedures.</aside>
         </section>
 
-        <!-- 3. Solution Architecture -->
-        <section>
-          <h2>Solution Architecture</h2>
-          <ul>
-            <li><strong>Discovery</strong> &mdash; dataset &rarr; mining &rarr; draft flow.</li>
-            <li><strong>Users</strong> &mdash; policy maker, bureaucrat, consumer.</li>
-            <li><strong>Flow runtime</strong> &mdash; config + deterministic harness + interaction layer.</li>
-            <li><strong>Core services</strong> &mdash; audit / record store, case / identity store.</li>
-            <li><strong>External services</strong> &mdash; registry, eID, payment, notification.</li>
-            <li><strong>Fanar</strong> &mdash; model backend for harness and hotline.</li>
-          </ul>
-          <aside class="notes">See docs/Diagram.canvas. TODO: architecture diagram export.</aside>
+        <!-- 3. INSIGHT -->
+        <section data-background-gradient="radial-gradient(60% 60% at 50% 50%, #11161f, #0a0d13)" class="center">
+          <p class="eyebrow">The insight</p>
+          <h2 style="font-size: 2em; max-width: 20ch; margin-inline: auto">
+            Automate the routine deterministically.<br />
+            <span class="accent">Escalate only the exceptions.</span>
+          </h2>
+          <p class="lead" style="margin-top: 1em">Keep the whole thing accountable: replayable and appealable.</p>
+          <aside class="notes">This is the thesis of the entire project. Pause here.</aside>
         </section>
 
-        <!-- 4. Agentic Workflow Design -->
+        <!-- 4. THE BIG IDEA: boundary rule -->
         <section>
-          <h2>Agentic Workflow Design</h2>
-          <ul>
-            <li><strong>Planning / decomposition</strong> &mdash; the flow: nodes and edges.</li>
-            <li><strong>Tool orchestration</strong> &mdash; per-tool allow / ask / deny gating.</li>
-            <li><strong>Memory &amp; state</strong> &mdash; case / identity store.</li>
-            <li><strong>Retrieval</strong> &mdash; extract policy + database into the config.</li>
-            <li><strong>Autonomous execution</strong> &mdash; harness runs the flow deterministically.</li>
-            <li><strong>Multi-agent</strong> &mdash; subagents per task (own model / prompt / tools).</li>
-          </ul>
-          <aside class="notes">30% of scoring. TODO: walk one concrete flow end-to-end.</aside>
+          <p class="eyebrow">The core idea</p>
+          <h2>One rule makes it auditable.</h2>
+          <div class="cols">
+            <div>
+              <p style="font-size: 0.95em">
+                The harness is <strong>deterministic and sealed.</strong> It never touches the outside
+                world directly.
+              </p>
+              <p style="font-size: 0.95em; color: var(--muted)">
+                Everything outside (a citizen's app, a registry, a bureaucrat's desk, even
+                another flow) is reached <strong style="color: var(--text)">only across a channel:</strong>
+                a named, typed boundary you can see on the canvas.
+              </p>
+              <p class="fragment"><span class="pill">Every external interaction is named, typed, and replayable.</span></p>
+            </div>
+            <div class="card fragment" style="text-align: center; padding: 1.4em">
+              <div style="font-family: var(--font-mono); color: var(--muted); font-size: 0.8em; line-height: 2.2">
+                <span style="color: var(--faint)">◀⎯⎯▶</span> citizen app<br />
+                <span style="color: var(--faint)">▶⎯⎯</span> eID / registry<br />
+                <span style="color: var(--faint)">◀⎯⎯▶</span> nested flow<br />
+              </div>
+              <div style="margin: 0.8em 0; border-top: 1px dashed var(--border)"></div>
+              <strong>sealed deterministic harness</strong>
+            </div>
+          </div>
+          <aside class="notes">The boundary rule is what buys auditability. Channels live in a registry, one file each, referenced by id.</aside>
         </section>
 
-        <!-- 5. Use of Fanar + External Tools -->
+        <!-- 5. NODE TAXONOMY -->
         <section>
-          <h2>Use of Fanar &amp; External Tools</h2>
-          <ul>
-            <li><strong>Fanar as harness backend</strong> &mdash; runs flow-runtime agents and mining.</li>
-            <li><strong>Fanar for the hotline</strong> &mdash; Arabic speech / dialect interaction.</li>
-            <li><strong>Arabic capability</strong> &mdash; dialects and surfaces (TODO).</li>
-            <li><strong>External tools</strong> &mdash; aiXamine safeguards, eID / registry / payment.</li>
-          </ul>
-          <aside class="notes">20% of scoring: meaningful integration, strengths, limitations.</aside>
+          <p class="eyebrow">Four node kinds</p>
+          <h2>Color encodes what's across the boundary.</h2>
+          <div class="grid-2" style="margin-top: 0.5em">
+            <div class="card node ui fragment">
+              <span class="tag">ui channel</span>
+              <h3>Channel → a person</h3>
+              <p>Crosses to a human-operated app: citizen, bureaucrat, hotline.</p>
+            </div>
+            <div class="card node service fragment">
+              <span class="tag">service channel</span>
+              <h3>Channel → a service</h3>
+              <p>Crosses to an internal/external service: eID, registry, payment.</p>
+            </div>
+            <div class="card node flow fragment">
+              <span class="tag">flow channel</span>
+              <h3>Channel → another flow</h3>
+              <p>The far side is a nested flow. This is how flows compose.</p>
+            </div>
+            <div class="card node agent fragment">
+              <span class="tag">agent</span>
+              <h3>Agent</h3>
+              <p>The one non-deterministic step: an AI reasons, classifies, drafts.</p>
+            </div>
+          </div>
+          <div class="legend fragment" style="margin-top: 0.7em">
+            <span><i style="background: var(--static)"></i> action / decision: deterministic internal logic (gray)</span>
+          </div>
+          <aside class="notes">Channel color is derived from its binding, not stored on the node. Agent is the only non-deterministic node. Action/decision are pure logic.</aside>
         </section>
 
-        <!-- 6. Demo -->
-        <section>
-          <h2>Demo</h2>
-          <ul>
-            <li>One bureaucratic procedure, automated end-to-end.</li>
-            <li>Happy path: routine application flows through automatically.</li>
-            <li>Exception path: genuine edge case escalates to a human.</li>
-            <li>Auditable record of every decision.</li>
-          </ul>
-          <aside class="notes">Demo procedure: TBD (pick from datasets/ triage).</aside>
+        <!-- 6. FLOW DIAGRAM (worked example) -->
+        <section class="center">
+          <p class="eyebrow">Worked example</p>
+          <h2>Residence Certificate Request</h2>
+          <div class="pipe">
+            <div class="pnode ui fragment"><b>Intake</b><small>citizen submits</small></div>
+            <div class="arrow fragment"></div>
+            <div class="pnode action fragment"><b>Validate ID</b><small>action: shell</small></div>
+            <div class="arrow fragment"></div>
+            <div class="pnode agent fragment"><b>Classify proof</b><small>Fanar agent</small></div>
+            <div class="arrow fragment"></div>
+            <div class="pnode decision fragment"><b>Decision</b><small>branch on verdict</small></div>
+            <div class="arrow fragment"></div>
+            <div class="branchcol">
+              <div class="pnode service fragment"><b>Issue</b><small>outcome: issued</small></div>
+              <div class="pnode ui fragment" style="border-style: dashed"><b>Bureaucrat</b><small>human gate ⚑</small></div>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i style="background: var(--ui)"></i> ui</span>
+            <span><i style="background: var(--service)"></i> service</span>
+            <span><i style="background: var(--agent)"></i> agent</span>
+            <span><i style="background: var(--static)"></i> action / decision</span>
+          </div>
+          <p class="fragment lead" style="margin: 0.7em auto 0; max-width: 44ch; text-align: center">
+            Clear cases route straight to <strong>issue</strong>. Only the
+            <strong>ambiguous</strong> ones reach a human.
+          </p>
+          <aside class="notes">Walk it left to right. Entry is the inbound channel "door": no global Run button. The dashed node is where a person is pulled in.</aside>
         </section>
 
-        <!-- 7. Evaluation & Next Steps -->
+        <!-- 7. COMPILER -->
         <section>
-          <h2>Evaluation &amp; Next Steps</h2>
+          <p class="eyebrow">From canvas to runtime</p>
+          <h2>The editor compiles to a runnable flow.</h2>
+          <div class="cols" style="grid-template-columns: 0.9fr 1.1fr">
+            <div>
+              <p style="font-size: 0.9em">
+                The authored graph compiles to <strong>maestro YAML</strong> the harness loads and
+                validates before running.
+              </p>
+              <ul style="font-size: 0.82em">
+                <li>guards become <code>when:</code></li>
+                <li>edge assignments become <code>set:</code></li>
+                <li>agent / action / human-gate map to harness node kinds</li>
+                <li>reachability + branch checks run at compile time</li>
+              </ul>
+            </div>
+            <div>
+              <p class="codecap">generated: .maestro/flows/residence-certificate.yaml</p>
+              <pre><code class="language-yaml" data-trim data-line-numbers="3-4|6-12|14-19">
+version: 1
+initial: intake
+nodes:
+  intake:
+    kind: action
+    action: log
+    message: Application received
+    on:
+      - to: validate-id
+  classify-proof:
+    kind: agent
+    agent: arabic-reasoner
+    prompt: |
+      Classify the proof of address. End with VERDICT: clear|unclear.
+    on:
+      - when: verdict == "clear"
+        to: issue
+      - to: bureaucrat
+              </code></pre>
+            </div>
+          </div>
+          <aside class="notes">Determinism lives in the graph, exactly as the harness expects. The compiler is real: compile.ts, 19 passing tests.</aside>
+        </section>
+
+        <!-- 8. WHY IT MATTERS -->
+        <section class="center">
+          <p class="eyebrow">Why this shape wins</p>
+          <h2>Deterministic. Auditable. Appealable.</h2>
+          <div class="stats" style="margin-top: 1.1em">
+            <div class="card stat fragment">
+              <div class="num">100%</div>
+              <div class="lbl">of decisions are replayable: same inputs, same path, every time</div>
+            </div>
+            <div class="card stat fragment">
+              <div class="num">1</div>
+              <div class="lbl">non-deterministic node kind (the agent); everything else is pure logic</div>
+            </div>
+            <div class="card stat fragment">
+              <div class="num">0</div>
+              <div class="lbl">global "run" buttons; a flow is triggered by a typed payload at a channel door</div>
+            </div>
+          </div>
+          <aside class="notes">Replayability + a typed audit trail = appealable. Humans intervene only at gates.</aside>
+        </section>
+
+        <!-- 9. ARCHITECTURE -->
+        <section>
+          <p class="eyebrow">Solution architecture</p>
+          <h2>Discover → run → record.</h2>
+          <div class="grid-3" style="margin-top: 0.4em">
+            <div class="card fragment">
+              <h3>Discovery</h3>
+              <p>Datasets &amp; policy → process mining → a draft flow a policy maker refines.</p>
+            </div>
+            <div class="card fragment">
+              <h3>Flow runtime</h3>
+              <p>Flow config + deterministic harness + interaction layer (app / hotline).</p>
+            </div>
+            <div class="card fragment">
+              <h3>Services</h3>
+              <p>Core: audit + case/identity store. External: registry, eID, payment, notify.</p>
+            </div>
+          </div>
+          <div class="card fragment" style="margin-top: 0.7em; text-align: center">
+            <strong>Fanar</strong> <span style="color: var(--muted)">is the Arabic-capable model backend powering the harness agents and the hotline channel.</span>
+          </div>
+          <aside class="notes">Three user roles: policy maker authors, bureaucrat intervenes, consumer is served. See docs/Diagram.canvas.</aside>
+        </section>
+
+        <!-- 10. FANAR + TOOLS -->
+        <section>
+          <p class="eyebrow">Fanar &amp; external tools</p>
+          <h2>Where the model does the work.</h2>
+          <div class="cols">
+            <ul>
+              <li class="fragment"><strong>Harness backend:</strong> Fanar runs the agent nodes and the flow-mining step.</li>
+              <li class="fragment"><strong>Arabic hotline:</strong> dialect-aware speech as a channel into the same flow.</li>
+              <li class="fragment"><strong>aiXamine:</strong> safety/security safeguards on agent output.</li>
+              <li class="fragment"><strong>eID, registry, payment:</strong> wired as service channels.</li>
+            </ul>
+            <div class="card fragment">
+              <h3>Why Fanar</h3>
+              <p style="font-size: 0.95em; color: var(--text)">
+                Gulf government procedures are <strong>Arabic-first</strong> and dialect-heavy. The
+                model that reasons over the case must be too, and stay inside the audited boundary.
+              </p>
+            </div>
+          </div>
+          <aside class="notes">20% of scoring: meaningful integration, strengths, limits. Be honest about stubbed vs live for the demo.</aside>
+        </section>
+
+        <!-- 11. EVALUATION -->
+        <section>
+          <p class="eyebrow">Evaluation &amp; lessons</p>
+          <h2>What we learned.</h2>
           <ul>
-            <li>Fanar vs. alternative model on key Arabic tasks (comparison TODO).</li>
-            <li>Where Fanar handled the task well; where we needed external tools.</li>
-            <li>Limitations encountered during development.</li>
-            <li>Recommendations for future Fanar improvements.</li>
+            <li class="fragment"><strong>Fanar vs. baseline</strong> on the key Arabic classification tasks, comparison in progress.</li>
+            <li class="fragment"><strong>Where Fanar shone:</strong> dialect comprehension and structured verdicts.</li>
+            <li class="fragment"><strong>Where we reached for tools:</strong> deterministic checks belong in <code>action</code> nodes, not the model.</li>
+            <li class="fragment"><strong>Recommendation:</strong> tighter structured-output guarantees would let agents drive guards directly.</li>
           </ul>
-          <aside class="notes">15% of scoring: assessment, experiments, lessons learned.</aside>
+          <aside class="notes">15% of scoring. Keep this honest and specific: judges reward real lessons over polish.</aside>
+        </section>
+
+        <!-- 12. DEMO -->
+        <section class="center">
+          <p class="eyebrow">Live demo</p>
+          <h2 style="font-size: 2.2em">See a case flow through.</h2>
+          <div class="grid-2" style="max-width: 64%; margin: 1em auto 0">
+            <div class="card fragment">
+              <h3>Happy path</h3>
+              <p>Routine application → validated → classified → <strong>issued automatically.</strong></p>
+            </div>
+            <div class="card fragment">
+              <h3>Exception path</h3>
+              <p>Ambiguous proof → <strong>escalates to a bureaucrat</strong> → decision recorded.</p>
+            </div>
+          </div>
+          <aside class="notes">Switch to the desktop app. Submit at the intake door. Show the diagram animate, then show an exception hit the human gate.</aside>
+        </section>
+
+        <!-- 13. CLOSE -->
+        <section data-background-gradient="radial-gradient(60% 70% at 50% 45%, #12182022, #0a0d13)">
+          <div class="cols" style="gap: 2em">
+            <div>
+              <h1 class="grad" style="font-size: 3.4em">Flowstate</h1>
+              <p style="font-size: 1.05em; color: var(--text)">Auditable. Replayable. Human-in-the-loop.</p>
+              <div class="poweredby" style="margin-top: 1.6em">
+                <span class="pb-label">Powered by</span>
+                <span class="fanar-lockup">
+                  <span class="fanar-mark"></span>
+                  <span class="fanar-word">Fanar</span>
+                </span>
+              </div>
+              <p class="lead" style="margin-top: 1.4em; color: var(--faint); font-size: 0.8em">Thank you. Questions?</p>
+            </div>
+            <div class="team">
+              <div class="member">
+                <span class="avatar"></span>
+                <span class="name">Elyas Al-Amri</span>
+              </div>
+              <div class="member">
+                <span class="avatar"></span>
+                <span class="name">Osama Hasoneh</span>
+              </div>
+            </div>
+          </div>
+          <aside class="notes">Land the thesis again: automate the routine, escalate the exceptions, keep it accountable.</aside>
         </section>
       </div>
     </div>
