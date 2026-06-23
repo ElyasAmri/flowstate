@@ -10,14 +10,40 @@ import type { BoundingBox, Point } from "./viewport.svelte";
 /** Node card footprint in world units. Must match FlowNodeCard's box. */
 export const NODE_W = 300;
 export const NODE_H = 96;
+/** Height of a slot inside a channel group card. */
+export const SLOT_H = 36;
+/** Height of the header bar inside a channel group card. */
+export const HEADER_H = 40;
 
 export type PortSide = "in" | "out";
+
+/**
+ * Compute the port Y offset for a node inside a channel group.
+ * The group card has a header row plus one slot per member node.
+ * Returns the y offset relative to the group's top-left corner.
+ */
+export function groupSlotY(node: FlowNode, allSlots: FlowNode[]): number {
+  const idx = allSlots.findIndex((n) => n.id === node.id);
+  return HEADER_H + (idx >= 0 ? idx : 0) * SLOT_H + SLOT_H / 2;
+}
 
 /** World position of a node's input (left) or output (right) port. */
 export function portPosition(node: FlowNode, side: PortSide): Point {
   return {
     x: node.position.x + (side === "out" ? NODE_W : 0),
     y: node.position.y + NODE_H / 2,
+  };
+}
+
+/** Port position for a node that is a slot within a channel group. */
+export function groupPortPosition(
+  node: FlowNode,
+  side: PortSide,
+  allSlots: FlowNode[],
+): Point {
+  return {
+    x: node.position.x + (side === "out" ? NODE_W : 0),
+    y: node.position.y + groupSlotY(node, allSlots),
   };
 }
 

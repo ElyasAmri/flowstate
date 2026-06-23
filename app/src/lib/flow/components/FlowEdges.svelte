@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { FlowDefinition } from "../types";
+  import type { FlowDefinition, FlowNode } from "../types";
   import type { Point } from "../viewport.svelte";
-  import { edgeMidpoint, edgePath, portPosition } from "../geometry";
+  import { edgeMidpoint, edgePath, portPosition, groupPortPosition, HEADER_H, SLOT_H } from "../geometry";
 
   interface Props {
     flow: FlowDefinition;
@@ -9,17 +9,28 @@
     pending: { from: Point; to: Point } | null;
     /** Edge id to highlight as the active (just-traversed) transition. */
     activeEdgeId?: string | null;
+    /** Map of channelId → member nodes, for grouped port positioning. */
+    channelGroups?: Map<string, FlowNode[]>;
     /** Delete an edge (click its line or the × badge that appears on hover). */
     ondelete: (edgeId: string) => void;
   }
 
-  let { flow, pending, activeEdgeId = null, ondelete }: Props = $props();
+  let { flow, pending, activeEdgeId = null, channelGroups, ondelete }: Props = $props();
 
   // The edge the cursor is over, for the n8n-style highlight + delete badge.
   let hoveredId = $state<string | null>(null);
 
   function nodeById(id: string) {
     return flow.nodes.find((n) => n.id === id);
+  }
+
+  /** Port position, accounting for channel-group slot offsets. */
+  function portPos(node: FlowNode, side: "in" | "out"): Point {
+    const group = channelGroups?.get(node.channelId ?? "");
+    if (group && group.length > 1) {
+      return groupPortPosition(node, side, group);
+    }
+    return portPosition(node, side);
   }
 </script>
 
@@ -45,8 +56,8 @@
     {@const a = nodeById(edge.from)}
     {@const b = nodeById(edge.to)}
     {#if a && b}
-      {@const from = portPosition(a, "out")}
-      {@const to = portPosition(b, "in")}
+      {@const from = portPos(a, "out")}
+      {@const to = portPos(b, "in")}
       {@const mid = edgeMidpoint(from, to)}
       {@const d = edgePath(from, to)}
       {@const hovered = hoveredId === edge.id}

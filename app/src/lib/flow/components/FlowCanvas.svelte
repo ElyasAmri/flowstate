@@ -4,8 +4,9 @@
   import { isEntryChannel } from "../types";
   import { onMount } from "svelte";
   import { Viewport, type Point, type Size } from "../viewport.svelte";
-  import { nodesBounds, portPosition } from "../geometry";
+  import { nodesBounds, portPosition, groupPortPosition } from "../geometry";
   import FlowNodeCard from "./FlowNodeCard.svelte";
+  import FlowChannelCard from "./FlowChannelCard.svelte";
   import FlowEdges from "./FlowEdges.svelte";
   import CanvasControls from "./CanvasControls.svelte";
 
@@ -45,6 +46,51 @@
     requestAnimationFrame(fitView);
   });
 
+  // --- Channel groups: nodes with the same channelId render as one card ---
+  // Non-channel nodes, and channels that appear only once, render as regular cards.
+  const channelGroups = $derived.by(() => {
+    const groups = new Map<string, FlowNode[]>();
+    for (const n of editor.flow.nodes) {
+      if (n.kind !== "channel" || !n.channelId) continue;
+      let list = groups.get(n.channelId);
+      if (!list) groups.set(n.channelId, (list = []));
+      list.push(n);
+    }
+    return groups;
+  });
+
+  /** True when a node is part of a multi-node channel group. */
+  function isGrouped(node: FlowNode): boolean {
+    const g = channelGroups.get(node.channelId ?? "");
+    return !!g && g.length > 1;
+  }
+
+  /** All renderables: grouped channel cards + standalone nodes. */
+  type RenderItem =
+    | { kind: "channel-group"; primary: FlowNode; siblings: FlowNode[] }
+    | { kind: "standalone"; node: FlowNode };
+
+  const renderItems = $derived.by((): RenderItem[] => {
+    const groupedIds = new Set<string>();
+    const items: RenderItem[] = [];
+
+    for (const [chId, members] of channelGroups) {
+      if (members.length < 2) continue;
+      // Use the entry node (or first) as the primary position anchor.
+      const entry = members.find((m) => isEntryChannel(m, editor.channels, editor.flow.edges)) ?? members[0];
+      const siblings = members.filter((m) => m.id !== entry.id);
+      items.push({ kind: "channel-group", primary: entry, siblings });
+      for (const m of members) groupedIds.add(m.id);
+    }
+
+    for (const n of editor.flow.nodes) {
+      if (!groupedIds.has(n.id)) {
+        items.push({ kind: "standalone", node: n });
+      }
+    }
+    return items;
+  });
+
   // Pointer-interaction state machine. Window listeners are attached only while
   // a gesture is active (see startGesture) and torn down on pointer-up.
   type Interaction =
@@ -71,7 +117,11 @@
     if (i.kind !== "connecting") return null;
     const from = editor.flow.nodes.find((n) => n.id === i.fromNodeId);
     if (!from) return null;
-    return { from: portPosition(from, "out"), to: i.cursorWorld };
+    const group = channelGroups.get(from.channelId ?? "");
+    const fp = group && group.length > 1
+      ? groupPortPosition(from, "out", group)
+      : portPosition(from, "out");
+    return { from: fp, to: i.cursorWorld };
   });
 
   // --- node body: select + begin drag ---
@@ -186,20 +236,41 @@
     class="absolute left-0 top-0 origin-top-left"
     style="transform: translate({viewport.pan.x}px, {viewport.pan.y}px) scale({viewport.zoom});"
   >
-    <FlowEdges flow={editor.flow} {pending} {activeEdgeId} ondelete={(id) => editor.deleteEdge(id)} />
+    <FlowEdges
+      flow={editor.flow}
+      {pending}
+      {activeEdgeId}
+      {channelGroups}
+      ondelete={(id) => editor.deleteEdge(id)}
+    />
 
-    {#each editor.flow.nodes as node (node.id)}
-      <FlowNodeCard
-        {node}
-        active={node.id === activeNodeId}
-        selected={node.id === editor.selectedNodeId}
-        isEntry={isEntryChannel(node, editor.channels, editor.flow.edges)}
-        channels={editor.channels}
-        onbodydown={handleBodyDown}
-        onbodydblclick={handleBodyDblClick}
-        onportdown={handlePortDown}
-        onportup={handlePortUp}
-      />
+    {#each renderItems as item}
+      {#if item.kind === "channel-group"}
+        <FlowChannelCard
+          node={item.primary}
+          siblings={item.siblings}
+          channels={editor.channels}
+          selected={editor.selectedNodeId === item.primary.id}
+          isEntry={isEntryChannel(item.primary, editor.channels, editor.flow.edges)}
+          activeNodeId={activeNodeId}
+          onbodydown={handleBodyDown}
+          onbodydblclick={handleBodyDblClick}
+          onportdown={handlePortDown}
+          onportup={handlePortUp}
+        />
+      {:else}
+        <FlowNodeCard
+          node={item.node}
+          active={item.node.id === activeNodeId}
+          selected={item.node.id === editor.selectedNodeId}
+          isEntry={isEntryChannel(item.node, editor.channels, editor.flow.edges)}
+          channels={editor.channels}
+          onbodydown={handleBodyDown}
+          onbodydblclick={handleBodyDblClick}
+          onportdown={handlePortDown}
+          onportup={handlePortUp}
+        />
+      {/if}
     {/each}
   </div>
 
