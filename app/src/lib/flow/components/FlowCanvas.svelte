@@ -13,9 +13,13 @@
     editor: FlowEditor;
     /** Double-click (activate) on a node body -- e.g. submit to an entry door. */
     onnodeactivate?: (node: FlowNode) => void;
+    /** Live-run highlight: node currently executing. */
+    activeNodeId?: string | null;
+    /** Live-run highlight: edge currently being traversed. */
+    activeEdgeId?: string | null;
   }
 
-  let { editor, onnodeactivate }: Props = $props();
+  let { editor, onnodeactivate, activeNodeId = null, activeEdgeId = null }: Props = $props();
 
   const viewport = new Viewport();
 
@@ -182,11 +186,12 @@
     class="absolute left-0 top-0 origin-top-left"
     style="transform: translate({viewport.pan.x}px, {viewport.pan.y}px) scale({viewport.zoom});"
   >
-    <FlowEdges flow={editor.flow} {pending} ondelete={(id) => editor.deleteEdge(id)} />
+    <FlowEdges flow={editor.flow} {pending} {activeEdgeId} ondelete={(id) => editor.deleteEdge(id)} />
 
     {#each editor.flow.nodes as node (node.id)}
       <FlowNodeCard
         {node}
+        active={node.id === activeNodeId}
         selected={node.id === editor.selectedNodeId}
         isEntry={isEntryChannel(node, editor.channels, editor.flow.edges)}
         channels={editor.channels}

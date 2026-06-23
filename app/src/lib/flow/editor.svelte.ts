@@ -12,7 +12,6 @@ import type {
   FlowNode,
   NodeKind,
   Position,
-  VarDecl,
 } from "./types";
 import { isEntryChannel } from "./types";
 import { FlowHistory } from "./history";
@@ -224,37 +223,6 @@ export class FlowEditor {
 
   deleteEdge(id: string): void {
     this.flow.edges = this.flow.edges.filter((e) => e.id !== id);
-    this.commit();
-  }
-
-  /** Flow-level variables (lazily initialized to an empty list). */
-  get vars(): VarDecl[] {
-    return this.flow.vars ?? [];
-  }
-
-  /** Append a new flow variable with a placeholder name. */
-  addVar(): void {
-    if (!this.flow.vars) this.flow.vars = [];
-    this.flow.vars.push({
-      name: `var_${this.flow.vars.length + 1}`,
-      value: "",
-    });
-    this.commit();
-  }
-
-  /** Patch a flow variable by index. */
-  updateVar(index: number, patch: Partial<VarDecl>): void {
-    const v = this.flow.vars?.[index];
-    if (!v) return;
-    Object.assign(v, patch);
-    const field = Object.keys(patch)[0] ?? "?";
-    this.commit(`var:${index}:${field}`);
-  }
-
-  /** Remove a flow variable by index. */
-  removeVar(index: number): void {
-    if (!this.flow.vars) return;
-    this.flow.vars.splice(index, 1);
     this.commit();
   }
 

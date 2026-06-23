@@ -101,19 +101,11 @@ export interface FlowEdge {
   set?: VarAssignment[];
 }
 
-/** A flow-level variable with its initial (literal) value. */
-export interface VarDecl {
-  name: string;
-  value: string;
-}
-
 /** A complete authored flow. */
 export interface FlowDefinition {
   id: string;
   title: string;
   description?: string;
-  /** Flow-level state: variables with literal initial values. */
-  vars?: VarDecl[];
   nodes: FlowNode[];
   edges: FlowEdge[];
 }

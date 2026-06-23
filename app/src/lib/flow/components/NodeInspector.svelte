@@ -364,43 +364,6 @@
       Delete node
     </button>
   {:else}
-    <!-- No node selected: edit flow-level variables (the flow's state). -->
-    <div class="space-y-2">
-      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Flow variables</h2>
-      <p class="text-[11px] text-zinc-400">
-        State the flow carries. Values are literal initial values; nodes read them as
-        <span class="font-mono">{"{{name}}"}</span> and branches set them.
-      </p>
-      {#each editor.vars as v, i (i)}
-        <div class="flex items-center gap-1">
-          <input
-            placeholder="name"
-            class="w-1/2 rounded border border-black/10 bg-transparent px-1.5 py-1 font-mono text-xs dark:border-white/10"
-            value={v.name}
-            oninput={(e) => editor.updateVar(i, { name: e.currentTarget.value })}
-          />
-          <input
-            placeholder="initial value"
-            class="flex-1 rounded border border-black/10 bg-transparent px-1.5 py-1 text-xs dark:border-white/10"
-            value={v.value}
-            oninput={(e) => editor.updateVar(i, { value: e.currentTarget.value })}
-          />
-          <button
-            type="button"
-            class="text-rose-500 hover:text-rose-700"
-            title="Remove"
-            onclick={() => editor.removeVar(i)}>✕</button
-          >
-        </div>
-      {/each}
-      <button
-        type="button"
-        class="text-[11px] text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
-        onclick={() => editor.addVar()}
-      >
-        + add variable
-      </button>
-      <p class="pt-2 text-sm text-zinc-500">Select a node to edit it.</p>
-    </div>
+    <p class="pt-2 text-sm text-zinc-500">Select a node to edit it.</p>
   {/if}
 </aside>

@@ -87,20 +87,13 @@ describe("compileFlow header & vars", () => {
     expect(yaml).toContain("nodes:");
   });
 
-  it("emits vars with string-preserving quoting", () => {
+  it("emits nodes without a vars section (payload-only seeding)", () => {
     const f = flow({
-      vars: [
-        { name: "national_id", value: "19880421" },
-        { name: "outcome", value: "" },
-        { name: "applicant", value: "Layla" },
-      ],
       nodes: [entry("in")],
     });
     const { yaml } = compileFlow(f, registry);
-    // Numeric-looking and empty values are quoted so they stay strings.
-    expect(yaml).toContain("  national_id: '19880421'");
-    expect(yaml).toContain("  outcome: ''");
-    expect(yaml).toContain("  applicant: Layla");
+    expect(yaml).not.toContain("vars:");
+    expect(yaml).toContain("nodes:");
   });
 });
 
@@ -300,7 +293,7 @@ describe("bundled runnable fixture", () => {
     expect(errors).toEqual([]);
     // Spot-check the mappings that matter for a real run.
     expect(yaml).toContain("initial: n-input"); // the inbound channel door
-    expect(yaml).toContain("  national_id: '19880421'"); // payload var defaults
+    expect(yaml).not.toContain("national_id:"); // no vars section – payload only
     expect(yaml).toContain("    agent: arabic-reasoner"); // Fanar reasoning node
     expect(yaml).toContain("    kind: user"); // bureaucrat escalation gate
     expect(yaml).toContain("    action: shell"); // deterministic ID validation

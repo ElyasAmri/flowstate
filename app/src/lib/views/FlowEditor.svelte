@@ -156,6 +156,22 @@
   // node id while its submission panel is open.
   let submitTarget = $state<string | null>(null);
 
+  // Live-run diagram highlights: while a run is active, FlowCanvas shows the
+  // current node and edge so the user can follow the execution visually.
+  let activeNodeId = $state<string | null>(null);
+  let activeEdgeId = $state<string | null>(null);
+
+  function handleRunActive(nodeId: string | null, edgeId: string | null) {
+    activeNodeId = nodeId;
+    activeEdgeId = edgeId;
+  }
+
+  function handleRunClose() {
+    activeNodeId = null;
+    activeEdgeId = null;
+    submitTarget = null;
+  }
+
   function openSubmit(nodeId: string) {
     submitTarget = nodeId;
   }
@@ -302,7 +318,7 @@
   <div class="flex min-h-0 flex-1">
     <NodePalette onadd={handleAdd} />
     <div class="min-h-0 flex-1">
-      <FlowCanvas {editor} onnodeactivate={handleNodeActivate} />
+      <FlowCanvas {editor} {activeNodeId} {activeEdgeId} onnodeactivate={handleNodeActivate} />
     </div>
     <NodeInspector {editor} onsubmit={openSubmit} />
   </div>
@@ -314,7 +330,8 @@
       flow={editor.serialize()}
       channels={editor.channels}
       entryNodeId={submitTarget}
-      onclose={() => (submitTarget = null)}
+      onactive={handleRunActive}
+      onclose={handleRunClose}
     />
   {/key}
 {/if}

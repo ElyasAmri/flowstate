@@ -136,18 +136,6 @@ export const residenceCertificateRunnable: FlowDefinition = {
     "Auto-issues clean applications, escalates " +
     "ambiguous address proofs to a reviewer, rejects invalid identities. Compiles " +
     "to a maestro flow.",
-  vars: [
-    { name: "national_id", value: "19880421" },
-    { name: "applicant_name", value: "Layla Al-Marri" },
-    {
-      name: "address_proof",
-      value: "Ooredoo utility bill this month; name and Doha address match.",
-    },
-    { name: "addr_verdict", value: "" },
-    { name: "outcome", value: "" },
-    { name: "decision_reason", value: "" },
-    { name: "certificate_url", value: "" },
-  ],
   nodes: [
     {
       id: "n-input",

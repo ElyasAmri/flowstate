@@ -10,6 +10,8 @@
     selected: boolean;
     /** True when this is an inbound channel "door" -- a flow entry point. */
     isEntry: boolean;
+    /** True when this node is currently being executed in a live run. */
+    active?: boolean;
     /** Channel registry, for deriving this node's color and icon. */
     channels: ChannelRegistry;
     /** Pointer-down on the card body: begin a node drag (or selection). */
@@ -22,7 +24,7 @@
     onportup: (node: FlowNode, e: PointerEvent) => void;
   }
 
-  let { node, selected, isEntry, channels, onbodydown, onbodydblclick, onportdown, onportup }: Props = $props();
+  let { node, selected, isEntry, active = false, channels, onbodydown, onbodydblclick, onportdown, onportup }: Props = $props();
 
   const meta = $derived(nodeKindMeta(node.kind));
   const colors = $derived(nodeColorClasses(node, channels));
@@ -44,7 +46,9 @@
   class="group absolute select-none overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
-      : 'hover:-translate-y-0.5 hover:shadow-lg'}"
+      : active
+        ? 'animate-pulse-ring ring-2 ring-emerald-500'
+        : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
 >
   <!-- Top accent bar: the node's color in the 4-color scheme (calm, thin). -->

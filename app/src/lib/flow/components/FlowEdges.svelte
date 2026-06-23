@@ -7,11 +7,13 @@
     flow: FlowDefinition;
     /** Live connection preview while dragging from an output port, else null. */
     pending: { from: Point; to: Point } | null;
+    /** Edge id to highlight as the active (just-traversed) transition. */
+    activeEdgeId?: string | null;
     /** Delete an edge (click its line or the × badge that appears on hover). */
     ondelete: (edgeId: string) => void;
   }
 
-  let { flow, pending, ondelete }: Props = $props();
+  let { flow, pending, activeEdgeId = null, ondelete }: Props = $props();
 
   // The edge the cursor is over, for the n8n-style highlight + delete badge.
   let hoveredId = $state<string | null>(null);
@@ -66,8 +68,12 @@
         <path
           {d}
           fill="none"
-          class={hovered ? "stroke-rose-400" : "stroke-zinc-400 dark:stroke-zinc-500"}
-          stroke-width={hovered ? 3 : 2}
+          class={hovered
+            ? "stroke-rose-400"
+            : activeEdgeId === edge.id
+              ? "stroke-emerald-500 animated-edge"
+              : "stroke-zinc-400 dark:stroke-zinc-500"}
+          stroke-width={hovered ? 3 : activeEdgeId === edge.id ? 3 : 2}
           marker-end="url(#flow-arrow)"
         />
       </g>

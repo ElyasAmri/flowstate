@@ -25,13 +25,6 @@ pub struct VarAssignment {
     pub expr: String,
 }
 
-/// A flow variable with its literal initial value. Mirrors `VarDecl` in `types.ts`.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-pub struct VarDecl {
-    pub name: String,
-    pub value: String,
-}
-
 /// A single node in the flow graph. Mirrors `FlowNode` in `types.ts`.
 /// `kind` and `outcome` are kept as free-form strings here: this layer only
 /// persists; the frontend's TypeScript union is the schema authority. Every
@@ -91,9 +84,6 @@ pub struct FlowDefinition {
     pub title: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub description: Option<String>,
-    /// Flow-level state: variables with literal initial values.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub vars: Vec<VarDecl>,
     pub nodes: Vec<FlowNode>,
     pub edges: Vec<FlowEdge>,
 }
@@ -387,10 +377,6 @@ mod tests {
             id: "rich".into(),
             title: "Rich Flow".into(),
             description: Some("carries executable detail".into()),
-            vars: vec![VarDecl {
-                name: "outcome".into(),
-                value: "".into(),
-            }],
             nodes: vec![
                 FlowNode {
                     id: "in".into(),

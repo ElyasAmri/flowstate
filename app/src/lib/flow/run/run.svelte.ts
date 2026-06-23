@@ -42,6 +42,8 @@ export class FlowRun {
   vars = $state<Record<string, Value>>({});
   status = $state<RunStatus>("idle");
   currentId = $state<string | null>(null);
+  /** The edge being traversed (from the just-executed node to the next). */
+  activeEdgeId = $state<string | null>(null);
   trace = $state<TraceEntry[]>([]);
   /** Set while `status === "awaiting"`: the human gate the operator must answer. */
   pending = $state<{ nodeId: string; label: string; prompt: string } | null>(
@@ -50,6 +52,9 @@ export class FlowRun {
   /** The citizen-facing result once done (the last drafted message, if any). */
   result = $state<string>("");
   error = $state<string>("");
+
+  /** Per-step delay (ms) so the visual flow on the diagram is visible. */
+  stepDelay = $state(400);
 
   private byId: Map<string, FlowNode>;
   /** The entry channel node the run started from (a flow can have several). */
@@ -83,22 +88,22 @@ export class FlowRun {
   }
 
   /**
-   * Seed variables from the flow's declared vars plus the submitted payload, then
-   * run from the given entry channel node. The payload is the typed message a
-   * consumer submits across an inbound channel -- it is what triggers the flow.
+   * Seed variables from the submitted payload, then run from the given entry
+   * channel node. The payload is the typed message a consumer submits across
+   * an inbound channel -- it is what triggers the flow.
    */
   async start(entryId: string, payload: Record<string, Value> = {}): Promise<void> {
-    const vars: Record<string, Value> = {};
-    for (const v of this.flow.vars ?? []) vars[v.name] = v.value;
-    for (const [name, value] of Object.entries(payload)) vars[name] = value;
-    this.vars = vars;
+    this.vars = { ...payload };
     this.trace = [];
     this.result = "";
     this.error = "";
     this.pending = null;
+    this.activeEdgeId = null;
     this.currentId = entryId;
     this.entryId = entryId;
     this.status = "running";
+    // Initial delay so the entry node lights up before execution.
+    await this.delay();
     await this.loop();
   }
 
@@ -140,7 +145,11 @@ export class FlowRun {
       // `null` means the node suspended the run at a human gate; the UI resumes
       // it via resolve(). Any other result advances to the next node.
       if (outcome === null) return;
+      // Brief pause so the highlight is visible before progressing.
+      await this.delay();
       this.advance(node, outcome);
+      // If there's a next node, pause so the active edge is visible.
+      if (this.currentId) await this.delay();
     }
   }
 
@@ -251,7 +260,13 @@ export class FlowRun {
     // If the just-run node produced a citizen-facing message, remember it.
     if (typeof outcome.text === "string" && node.kind === "agent")
       this.result = outcome.text;
+    // Show the edge traversal, then move currentId so the next node lights up.
+    this.activeEdgeId = taken.id;
     this.currentId = taken.to;
+  }
+
+  private async delay(): Promise<void> {
+    if (this.stepDelay > 0) await new Promise((r) => setTimeout(r, this.stepDelay));
   }
 
   private finish(node: FlowNode): void {
@@ -262,13 +277,15 @@ export class FlowRun {
       this.result = this.vars.citizen_message;
     }
     this.log(node, "done");
-    this.status = "done";
+    this.activeEdgeId = null;
     this.currentId = null;
+    this.status = "done";
   }
 
   private fail(message: string): void {
     this.error = message;
-    this.status = "error";
+    this.activeEdgeId = null;
     this.currentId = null;
+    this.status = "error";
   }
 }

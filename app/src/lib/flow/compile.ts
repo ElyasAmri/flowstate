@@ -140,17 +140,6 @@ export function compileFlow(
   lines.push("version: 1");
   lines.push(`initial: ${scalar(initialId)}`);
 
-  // Flow state = the declared vars. The case data a consumer submits across an
-  // inbound channel arrives as the trigger payload at run time; the declared
-  // vars give those names literal initial values for compilation/replay.
-  const vars = new Map<string, string>();
-  for (const v of flow.vars ?? []) vars.set(v.name, v.value);
-  if (vars.size) {
-    lines.push("vars:");
-    for (const [name, value] of vars)
-      lines.push(`  ${key(name)}: ${scalar(value)}`);
-  }
-
   lines.push("nodes:");
   for (const node of flow.nodes) {
     const edges = orderedEdges(node, outgoing(node.id), errors);
