@@ -211,8 +211,9 @@
         type="button"
         class="self-center rounded px-2 py-1 text-xs text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
         title="Back to flows"
+        aria-label="Back to flows"
         data-testid="back"
-        onclick={handleBack}>← Flows</button
+        onclick={handleBack}>←</button
       >
       {#if renaming !== null}
         <!-- svelte-ignore a11y_autofocus -->
@@ -241,7 +242,6 @@
           data-testid="rename"
           onclick={startRename}>✎</button
         >
-        <span class="text-xs text-zinc-500">flow editor</span>
       {/if}
     </div>
     <div class="flex items-baseline gap-3">
