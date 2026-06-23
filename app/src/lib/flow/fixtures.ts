@@ -45,8 +45,8 @@ export const exampleChannels: ChannelDefinition[] = [
         description: "Initial submission that starts the flow.",
         fields: [
           { name: "national_id", type: "string" },
-          { name: "proof_of_address", type: "file" },
-          { name: "submitted_at", type: "date" },
+          { name: "applicant_name", type: "string" },
+          { name: "address_proof", type: "string" },
         ],
       },
     ],
@@ -136,8 +136,13 @@ export const residenceCertificateRunnable: FlowDefinition = {
     "Auto-issues clean applications, escalates " +
     "ambiguous address proofs to a reviewer, rejects invalid identities. Compiles " +
     "to a maestro flow.",
-  startNodeId: "n-input",
   vars: [
+    { name: "national_id", value: "19880421" },
+    { name: "applicant_name", value: "Layla Al-Marri" },
+    {
+      name: "address_proof",
+      value: "Ooredoo utility bill this month; name and Doha address match.",
+    },
     { name: "addr_verdict", value: "" },
     { name: "outcome", value: "" },
     { name: "decision_reason", value: "" },
@@ -146,19 +151,12 @@ export const residenceCertificateRunnable: FlowDefinition = {
   nodes: [
     {
       id: "n-input",
-      kind: "input",
+      kind: "channel",
+      channelId: "ch-intake",
       label: "Application intake",
       description:
-        "Manual trigger: type the citizen's application to run the flow.",
-      inputs: [
-        { name: "national_id", value: "19880421" },
-        { name: "applicant_name", value: "Layla Al-Marri" },
-        {
-          name: "address_proof",
-          value:
-            "Ooredoo utility bill this month; name and Doha address match.",
-        },
-      ],
+        "Inbound door: the citizen submits their application across the " +
+        "consumer app to trigger the flow.",
       position: { x: 80, y: 240 },
     },
     {
@@ -169,9 +167,9 @@ export const residenceCertificateRunnable: FlowDefinition = {
       description:
         "Deterministic registry check: a valid ID is 8 digits, not leading zero.",
       command:
-        "$id = '{{national_id}}'\n" +
-        "if ($id -match '^[1-9][0-9]{7}$') { Write-Output 'MATCH'; exit 0 }\n" +
-        "Write-Error 'national id not found in registry'; exit 1",
+        'id="{{national_id}}"\n' +
+        'if echo "$id" | grep -Eq \'^[1-9][0-9]{7}$\'; then echo MATCH; exit 0; fi\n' +
+        'echo "national id not found in registry" >&2; exit 1',
       position: { x: 520, y: 240 },
     },
     {
@@ -320,16 +318,16 @@ export const residenceCertificateRunnable: FlowDefinition = {
 };
 
 /**
- * A fresh, empty flow with a single inbound channel node. Used by "New flow" in
- * the selector and as a fallback when an unknown flow id is opened. The id must
- * be a safe bare file name (see the backend `safe_name` guard). The start node
- * has no channel assigned yet -- the author picks one in the inspector.
+ * A fresh, empty flow with a single channel node. Used by "New flow" in the
+ * selector and as a fallback when an unknown flow id is opened. The id must be a
+ * safe bare file name (see the backend `safe_name` guard). The node has no
+ * channel assigned yet -- the author picks an inbound channel in the inspector
+ * to turn it into the flow's entry door.
  */
 export function blankFlow(id: string): FlowDefinition {
   return {
     id,
     title: "Untitled flow",
-    startNodeId: "n-start",
     nodes: [
       {
         id: "n-start",

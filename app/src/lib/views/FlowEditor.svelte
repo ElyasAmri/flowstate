@@ -7,7 +7,8 @@
     residenceCertificateRunnable,
   } from "../flow/fixtures";
   import { loadRegistry, toRegistry } from "../flow/channels";
-  import type { NodeKind } from "../flow/types";
+  import type { FlowNode, NodeKind } from "../flow/types";
+  import { isEntryChannel } from "../flow/types";
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
   import NodePalette from "../flow/components/NodePalette.svelte";
   import NodeInspector from "../flow/components/NodeInspector.svelte";
@@ -80,8 +81,29 @@
     }
   }
 
-  // Debounced autosave: whenever the flow changes, persist ~400ms later. We read
-  // the flow fields the effect should depend on, then schedule the write.
+  // Compile-to-maestro errors. Only surfaced as a dismissable bar when compiling
+  // fails; a successful auto-compile clears it silently.
+  let compileResult = $state<{ lines: string[] } | null>(null);
+
+  // Persist the flow, then (if it's runnable) compile it to a maestro flow. Both
+  // happen automatically on every edit -- there is no manual Save/Compile button.
+  // Persist the flow, then (if it's runnable) compile it to a maestro flow. Both
+  // happen automatically on every edit -- there is no manual Save/Compile button.
+  // We only surface genuine validation errors; the off-Tauri "nowhere to write"
+  // outcome (dev/browser) isn't user-actionable, so it's silenced.
+  async function persistAndCompile() {
+    await editor.save();
+    const r = await editor.compileToMaestro();
+    if (r.ok || r.errors.some((e) => e.includes("Not running under Tauri"))) {
+      compileResult = null;
+      return;
+    }
+    compileResult = { lines: r.errors };
+  }
+
+  // Debounced auto save + compile: whenever the flow changes, persist and compile
+  // ~400ms later. We read the flow fields the effect should depend on, then
+  // schedule the work.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let firstRun = true;
   $effect(() => {
@@ -93,7 +115,7 @@
       return;
     }
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => void editor.save(), 400);
+    saveTimer = setTimeout(() => void persistAndCompile(), 400);
     // On teardown (flow switch via {#key} remount, or unmount) flush a pending
     // write instead of dropping it: editing then immediately switching/leaving
     // would otherwise lose the last <400ms of edits. `save()` is a no-op when
@@ -129,24 +151,20 @@
     dropX += 24;
   }
 
-  // Compile-to-maestro result, shown as a dismissable bar under the header.
-  let compileResult = $state<{ ok: boolean; lines: string[] } | null>(null);
-  let compiling = $state(false);
+  // Double-clicking an inbound channel node ("door") on the canvas triggers a
+  // run. A flow can have several doors. `submitTarget` holds the chosen entry
+  // node id while its submission panel is open.
+  let submitTarget = $state<string | null>(null);
 
-  async function handleCompile() {
-    compiling = true;
-    // Flush pending edits first so we compile exactly what's on screen.
-    clearTimeout(saveTimer);
-    await editor.save();
-    const r = await editor.compileToMaestro();
-    compiling = false;
-    compileResult = r.ok
-      ? { ok: true, lines: [`Compiled to ${r.path ?? ".maestro/flows"}`, `Run it in maestro:  /flow ${editor.name}`] }
-      : { ok: false, lines: r.errors };
+  function openSubmit(nodeId: string) {
+    submitTarget = nodeId;
   }
 
-  // The in-app run panel (runs the current in-memory flow).
-  let running = $state(false);
+  // Double-clicking an entry "door" on the canvas opens its submission modal.
+  // Double-clicking any other node just selects it (a no-op here).
+  function handleNodeActivate(node: FlowNode) {
+    if (isEntryChannel(node, editor.channels, editor.flow.edges)) openSubmit(node.id);
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -194,33 +212,16 @@
       <span class="text-xs text-zinc-500" data-testid="flow-counts">
         {editor.flow.nodes.length} nodes · {editor.flow.edges.length} transitions
       </span>
-      <button
-        type="button"
-        class="rounded border border-emerald-600 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
-        title="Compile this flow to a runnable maestro flow under .maestro/flows/"
-        data-testid="compile"
-        disabled={compiling}
-        onclick={handleCompile}>{compiling ? "Compiling…" : "Compile ▸"}</button
-      >
-      <button
-        type="button"
-        class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
-        title="Run this flow in the app"
-        data-testid="run"
-        onclick={() => (running = true)}>Run ▸</button
-      >
     </div>
   </header>
 
   {#if compileResult}
     <div
-      class="flex items-start justify-between gap-3 border-b px-4 py-2 text-xs {compileResult.ok
-        ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
-        : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'}"
+      class="flex items-start justify-between gap-3 border-b border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200"
       data-testid="compile-result"
     >
       <div class="space-y-0.5">
-        <p class="font-medium">{compileResult.ok ? "Compiled" : "Cannot compile yet"}</p>
+        <p class="font-medium">Cannot compile yet</p>
         {#each compileResult.lines as line (line)}
           <p class="font-mono">{line}</p>
         {/each}
@@ -237,12 +238,19 @@
   <div class="flex min-h-0 flex-1">
     <NodePalette onadd={handleAdd} />
     <div class="min-h-0 flex-1">
-      <FlowCanvas {editor} />
+      <FlowCanvas {editor} onnodeactivate={handleNodeActivate} />
     </div>
-    <NodeInspector {editor} />
+    <NodeInspector {editor} onsubmit={openSubmit} />
   </div>
 </div>
 
-{#if running}
-  <RunPanel flow={editor.serialize()} onclose={() => (running = false)} />
+{#if submitTarget}
+  {#key submitTarget}
+    <RunPanel
+      flow={editor.serialize()}
+      channels={editor.channels}
+      entryNodeId={submitTarget}
+      onclose={() => (submitTarget = null)}
+    />
+  {/key}
 {/if}

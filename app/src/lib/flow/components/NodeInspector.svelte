@@ -6,16 +6,21 @@
     type NodeKind,
     type TerminalOutcome,
     type VarAssignment,
-    type VarDecl,
   } from "../types";
+  import { isEntryChannel } from "../types";
 
   interface Props {
     editor: FlowEditor;
+    /** Open the submission panel for an inbound channel node (the entry door). */
+    onsubmit: (nodeId: string) => void;
   }
 
-  let { editor }: Props = $props();
+  let { editor, onsubmit }: Props = $props();
 
   const node = $derived(editor.selectedNode);
+  const isEntry = $derived(
+    !!node && isEntryChannel(node, editor.channels, editor.flow.edges),
+  );
   const edges = $derived(node ? editor.outgoingEdges(node.id) : []);
   const targets = $derived(editor.flow.nodes.filter((n) => n.id !== node?.id));
   // Channels available to assign, sorted by title for a stable picker.
@@ -50,22 +55,6 @@
   }
   /** Remove the i-th assignment from a list and return the new list. */
   function withRemoved(list: VarAssignment[] | undefined, i: number): VarAssignment[] {
-    return (list ?? []).filter((_, idx) => idx !== i);
-  }
-
-  // --- manual-input field helpers (VarDecl: name + literal value) ------------
-
-  /** Replace an input node's field list. */
-  function setInputs(id: string, next: VarDecl[]): void {
-    editor.updateNode(id, { inputs: next });
-  }
-  function addInput(list: VarDecl[] | undefined): VarDecl[] {
-    return [...(list ?? []), { name: "", value: "" }];
-  }
-  function patchInput(list: VarDecl[] | undefined, i: number, patch: Partial<VarDecl>): VarDecl[] {
-    return (list ?? []).map((f, idx) => (idx === i ? { ...f, ...patch } : f));
-  }
-  function removeInput(list: VarDecl[] | undefined, i: number): VarDecl[] {
     return (list ?? []).filter((_, idx) => idx !== i);
   }
 </script>
@@ -109,46 +98,6 @@
           oninput={(e) => editor.updateNode(node.id, { description: e.currentTarget.value })}
         ></textarea>
       </label>
-
-      <!-- input: the case data the operator types to start the flow (becomes vars) -->
-      {#if node.kind === "input"}
-        <div class="space-y-1 text-sm">
-          <span class="text-zinc-500">Case data</span>
-          <p class="text-[11px] text-zinc-400">
-            Each field becomes a flow variable. Nodes read it as
-            <span class="font-mono">{"{{name}}"}</span>.
-          </p>
-          {#each node.inputs ?? [] as f, i (i)}
-            <div class="flex items-center gap-1">
-              <input
-                placeholder="name"
-                class="w-1/2 rounded border border-black/10 bg-transparent px-1.5 py-1 font-mono text-xs dark:border-white/10"
-                value={f.name}
-                oninput={(e) => setInputs(node.id, patchInput(node.inputs, i, { name: e.currentTarget.value }))}
-              />
-              <input
-                placeholder="value"
-                class="flex-1 rounded border border-black/10 bg-transparent px-1.5 py-1 text-xs dark:border-white/10"
-                value={f.value}
-                oninput={(e) => setInputs(node.id, patchInput(node.inputs, i, { value: e.currentTarget.value }))}
-              />
-              <button
-                type="button"
-                class="text-rose-500 hover:text-rose-700"
-                title="Remove"
-                onclick={() => setInputs(node.id, removeInput(node.inputs, i))}>✕</button
-              >
-            </div>
-          {/each}
-          <button
-            type="button"
-            class="text-[11px] text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
-            onclick={() => setInputs(node.id, addInput(node.inputs))}
-          >
-            + add field
-          </button>
-        </div>
-      {/if}
 
       <!-- agent: which agent runs + the prompt it receives -->
       {#if node.kind === "agent"}
@@ -311,18 +260,19 @@
         </label>
       {/if}
 
-      {#if editor.flow.startNodeId === node.id}
-        <p class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-          This is the start node.
-        </p>
-      {:else}
-        <button
-          type="button"
-          class="text-[11px] text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200"
-          onclick={() => (editor.flow.startNodeId = node.id)}
-        >
-          Make start node
-        </button>
+      {#if isEntry}
+        <div class="space-y-1 rounded-md border border-emerald-300 bg-emerald-50 p-2 dark:border-emerald-900 dark:bg-emerald-950/30">
+          <p class="text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+            Entry door — an inbound channel. A consumer submits a query here to
+            trigger the flow.
+          </p>
+          <button
+            type="button"
+            class="rounded bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+            data-testid="inspector-submit"
+            onclick={() => node && onsubmit(node.id)}>Submit a query ▸</button
+          >
+        </div>
       {/if}
     </div>
 

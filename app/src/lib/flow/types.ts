@@ -19,7 +19,6 @@
 
 /** The kind of a node, which determines its role in the executed flow. */
 export type NodeKind =
-  | "input" // manual trigger: the operator types the case data that starts the flow
   | "channel" // crosses a boundary; references a channel by id
   | "agent" // an AI agent reasons / classifies / extracts / drafts
   | "action" // deterministic internal logic / computation
@@ -87,12 +86,6 @@ export interface FlowNode {
   sendTo?: string;
   /** `action`/`op === "set"`: the variable assignments to apply. */
   assignments?: VarAssignment[];
-  /**
-   * `input`: the case data the operator enters to start the flow (an n8n-style
-   * manual trigger). Each becomes a flow `var` at compile time, so downstream
-   * nodes read it as `{{name}}`.
-   */
-  inputs?: VarDecl[];
 }
 
 /** A directed connection between two nodes. */
@@ -119,8 +112,6 @@ export interface FlowDefinition {
   id: string;
   title: string;
   description?: string;
-  /** Id of the entry node -- an `inbound` channel node. */
-  startNodeId: string;
   /** Flow-level state: variables with literal initial values. */
   vars?: VarDecl[];
   nodes: FlowNode[];
@@ -191,6 +182,47 @@ export interface ChannelDefinition {
 /** A read-only view of the channel registry keyed by id, for fast lookup. */
 export type ChannelRegistry = Record<string, ChannelDefinition>;
 
+/**
+ * True when `node` is an entry "door": a channel node whose referenced channel
+ * accepts inbound traffic (`direction` is `inbound` or `both`) AND which nothing
+ * in the flow routes to (no incoming edge), so it is where a run begins. A
+ * consumer submits a payload to such a node to trigger the flow -- there is no
+ * global Run button. The no-incoming-edge rule distinguishes a consumer-facing
+ * door from a mid-flow `both` channel (e.g. a reviewer desk the flow routes to).
+ * Returns false for unresolved/outbound channels and non-channels.
+ */
+export function isEntryChannel(
+  node: FlowNode,
+  registry: ChannelRegistry,
+  edges: FlowEdge[] = [],
+): boolean {
+  if (node.kind !== "channel" || !node.channelId) return false;
+  const ch = registry[node.channelId];
+  if (!ch) return false;
+  if (ch.direction !== "inbound" && ch.direction !== "both") return false;
+  return !edges.some((e) => e.to === node.id);
+}
+
+/**
+ * The payload fields a consumer submits to an entry channel node: the union of
+ * fields across the channel's `returns` messages (the messages the outside world
+ * sends INTO the harness). De-duplicated by field name, first declaration wins.
+ */
+export function entryPayloadFields(
+  channel: ChannelDefinition,
+): ChannelField[] {
+  const seen = new Set<string>();
+  const fields: ChannelField[] = [];
+  for (const msg of channel.returns) {
+    for (const f of msg.fields) {
+      if (seen.has(f.name)) continue;
+      seen.add(f.name);
+      fields.push(f);
+    }
+  }
+  return fields;
+}
+
 // --- Node display metadata --------------------------------------------------
 
 /** Display metadata for each node kind, used by the palette and canvas. */
@@ -201,11 +233,6 @@ export interface NodeKindMeta {
 }
 
 export const NODE_KINDS: NodeKindMeta[] = [
-  {
-    kind: "input",
-    label: "Manual input",
-    blurb: "Trigger: type the case data to start the flow.",
-  },
   {
     kind: "channel",
     label: "Channel",

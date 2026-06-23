@@ -18,20 +18,28 @@ pub struct ShellResult {
     pub text: String,
 }
 
-/// Run `command` via PowerShell in `dir`. Mirrors how the harness spawns shells
-/// (`-NoProfile -ExecutionPolicy Bypass`) so a flow behaves the same in-app.
-/// Synchronous: Tauri runs it off the UI thread.
+/// Run `command` in `dir` using the platform's native shell: PowerShell on
+/// Windows (`-NoProfile -ExecutionPolicy Bypass`, mirroring the harness) and
+/// `/bin/sh -c` on macOS/Linux. Synchronous: Tauri runs it off the UI thread.
 #[tauri::command]
 pub fn run_shell(dir: String, command: String) -> Result<ShellResult, String> {
-    let output = std::process::Command::new("powershell")
-        .current_dir(&dir)
-        .args([
+    let mut cmd = if cfg!(windows) {
+        let mut c = std::process::Command::new("powershell");
+        c.args([
             "-NoProfile",
             "-ExecutionPolicy",
             "Bypass",
             "-Command",
             &command,
-        ])
+        ]);
+        c
+    } else {
+        let mut c = std::process::Command::new("/bin/sh");
+        c.args(["-c", &command]);
+        c
+    };
+    let output = cmd
+        .current_dir(&dir)
         .output()
         .map_err(|e| e.to_string())?;
     let mut text = String::from_utf8_lossy(&output.stdout).trim().to_string();

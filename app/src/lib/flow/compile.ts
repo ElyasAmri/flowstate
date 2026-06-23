@@ -12,21 +12,24 @@
 //   action op=log               -> action: log     (message)
 //   action op=send              -> action: send    (to, message)
 //   decision                    -> action: log     (pass-through; out-edge guards branch)
-//   channel inbound (start)     -> action: log     (receipt; the entry node)
+//   channel inbound (entry)     -> action: log     (receipt; the entry node)
 //   channel outbound ui, gating -> user            (approval: true) -- a human step
 //   channel outbound, terminal  -> action: log + terminal: success  (returns a result)
 //   channel outbound service    -> action: log     (service stub; swap to op=shell to wire)
 //
-// A node with no out-edges becomes terminal. Edge guards become `when:`; edge
-// assignments become `set:`. Determinism lives in the graph, exactly as the
-// harness expects.
+// The flow has no global start: it is triggered by submitting a payload to an
+// inbound channel node (a "door"). The compiler picks the first inbound channel
+// node as the maestro `initial`. Edge guards become `when:` and edge assignments
+// become `set:`. Determinism lives in the graph, exactly as the harness expects.
 
 import type {
+  ChannelRegistry,
   FlowDefinition,
   FlowEdge,
   FlowNode,
   VarAssignment,
 } from "./types";
+import { isEntryChannel } from "./types";
 
 /** The result of a compile: the YAML text plus any blocking problems. */
 export interface CompileResult {
@@ -68,18 +71,32 @@ function key(s: string): string {
 
 // --- compile ----------------------------------------------------------------
 
-/** Compile an authored flow to maestro YAML. Always returns text; check `errors`. */
-export function compileFlow(flow: FlowDefinition): CompileResult {
+/** Compile an authored flow to maestro YAML. Always returns text; check `errors`.
+ *  `registry` lets the compiler resolve which channel nodes are inbound entry
+ *  doors; pass `{}` when channels are unavailable (the first node is used). */
+export function compileFlow(
+  flow: FlowDefinition,
+  registry: ChannelRegistry = {},
+): CompileResult {
   const errors: string[] = [];
   const byId = new Map(flow.nodes.map((n) => [n.id, n]));
   const outgoing = (id: string): FlowEdge[] =>
     flow.edges.filter((e) => e.from === id);
 
+  // The flow is triggered by submitting to an inbound channel node. The compiler
+  // takes the first such "door" as maestro's `initial`; if none resolves (no
+  // registry, or no inbound channel), it falls back to the first node so the
+  // emitted YAML still has an entry, and reachability is reported below.
+  const entryNodes = flow.nodes.filter((n) =>
+    isEntryChannel(n, registry, flow.edges),
+  );
+  const initialId = entryNodes[0]?.id ?? flow.nodes[0]?.id ?? "";
+
   // --- structural checks ---
   if (!flow.nodes.length) errors.push("flow has no nodes");
-  if (!flow.startNodeId || !byId.has(flow.startNodeId)) {
+  if (!entryNodes.length) {
     errors.push(
-      `start node ${JSON.stringify(flow.startNodeId)} does not exist`,
+      "flow has no inbound channel node to trigger it (add a channel bound to an inbound channel)",
     );
   }
   for (const e of flow.edges) {
@@ -92,9 +109,15 @@ export function compileFlow(flow: FlowDefinition): CompileResult {
         `edge ${e.id}: target ${JSON.stringify(e.to)} does not exist`,
       );
   }
-  // Reachability from the start node.
+  // Reachability: every entry door is a valid starting point, so seed the search
+  // from all of them (maestro takes one `initial`, but the others are still
+  // legitimate entries a consumer can submit to).
   const reached = new Set<string>();
-  const stack = flow.startNodeId ? [flow.startNodeId] : [];
+  const stack = entryNodes.length
+    ? entryNodes.map((n) => n.id)
+    : initialId
+      ? [initialId]
+      : [];
   while (stack.length) {
     const id = stack.pop()!;
     if (reached.has(id) || !byId.has(id)) continue;
@@ -104,7 +127,7 @@ export function compileFlow(flow: FlowDefinition): CompileResult {
   for (const n of flow.nodes) {
     if (!reached.has(n.id))
       errors.push(
-        `node ${n.id} (${n.label}) is unreachable from the start node`,
+        `node ${n.id} (${n.label}) is unreachable from any entry node`,
       );
   }
 
@@ -115,19 +138,13 @@ export function compileFlow(flow: FlowDefinition): CompileResult {
   );
   lines.push(`# Source flow: ${flow.title} (${flow.id})`);
   lines.push("version: 1");
-  lines.push(`initial: ${scalar(flow.startNodeId)}`);
+  lines.push(`initial: ${scalar(initialId)}`);
 
-  // Flow state = declared vars plus every manual-input node's fields (the case
-  // data the operator typed). Input fields win on a name clash, so the manual
-  // input is what the run actually starts from. Order preserved, input appended.
+  // Flow state = the declared vars. The case data a consumer submits across an
+  // inbound channel arrives as the trigger payload at run time; the declared
+  // vars give those names literal initial values for compilation/replay.
   const vars = new Map<string, string>();
   for (const v of flow.vars ?? []) vars.set(v.name, v.value);
-  for (const node of flow.nodes) {
-    if (node.kind === "input") {
-      for (const f of node.inputs ?? [])
-        if (f.name.trim()) vars.set(f.name, f.value);
-    }
-  }
   if (vars.size) {
     lines.push("vars:");
     for (const [name, value] of vars)
@@ -139,7 +156,7 @@ export function compileFlow(flow: FlowDefinition): CompileResult {
     const edges = orderedEdges(node, outgoing(node.id), errors);
     const terminal = isTerminal(node, edges);
     lines.push(`  ${key(node.id)}:`);
-    emitNodeBody(lines, node, flow, errors);
+    emitNodeBody(lines, node, errors, entryNodes, edges);
     if (terminal) lines.push("    terminal: success");
     emitTransitions(lines, edges, terminal, errors, node);
   }
@@ -176,24 +193,11 @@ function isTerminal(node: FlowNode, edges: FlowEdge[]): boolean {
 function emitNodeBody(
   lines: string[],
   node: FlowNode,
-  flow: FlowDefinition,
   errors: string[],
+  entryNodes: FlowNode[],
+  edges: FlowEdge[],
 ): void {
   switch (node.kind) {
-    case "input": {
-      // The manual trigger. Its fields already seeded the flow `vars`; the node
-      // itself is the entry point -- a log that confirms the case came in.
-      const fields = (node.inputs ?? [])
-        .map((f) => f.name.trim())
-        .filter(Boolean);
-      const summary = fields.length
-        ? `Manual input received (${fields.join(", ")}).`
-        : "Manual input received.";
-      lines.push("    kind: action");
-      lines.push("    action: log");
-      lines.push(`    message: ${scalar(summary)}`);
-      return;
-    }
     case "agent": {
       const ref = node.agentRef?.trim() || "arabic-reasoner";
       lines.push("    kind: agent");
@@ -216,7 +220,7 @@ function emitNodeBody(
       return;
     }
     case "channel": {
-      emitChannel(lines, node, flow, errors);
+      emitChannel(lines, node, errors, entryNodes, edges);
       return;
     }
   }
@@ -264,17 +268,18 @@ function emitAction(lines: string[], node: FlowNode, errors: string[]): void {
 function emitChannel(
   lines: string[],
   node: FlowNode,
-  flow: FlowDefinition,
   errors: string[],
+  entryNodes: FlowNode[],
+  edges: FlowEdge[],
 ): void {
-  const isStart = node.id === flow.startNodeId;
+  const isEntry = entryNodes.some((n) => n.id === node.id);
   const isHumanGate =
     node.kind === "channel" &&
     !node.outcome &&
-    !isStart &&
-    hasGuardedSplit(flow, node.id);
-  if (isStart) {
-    // Entry: the application arrives. A receipt log is the entry node.
+    !isEntry &&
+    hasGuardedSplit(edges);
+  if (isEntry) {
+    // Entry door: the application arrives. A receipt log is the entry node.
     lines.push("    kind: action");
     lines.push("    action: log");
     lines.push(`    message: ${scalar(node.label)}`);
@@ -296,10 +301,9 @@ function emitChannel(
   lines.push(`    message: ${scalar(node.label)}`);
 }
 
-/** True when `id` has >1 outgoing edge with guards -- i.e. it branches (a gate). */
-function hasGuardedSplit(flow: FlowDefinition, id: string): boolean {
-  const out = flow.edges.filter((e) => e.from === id);
-  return out.length > 1 && out.some((e) => e.guard && e.guard.trim());
+/** True when these out-edges branch -- >1 edge with at least one guard (a gate). */
+function hasGuardedSplit(edges: FlowEdge[]): boolean {
+  return edges.length > 1 && edges.some((e) => e.guard && e.guard.trim());
 }
 
 /** Emit a `set:` block map under the given pad from a list of assignments. */

@@ -66,8 +66,6 @@ pub struct FlowNode {
     pub send_to: Option<String>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub assignments: Vec<VarAssignment>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub inputs: Vec<VarDecl>,
 }
 
 /// A directed connection between two nodes. Mirrors `FlowEdge` in `types.ts`.
@@ -93,7 +91,6 @@ pub struct FlowDefinition {
     pub title: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub description: Option<String>,
-    pub start_node_id: String,
     /// Flow-level state: variables with literal initial values.
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub vars: Vec<VarDecl>,
@@ -342,7 +339,6 @@ mod tests {
             id: "demo".into(),
             title: "Demo Flow".into(),
             description: None,
-            start_node_id: "a".into(),
             vars: vec![],
             nodes: vec![
                 FlowNode {
@@ -379,7 +375,6 @@ mod tests {
             id: "rich".into(),
             title: "Rich Flow".into(),
             description: Some("carries executable detail".into()),
-            start_node_id: "in".into(),
             vars: vec![VarDecl {
                 name: "outcome".into(),
                 value: "".into(),
@@ -387,13 +382,10 @@ mod tests {
             nodes: vec![
                 FlowNode {
                     id: "in".into(),
-                    kind: "input".into(),
+                    kind: "channel".into(),
                     label: "Intake".into(),
                     position: Position { x: 0.0, y: 0.0 },
-                    inputs: vec![VarDecl {
-                        name: "national_id".into(),
-                        value: "19880421".into(),
-                    }],
+                    channel_id: Some("ch-intake".into()),
                     ..Default::default()
                 },
                 FlowNode {
@@ -435,8 +427,8 @@ mod tests {
         let flow = rich_flow();
         write_flow(tmp.dir(), "rich".into(), flow.clone()).expect("write");
         let back = read_flow(tmp.dir(), "rich".into()).expect("read");
-        // The whole struct must round-trip -- vars, inputs, agentRef/prompt, op/
-        // command, edge guard + set all survive. This is the schema-drift guard.
+        // The whole struct must round-trip -- vars, agentRef/prompt, op/command,
+        // edge guard + set all survive. This is the schema-drift guard.
         assert_eq!(back, flow);
     }
 
@@ -493,14 +485,14 @@ mod tests {
     }
 
     #[test]
-    fn write_uses_camel_case_start_node_id() {
+    fn write_uses_camel_case_field_names() {
         let tmp = TempDir::new("camel");
         write_flow(tmp.dir(), "demo".into(), sample_flow()).expect("write");
         let raw = std::fs::read_to_string(flows_dir(&tmp.dir()).join("demo.json")).unwrap();
-        // The on-disk JSON must match the TS shape the frontend sends/reads.
-        assert!(raw.contains("\"startNodeId\""), "got: {raw}");
-        assert!(!raw.contains("start_node_id"), "got: {raw}");
+        // The on-disk JSON must match the TS shape the frontend sends/reads: no
+        // start node id (flows are triggered via inbound channel nodes), and
         // channel_id serializes camelCase as channelId and round-trips.
+        assert!(!raw.contains("startNodeId"), "got: {raw}");
         assert!(raw.contains("\"channelId\""), "got: {raw}");
         assert!(!raw.contains("channel_id"), "got: {raw}");
     }

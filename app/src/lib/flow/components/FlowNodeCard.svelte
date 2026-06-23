@@ -8,18 +8,21 @@
   interface Props {
     node: FlowNode;
     selected: boolean;
-    isStart: boolean;
+    /** True when this is an inbound channel "door" -- a flow entry point. */
+    isEntry: boolean;
     /** Channel registry, for deriving this node's color and icon. */
     channels: ChannelRegistry;
     /** Pointer-down on the card body: begin a node drag (or selection). */
     onbodydown: (node: FlowNode, e: PointerEvent) => void;
+    /** Double-click on the card body: activate the node (e.g. submit a door). */
+    onbodydblclick: (node: FlowNode, e: MouseEvent) => void;
     /** Pointer-down on the output port: begin a connection drag. */
     onportdown: (node: FlowNode, e: PointerEvent) => void;
     /** Pointer-up over the input port: complete a connection here. */
     onportup: (node: FlowNode, e: PointerEvent) => void;
   }
 
-  let { node, selected, isStart, channels, onbodydown, onportdown, onportup }: Props = $props();
+  let { node, selected, isEntry, channels, onbodydown, onbodydblclick, onportdown, onportup }: Props = $props();
 
   const meta = $derived(nodeKindMeta(node.kind));
   const colors = $derived(nodeColorClasses(node, channels));
@@ -28,8 +31,9 @@
   const channel = $derived(node.channelId ? (channels[node.channelId] ?? null) : null);
   // Type label: the channel's title for a resolved channel node, else the kind.
   const typeLabel = $derived(node.kind === "channel" && channel ? channel.title : meta.label);
-  // Small subtle annotation shown by the type (not in the title).
-  const annotation = $derived(isStart ? "start" : (node.outcome ?? null));
+  // Small subtle annotation shown by the type (not in the title). An inbound
+  // channel node is a "door" a consumer submits to -- mark it as the entry.
+  const annotation = $derived(isEntry ? "inbound" : (node.outcome ?? null));
 
   const portClass =
     "absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-400 " +
@@ -52,6 +56,7 @@
     role="button"
     tabindex="-1"
     onpointerdown={(e) => onbodydown(node, e)}
+    ondblclick={(e) => onbodydblclick(node, e)}
   >
     <!-- Left column: neutral kind/binding icon with the type label beneath.
          Color lives only in the top accent bar -- the icon and text stay neutral. -->

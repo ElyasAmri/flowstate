@@ -53,7 +53,7 @@ The test prints `[e2e] ...` progress and ends with
    (`[data-testid="flow-counts"]`).
 3. On mount the editor autosaves the fixture →
    `<sandbox>/.flowstate/flows/residence-certificate-runnable.json` exists and parses
-   to 8 nodes with the camelCase `startNodeId` shape.
+   to 8 nodes (triggered via an inbound channel node, so there is no `startNodeId`).
 4. Add a node via the palette (`[data-flow-kind="action"]`) → count → **9 nodes**.
 5. The debounced autosave fires → `[data-testid="save-state"]` shows **Saved**.
 6. The on-disk JSON is re-read and now has **9 nodes** including the action node.

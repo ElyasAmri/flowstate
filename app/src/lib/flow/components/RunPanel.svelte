@@ -1,25 +1,43 @@
 <script lang="ts">
-  import type { FlowDefinition } from "../types";
+  import type { ChannelRegistry, FlowDefinition } from "../types";
+  import { entryPayloadFields } from "../types";
   import { tryInvoke } from "../tauri";
-  import { FlowRun, type Executors } from "../run/run.svelte";
+  import { FlowRun, type Executors, type Value } from "../run/run.svelte";
 
   interface Props {
     /** The flow to run (the editor's current in-memory flow). */
     flow: FlowDefinition;
+    /** The channel registry, for resolving the entry node's payload contract. */
+    channels: ChannelRegistry;
+    /** The inbound channel node the consumer submits to (the flow's entry door). */
+    entryNodeId: string;
     onclose: () => void;
   }
 
-  let { flow, onclose }: Props = $props();
+  let { flow, channels, entryNodeId, onclose }: Props = $props();
 
-  // Editable case data: seeded from the flow's manual-input node fields. Running
-  // applies these over a copy of the flow, so the operator runs THEIR case. The
-  // panel is remounted per open ({#if running}), so capturing `flow` once is fine.
+  // The entry node and its channel. A flow is triggered by submitting a payload
+  // across an inbound channel node -- there is no global Run button. The panel is
+  // remounted per submission target ({#key}), so capturing these once is fine.
   // svelte-ignore state_referenced_locally
-  const inputFields = flow.nodes
-    .filter((n) => n.kind === "input")
-    .flatMap((n) => (n.inputs ?? []).map((f) => ({ node: n.id, name: f.name, value: f.value })));
+  const entryNode = flow.nodes.find((n) => n.id === entryNodeId);
+  // svelte-ignore state_referenced_locally
+  const channel = entryNode?.channelId ? channels[entryNode.channelId] : undefined;
+
+  // The payload fields the consumer submits: the channel's inbound (`returns`)
+  // message contract. Each field seeds a flow variable of the same name.
+  const payloadFields = channel ? entryPayloadFields(channel) : [];
+
+  // Editable payload, seeded from the flow's declared var defaults so the demo
+  // submission starts populated.
+  // svelte-ignore state_referenced_locally
   let values = $state<Record<string, string>>(
-    Object.fromEntries(inputFields.map((f) => [f.name, f.value])),
+    Object.fromEntries(
+      payloadFields.map((f) => {
+        const declared = (flow.vars ?? []).find((v) => v.name === f.name);
+        return [f.name, declared?.value ?? ""];
+      }),
+    ),
   );
 
   let run = $state<FlowRun | null>(null);
@@ -45,23 +63,20 @@
     };
   }
 
-  /** A copy of the flow with the operator's edited case applied to input nodes. */
-  function flowWithValues(): FlowDefinition {
-    const copy: FlowDefinition = structuredClone(flow);
-    for (const n of copy.nodes) {
-      if (n.kind === "input") {
-        for (const f of n.inputs ?? []) if (f.name in values) f.value = values[f.name];
-      }
-    }
-    return copy;
+  /** The submitted payload as a name -> value map seeding the run's variables. */
+  function payload(): Record<string, Value> {
+    const out: Record<string, Value> = {};
+    for (const f of payloadFields) out[f.name] = values[f.name] ?? "";
+    return out;
   }
 
-  async function start() {
+  async function submit() {
+    if (!entryNode) return;
     starting = true;
     try {
-      const r = new FlowRun(flowWithValues(), await executors());
+      const r = new FlowRun(structuredClone(flow), await executors());
       run = r;
-      await r.start();
+      await r.start(entryNode.id, payload());
     } finally {
       starting = false;
     }
@@ -87,8 +102,12 @@
   >
     <header class="flex items-center justify-between border-b border-black/10 px-4 py-3 dark:border-white/10">
       <div>
-        <h2 class="text-sm font-semibold">Run: {flow.title}</h2>
-        <p class="text-[11px] text-zinc-500">In-app run of the authored flow.</p>
+        <h2 class="text-sm font-semibold" data-testid="submit-title">
+          Submit to {channel?.title ?? entryNode?.label ?? "channel"}
+        </h2>
+        <p class="text-[11px] text-zinc-500">
+          Submitting a query across this inbound channel triggers the flow.
+        </p>
       </div>
       <div class="flex items-center gap-2">
         {#if run}
@@ -110,13 +129,19 @@
     </header>
 
     <div class="min-h-0 flex-1 space-y-4 overflow-auto p-4">
-      <!-- Case data the operator submits -->
+      <!-- The payload the consumer submits across the inbound channel -->
       <section class="space-y-2">
-        <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Case</h3>
-        {#if inputFields.length}
-          {#each inputFields as f (f.name)}
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Payload</h3>
+        {#if !entryNode || !channel}
+          <p class="text-xs text-rose-500">
+            This node is not bound to an inbound channel, so it cannot be submitted to.
+          </p>
+        {:else if payloadFields.length}
+          {#each payloadFields as f (f.name)}
             <label class="block space-y-0.5 text-sm">
-              <span class="font-mono text-[11px] text-zinc-500">{f.name}</span>
+              <span class="font-mono text-[11px] text-zinc-500">
+                {f.name}<span class="text-zinc-400"> · {f.type}</span>
+              </span>
               <input
                 class="w-full rounded-md border border-black/10 bg-transparent px-2 py-1 text-sm dark:border-white/10"
                 value={values[f.name]}
@@ -125,14 +150,16 @@
             </label>
           {/each}
         {:else}
-          <p class="text-xs text-zinc-400">This flow has no manual-input node; it runs on its declared vars.</p>
+          <p class="text-xs text-zinc-400">
+            This channel declares no inbound fields; submitting sends an empty payload.
+          </p>
         {/if}
         <button
           type="button"
           class="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
           data-testid="run-start"
-          disabled={starting}
-          onclick={start}>{run ? "Run again" : "Run ▸"}</button
+          disabled={starting || !entryNode || !channel}
+          onclick={submit}>{run ? "Submit again" : "Submit ▸"}</button
         >
       </section>
 

@@ -23,7 +23,7 @@ describe("FlowRun over the residence runnable flow", () => {
       residenceCertificateRunnable,
       execs({ idExit: 0, verdict: "sufficient" }),
     );
-    await run.start();
+    await run.start("n-input");
     expect(run.status).toBe("done");
     expect(run.vars.outcome).toBe("issued");
     expect(run.vars.certificate_url).toBe("cert://residence/issued");
@@ -36,7 +36,7 @@ describe("FlowRun over the residence runnable flow", () => {
       residenceCertificateRunnable,
       execs({ idExit: 0, verdict: "ambiguous" }),
     );
-    await run.start();
+    await run.start("n-input");
     // Paused at the bureaucrat gate.
     expect(run.status).toBe("awaiting");
     expect(run.pending?.nodeId).toBe("n-escalate");
@@ -51,7 +51,7 @@ describe("FlowRun over the residence runnable flow", () => {
       residenceCertificateRunnable,
       execs({ idExit: 0, verdict: "ambiguous" }),
     );
-    await run.start();
+    await run.start("n-input");
     expect(run.status).toBe("awaiting");
     await run.resolve("reject");
     expect(run.status).toBe("done");
@@ -60,7 +60,7 @@ describe("FlowRun over the residence runnable flow", () => {
 
   it("rejects an invalid national ID without ever reaching the agent", async () => {
     const run = new FlowRun(residenceCertificateRunnable, execs({ idExit: 1 }));
-    await run.start();
+    await run.start("n-input");
     expect(run.status).toBe("done");
     expect(run.vars.outcome).toBe("rejected");
     // The address agent never ran.

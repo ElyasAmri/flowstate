@@ -175,13 +175,13 @@ async function main(): Promise<void> {
       const parsed = JSON.parse(readFileSync(flowFile, "utf8"));
       assert.equal(parsed.id, FLOW_ID, "persisted flow id should match the fixture");
       assert.equal(parsed.nodes.length, 8, "persisted flow should start with 8 nodes");
-      assert.equal(parsed.startNodeId, "n-input", "persisted flow should carry camelCase startNodeId");
+      assert.ok(!("startNodeId" in parsed), "flow should no longer carry a startNodeId");
     }
-    log("initial autosave verified on disk (8 nodes, camelCase shape)");
+    log("initial autosave verified on disk (8 nodes, no startNodeId)");
 
     // 4b) Channel registry: opening the empty library seeds the example channels
     //     the worked flow references. Prove the registry is on disk with the
-    //     tagged binding shape, and that the flow's start node references one.
+    //     tagged binding shape, and that the flow's entry node references one.
     const channelsDir = path.join(SANDBOX, ".flowstate", "channels");
     const intakeFile = path.join(channelsDir, "ch-intake.json");
     await waitFor("channel registry seeded (ch-intake on disk)", async () =>
@@ -196,7 +196,8 @@ async function main(): Promise<void> {
 
       const parsedFlow = JSON.parse(readFileSync(flowFile, "utf8"));
       const start = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-input");
-      assert.equal(start.kind, "input", "start node should be the input (intake) node");
+      assert.equal(start.kind, "channel", "entry node should be a channel node");
+      assert.equal(start.channelId, "ch-intake", "entry node should reference the intake channel");
       const result = parsedFlow.nodes.find((n: { id: string }) => n.id === "n-approved");
       assert.equal(result.kind, "channel", "result node should be a channel node");
       assert.equal(result.channelId, "ch-intake", "result node should reference the intake channel");

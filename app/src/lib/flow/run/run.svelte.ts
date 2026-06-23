@@ -9,6 +9,7 @@
 
 import type { FlowDefinition, FlowEdge, FlowNode } from "../types";
 import { evalExpr, evalGuard, type EvalContext, type Value } from "./expr";
+export type { Value };
 
 export type RunStatus = "idle" | "running" | "awaiting" | "done" | "error";
 
@@ -51,6 +52,8 @@ export class FlowRun {
   error = $state<string>("");
 
   private byId: Map<string, FlowNode>;
+  /** The entry channel node the run started from (a flow can have several). */
+  private entryId: string | null = null;
 
   constructor(
     private flow: FlowDefinition,
@@ -79,20 +82,22 @@ export class FlowRun {
     });
   }
 
-  /** Seed variables from the flow's vars plus every input node's fields, then run. */
-  async start(): Promise<void> {
+  /**
+   * Seed variables from the flow's declared vars plus the submitted payload, then
+   * run from the given entry channel node. The payload is the typed message a
+   * consumer submits across an inbound channel -- it is what triggers the flow.
+   */
+  async start(entryId: string, payload: Record<string, Value> = {}): Promise<void> {
     const vars: Record<string, Value> = {};
     for (const v of this.flow.vars ?? []) vars[v.name] = v.value;
-    for (const n of this.flow.nodes) {
-      if (n.kind === "input")
-        for (const f of n.inputs ?? []) vars[f.name] = f.value;
-    }
+    for (const [name, value] of Object.entries(payload)) vars[name] = value;
     this.vars = vars;
     this.trace = [];
     this.result = "";
     this.error = "";
     this.pending = null;
-    this.currentId = this.flow.startNodeId;
+    this.currentId = entryId;
+    this.entryId = entryId;
     this.status = "running";
     await this.loop();
   }
@@ -143,12 +148,6 @@ export class FlowRun {
    *  at a human gate (the loop returns; resolve() resumes it). */
   private async execute(node: FlowNode): Promise<Outcome | null> {
     switch (node.kind) {
-      case "input":
-        this.log(
-          node,
-          `Input: ${(node.inputs ?? []).map((f) => f.name).join(", ") || "(none)"}`,
-        );
-        return { text: "manual input received" };
       case "agent": {
         const prompt = this.template(node.prompt ?? "");
         const text = await this.exec.runAgent(prompt, node.agentRef);
@@ -203,8 +202,8 @@ export class FlowRun {
   }
 
   private executeChannel(node: FlowNode): Outcome | null {
-    const isStart = node.id === this.flow.startNodeId;
-    if (!isStart && !node.outcome && this.hasGuardedSplit(node.id)) {
+    const isEntry = node.id === this.entryId;
+    if (!isEntry && !node.outcome && this.hasGuardedSplit(node.id)) {
       // A human gate: suspend for the operator's decision (null = suspended).
       this.status = "awaiting";
       this.pending = {

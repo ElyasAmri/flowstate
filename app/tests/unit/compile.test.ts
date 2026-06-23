@@ -1,12 +1,37 @@
 import { describe, it, expect } from "vitest";
 
 import { compileFlow } from "../../src/lib/flow/compile";
-import { residenceCertificateRunnable } from "../../src/lib/flow/fixtures";
+import {
+  exampleChannels,
+  residenceCertificateRunnable,
+} from "../../src/lib/flow/fixtures";
 import type {
+  ChannelDefinition,
+  ChannelRegistry,
   FlowDefinition,
   FlowNode,
   FlowEdge,
 } from "../../src/lib/flow/types";
+
+// A minimal inbound channel so a channel node can act as the flow's entry door.
+// The compiler needs the registry to know which channel nodes are inbound.
+const inboundChannel: ChannelDefinition = {
+  id: "ch-in",
+  title: "Intake",
+  direction: "inbound",
+  binding: { kind: "ui" },
+  accepts: [],
+  returns: [
+    {
+      name: "submit",
+      fields: [
+        { name: "national_id", type: "string" },
+        { name: "applicant_name", type: "string" },
+      ],
+    },
+  ],
+};
+const registry: ChannelRegistry = { "ch-in": inboundChannel };
 
 /** Build a FlowDefinition from loose parts with sane defaults. */
 function flow(
@@ -15,7 +40,6 @@ function flow(
   return {
     id: "test-flow",
     title: "Test Flow",
-    startNodeId: parts.nodes[0]?.id ?? "",
     edges: [],
     ...parts,
   };
@@ -27,6 +51,11 @@ function node(
   extra: Partial<FlowNode> = {},
 ): FlowNode {
   return { id, kind, label: id, position: { x: 0, y: 0 }, ...extra };
+}
+
+/** An inbound channel node (entry door) bound to `ch-in`. */
+function entry(id = "in", extra: Partial<FlowNode> = {}): FlowNode {
+  return node(id, "channel", { channelId: "ch-in", ...extra });
 }
 
 function edge(
@@ -43,14 +72,18 @@ function lines(yaml: string): string[] {
 }
 
 describe("compileFlow header & vars", () => {
-  it("emits version, initial, and a node", () => {
+  it("emits version, initial (the entry door), and a node", () => {
     const f = flow({
-      nodes: [node("start", "action", { op: "log", message: "hi" })],
+      nodes: [
+        entry("in"),
+        node("end", "action", { op: "log", message: "hi" }),
+      ],
+      edges: [edge("in", "end")],
     });
-    const { yaml, errors } = compileFlow(f);
+    const { yaml, errors } = compileFlow(f, registry);
     expect(errors).toEqual([]);
     expect(yaml).toContain("version: 1");
-    expect(yaml).toContain("initial: start");
+    expect(yaml).toContain("initial: in");
     expect(yaml).toContain("nodes:");
   });
 
@@ -61,9 +94,9 @@ describe("compileFlow header & vars", () => {
         { name: "outcome", value: "" },
         { name: "applicant", value: "Layla" },
       ],
-      nodes: [node("start", "action", { op: "log", message: "hi" })],
+      nodes: [entry("in")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     // Numeric-looking and empty values are quoted so they stay strings.
     expect(yaml).toContain("  national_id: '19880421'");
     expect(yaml).toContain("  outcome: ''");
@@ -75,13 +108,15 @@ describe("node-kind mapping", () => {
   it("agent -> agent with ref and block prompt", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("a", "agent", {
           agentRef: "arabic-reasoner",
           prompt: "Assess this.\nReturn a verdict.",
         }),
       ],
+      edges: [edge("in", "a")],
     });
-    const { yaml, errors } = compileFlow(f);
+    const { yaml, errors } = compileFlow(f, registry);
     expect(errors).toEqual([]);
     expect(yaml).toContain("    kind: agent");
     expect(yaml).toContain("    agent: arabic-reasoner");
@@ -91,15 +126,22 @@ describe("node-kind mapping", () => {
   });
 
   it("agent without ref defaults to arabic-reasoner", () => {
-    const f = flow({ nodes: [node("a", "agent", { prompt: "x" })] });
-    expect(compileFlow(f).yaml).toContain("    agent: arabic-reasoner");
+    const f = flow({
+      nodes: [entry("in"), node("a", "agent", { prompt: "x" })],
+      edges: [edge("in", "a")],
+    });
+    expect(compileFlow(f, registry).yaml).toContain("    agent: arabic-reasoner");
   });
 
   it("action op=shell -> action: shell with block command", () => {
     const f = flow({
-      nodes: [node("s", "action", { op: "shell", command: "echo hi\nexit 0" })],
+      nodes: [
+        entry("in"),
+        node("s", "action", { op: "shell", command: "echo hi\nexit 0" }),
+      ],
+      edges: [edge("in", "s")],
     });
-    const { yaml, errors } = compileFlow(f);
+    const { yaml, errors } = compileFlow(f, registry);
     expect(errors).toEqual([]);
     expect(yaml).toContain("    action: shell");
     expect(yaml).toContain("    command: |");
@@ -109,13 +151,15 @@ describe("node-kind mapping", () => {
   it("action op=set -> action: set_var with a set map", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("v", "action", {
           op: "set",
           assignments: [{ var: "outcome", expr: '"issued"' }],
         }),
       ],
+      edges: [edge("in", "v")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("    action: set_var");
     expect(yaml).toContain("    set:");
     // A literal string expression keeps its inner quotes after YAML quoting.
@@ -125,79 +169,50 @@ describe("node-kind mapping", () => {
   it("action op=send -> action: send with to + message", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("snd", "action", { op: "send", sendTo: "dev", message: "fix it" }),
         node("dev", "action", { op: "log", message: "done" }),
       ],
-      edges: [edge("snd", "dev")],
+      edges: [edge("in", "snd"), edge("snd", "dev")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("    action: send");
     expect(yaml).toContain("    to: dev");
-  });
-
-  it("input (manual trigger) -> entry log, fields folded into vars", () => {
-    const f = flow({
-      startNodeId: "in",
-      vars: [{ name: "outcome", value: "" }],
-      nodes: [
-        node("in", "input", {
-          inputs: [
-            { name: "national_id", value: "19880421" },
-            { name: "applicant_name", value: "Layla" },
-          ],
-        }),
-        node("end", "action", { op: "log" }),
-      ],
-      edges: [edge("in", "end")],
-    });
-    const { yaml, errors } = compileFlow(f);
-    expect(errors).toEqual([]);
-    expect(yaml).toContain("initial: in");
-    // The typed case data becomes flow vars alongside declared state.
-    expect(yaml).toContain("  outcome: ''");
-    expect(yaml).toContain("  national_id: '19880421'");
-    expect(yaml).toContain("  applicant_name: Layla");
-    // The node itself is the entry log.
-    expect(yaml).toContain("    action: log");
-    expect(yaml).toContain(
-      "Manual input received (national_id, applicant_name).",
-    );
   });
 
   it("decision -> pass-through log labelled Decision", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("d", "decision", { label: "Sufficient?" }),
         node("end", "action", { op: "log" }),
       ],
-      edges: [edge("d", "end")],
+      edges: [edge("in", "d"), edge("d", "end")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("    action: log");
     expect(yaml).toContain("    message: 'Decision: Sufficient?'");
   });
 });
 
 describe("channel mapping", () => {
-  it("start channel -> entry log node", () => {
+  it("inbound entry channel -> entry log node", () => {
     const f = flow({
-      startNodeId: "in",
       nodes: [
-        node("in", "channel", { label: "Application received" }),
+        entry("in", { label: "Application received" }),
         node("end", "action", { op: "log" }),
       ],
       edges: [edge("in", "end")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     const idx = lines(yaml).findIndex((l) => l.trim() === "in:");
     expect(lines(yaml)[idx + 1]).toBe("    kind: action");
   });
 
-  it("non-start gating channel -> user approval", () => {
+  it("non-entry gating channel -> user approval", () => {
     const f = flow({
-      startNodeId: "in",
       nodes: [
-        node("in", "channel", { label: "received" }),
+        entry("in", { label: "received" }),
         node("gate", "channel", {
           label: "Bureaucrat",
           description: "Review the case.",
@@ -211,7 +226,7 @@ describe("channel mapping", () => {
         edge("gate", "no"),
       ],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("    kind: user");
     expect(yaml).toContain("    approval: true");
     expect(yaml).toContain("      Review the case.");
@@ -219,14 +234,13 @@ describe("channel mapping", () => {
 
   it("terminal channel (no out-edges) -> log + terminal: success", () => {
     const f = flow({
-      startNodeId: "in",
       nodes: [
-        node("in", "channel", { label: "received" }),
+        entry("in", { label: "received" }),
         node("done", "channel", { label: "Issued", outcome: "issued" }),
       ],
       edges: [edge("in", "done")],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("    terminal: success");
   });
 });
@@ -235,16 +249,18 @@ describe("transitions", () => {
   it("orders guarded edges before the unconditional fall-through", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("s", "action", { op: "log" }),
         node("a", "action", { op: "log" }),
         node("b", "action", { op: "log" }),
       ],
       edges: [
+        edge("in", "s"),
         edge("s", "a", { guard: "outcome.exit == 0" }),
         edge("s", "b"), // unconditional
       ],
     });
-    const ls = lines(compileFlow(f).yaml);
+    const ls = lines(compileFlow(f, registry).yaml);
     const whenIdx = ls.findIndex((l) => l.includes("when: outcome.exit == 0"));
     const fallIdx = ls.findIndex((l) => l.trim() === "- to: b");
     expect(whenIdx).toBeGreaterThan(-1);
@@ -254,10 +270,12 @@ describe("transitions", () => {
   it("emits edge set assignments under the transition", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("s", "action", { op: "log" }),
         node("t", "action", { op: "log" }),
       ],
       edges: [
+        edge("in", "s"),
         edge("s", "t", {
           set: [
             { var: "outcome", expr: '"rejected"' },
@@ -266,7 +284,7 @@ describe("transitions", () => {
         }),
       ],
     });
-    const { yaml } = compileFlow(f);
+    const { yaml } = compileFlow(f, registry);
     expect(yaml).toContain("        set:");
     expect(yaml).toContain(`          outcome: '"rejected"'`);
     expect(yaml).toContain("          note: outcome.text");
@@ -275,11 +293,14 @@ describe("transitions", () => {
 
 describe("bundled runnable fixture", () => {
   it("compiles the residence runnable example with no errors", () => {
-    const { yaml, errors } = compileFlow(residenceCertificateRunnable);
+    // The fixture references the bundled channels; build a registry from them.
+    const channels: ChannelRegistry = {};
+    for (const ch of exampleChannels) channels[ch.id] = ch;
+    const { yaml, errors } = compileFlow(residenceCertificateRunnable, channels);
     expect(errors).toEqual([]);
     // Spot-check the mappings that matter for a real run.
-    expect(yaml).toContain("initial: n-input"); // the manual-input trigger
-    expect(yaml).toContain("  national_id: '19880421'"); // input fields folded into vars
+    expect(yaml).toContain("initial: n-input"); // the inbound channel door
+    expect(yaml).toContain("  national_id: '19880421'"); // payload var defaults
     expect(yaml).toContain("    agent: arabic-reasoner"); // Fanar reasoning node
     expect(yaml).toContain("    kind: user"); // bureaucrat escalation gate
     expect(yaml).toContain("    action: shell"); // deterministic ID validation
@@ -289,44 +310,51 @@ describe("bundled runnable fixture", () => {
 });
 
 describe("validation errors", () => {
-  it("flags a missing start node", () => {
+  it("flags a flow with no inbound channel node", () => {
     const f = flow({
-      startNodeId: "ghost",
       nodes: [node("s", "action", { op: "log" })],
     });
-    expect(compileFlow(f).errors.join(" ")).toContain("start node");
+    expect(compileFlow(f, registry).errors.join(" ")).toContain(
+      "no inbound channel node",
+    );
   });
 
   it("flags an unreachable node", () => {
     const f = flow({
-      startNodeId: "s",
       nodes: [
-        node("s", "action", { op: "log" }),
+        entry("in"),
         node("orphan", "action", { op: "log" }),
       ],
     });
-    expect(compileFlow(f).errors.join(" ")).toContain("unreachable");
+    expect(compileFlow(f, registry).errors.join(" ")).toContain("unreachable");
   });
 
   it("flags an agent with no prompt", () => {
-    const f = flow({ nodes: [node("a", "agent", {})] });
-    expect(compileFlow(f).errors.join(" ")).toContain("no prompt");
+    const f = flow({
+      nodes: [entry("in"), node("a", "agent", {})],
+      edges: [edge("in", "a")],
+    });
+    expect(compileFlow(f, registry).errors.join(" ")).toContain("no prompt");
   });
 
   it("flags an action with no op", () => {
-    const f = flow({ nodes: [node("a", "action", {})] });
-    expect(compileFlow(f).errors.join(" ")).toContain("no op");
+    const f = flow({
+      nodes: [entry("in"), node("a", "action", {})],
+      edges: [edge("in", "a")],
+    });
+    expect(compileFlow(f, registry).errors.join(" ")).toContain("no op");
   });
 
   it("flags more than one unconditional transition", () => {
     const f = flow({
       nodes: [
+        entry("in"),
         node("s", "action", { op: "log" }),
         node("a", "action", { op: "log" }),
         node("b", "action", { op: "log" }),
       ],
-      edges: [edge("s", "a"), edge("s", "b")],
+      edges: [edge("in", "s"), edge("s", "a"), edge("s", "b")],
     });
-    expect(compileFlow(f).errors.join(" ")).toContain("unconditional");
+    expect(compileFlow(f, registry).errors.join(" ")).toContain("unconditional");
   });
 });

@@ -11,9 +11,6 @@ import type { IconKey } from "./node-color";
 
 /** Inner SVG markup for each icon key's 24x24 stroked icon. */
 export const kindIconPath: Record<IconKey, string> = {
-  // input: a down arrow into a tray -- the operator feeds in the case data.
-  input:
-    '<path d="M12 3v9" /><path d="M8 9l4 4 4-4" /><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" />',
   // agent: a spark / star -- an AI doing non-deterministic work.
   agent:
     '<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z" /><path d="M18 14l.9 2.3L21 17l-2.1.7L18 20l-.9-2.3L15 17l2.1-.7z" />',

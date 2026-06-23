@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FlowEditor } from "../editor.svelte";
   import type { FlowNode } from "../types";
+  import { isEntryChannel } from "../types";
   import { onMount } from "svelte";
   import { Viewport, type Point, type Size } from "../viewport.svelte";
   import { nodesBounds, portPosition } from "../geometry";
@@ -10,9 +11,11 @@
 
   interface Props {
     editor: FlowEditor;
+    /** Double-click (activate) on a node body -- e.g. submit to an entry door. */
+    onnodeactivate?: (node: FlowNode) => void;
   }
 
-  let { editor }: Props = $props();
+  let { editor, onnodeactivate }: Props = $props();
 
   const viewport = new Viewport();
 
@@ -78,6 +81,12 @@
       grabOffsetWorld: { x: world.x - node.position.x, y: world.y - node.position.y },
     };
     startGesture(e);
+  }
+
+  // --- node body: double-click to activate (select handled on pointer-down) ---
+  function handleBodyDblClick(node: FlowNode, e: MouseEvent) {
+    e.stopPropagation();
+    onnodeactivate?.(node);
   }
 
   // --- output port: begin connection ---
@@ -179,9 +188,10 @@
       <FlowNodeCard
         {node}
         selected={node.id === editor.selectedNodeId}
-        isStart={editor.flow.startNodeId === node.id}
+        isEntry={isEntryChannel(node, editor.channels, editor.flow.edges)}
         channels={editor.channels}
         onbodydown={handleBodyDown}
+        onbodydblclick={handleBodyDblClick}
         onportdown={handlePortDown}
         onportup={handlePortUp}
       />

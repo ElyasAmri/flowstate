@@ -63,11 +63,20 @@ are four node **kinds**: `channel`, `agent`, `action`, `decision`.
   `decision` is the branch point (its out-edges carry guards). `action` is internal
   computation/bookkeeping.
 
-There is **no separate `start`/`terminal` kind**. A flow *starts* at an `inbound`
-channel node (referenced by `FlowDefinition.startNodeId`) and *ends* at an
-`outbound` channel node that returns the result; an ending channel node may carry
-an `outcome` (`approved | rejected | issued`). Entry and exit are themselves
-boundary crossings, so they are channels like any other.
+There is **no separate `start`/`terminal` kind, and no manual-input trigger**. A
+flow is *triggered* by submitting a typed payload to an **entry channel node** — a
+channel node bound to an `inbound` (or `both`) channel that nothing in the flow
+routes to (no incoming edge). These are the flow's "doors": a consumer submits a
+query across one, exactly as a real consumer app would hit the flow. A flow may
+have **several** doors, each independently submittable; there is no global Run
+button. A flow *ends* at an `outbound` channel node that returns the result; an
+ending channel node may carry an `outcome` (`approved | rejected | issued`). Entry
+and exit are themselves boundary crossings, so they are channels like any other.
+
+The payload a consumer submits to a door is the union of fields across the
+channel's `returns` messages (the messages the outside world sends *into* the
+harness). Each field seeds a flow variable of the same name, so downstream nodes
+read it as `{{name}}`.
 
 ## Composition and the drill-in hook (future)
 
@@ -90,8 +99,9 @@ model already carries everything needed for it: the binding stores the target
 
 The `residenceCertificateRunnable` fixture is authored entirely in this model:
 
-- An **input** node starts the flow — the manual intake that supplies the
-  applicant's national ID, name, and proof of address. ⬛
+- An **entry channel** node bound to `ch-intake` (ui, `both`, no incoming edge)
+  is the flow's door — the consumer submits their national ID, name, and proof of
+  address across it to trigger the flow. 🟢
 - An **action** (`shell`) node validates the national ID deterministically (a
   service channel can't yield an exit code to branch on).
 - An **agent** node classifies the address proof (emits a VERDICT). ⬛

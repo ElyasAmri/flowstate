@@ -14,6 +14,7 @@ import type {
   Position,
   VarDecl,
 } from "./types";
+import { isEntryChannel } from "./types";
 import { FlowHistory } from "./history";
 import { compileFlow } from "./compile";
 import { tryInvoke } from "./tauri";
@@ -38,8 +39,6 @@ function makeId(prefix: string): string {
 /** Default label for a freshly-added node of a given kind. */
 function defaultLabel(kind: NodeKind): string {
   switch (kind) {
-    case "input":
-      return "Manual input";
     case "channel":
       return "New channel";
     case "agent":
@@ -119,6 +118,17 @@ export class FlowEditor {
     return this.flow.nodes.find((n) => n.id === this.selectedNodeId) ?? null;
   }
 
+  /**
+   * The flow's entry "doors": channel nodes bound to an inbound channel. A
+   * consumer submits a payload to one of these to trigger a run -- there is no
+   * global start. Derived from the loaded channel registry.
+   */
+  get entryNodes(): FlowNode[] {
+    return this.flow.nodes.filter((n) =>
+      isEntryChannel(n, this.channels, this.flow.edges),
+    );
+  }
+
   /** Edges leaving the given node. */
   outgoingEdges(nodeId: string): FlowEdge[] {
     return this.flow.edges.filter((e) => e.from === nodeId);
@@ -173,10 +183,6 @@ export class FlowEditor {
       (e) => e.from !== id && e.to !== id,
     );
     if (this.selectedNodeId === id) this.selectedNodeId = null;
-    // Keep startNodeId valid if the start node was removed.
-    if (this.flow.startNodeId === id) {
-      this.flow.startNodeId = this.flow.nodes[0]?.id ?? "";
-    }
     this.commit();
   }
 
@@ -268,7 +274,7 @@ export class FlowEditor {
    * write, so it reports that.
    */
   async compileToMaestro(): Promise<CompileOutcome> {
-    const { yaml, errors } = compileFlow(this.serialize());
+    const { yaml, errors } = compileFlow(this.serialize(), this.channels);
     if (errors.length) return { ok: false, errors };
     const dir = await tryInvoke<string>("project_dir");
     if (dir === null) {
