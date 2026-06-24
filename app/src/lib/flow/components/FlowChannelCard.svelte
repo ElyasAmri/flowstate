@@ -84,7 +84,7 @@
 </script>
 
 <div
-  class="group absolute select-none overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
+  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
       : anyActive
@@ -92,23 +92,22 @@
         : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {GROUP_H}px;"
 >
-  <!-- Channel header bar -->
+  <!-- Channel header bar (neutral; color lives in the bottom accent bar) -->
   <div
     role="button"
     tabindex="-1"
-    class="flex h-10 items-center gap-2 border-b border-black/5 px-3 dark:border-white/10"
-    style="background: {colors.accent}; color: {colors.icon};"
+    class="flex h-10 items-center gap-2 border-b border-black/5 px-3 text-zinc-600 dark:border-white/10 dark:text-zinc-300"
     onpointerdown={(e) => onbodydown(node, e)}
     ondblclick={(e) => onbodydblclick(node, e)}
   >
-    <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none">
+    <svg class="h-4 w-4 shrink-0 {colors.icon}" viewBox="0 0 16 16" fill="none">
       <path d={kindIconPath[iconKey]} fill="currentColor" />
     </svg>
     <span class="min-w-0 truncate text-sm font-medium">
       {channel?.title ?? node.label}
     </span>
     {#if isEntry}
-      <span class="ml-auto shrink-0 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-medium uppercase">inbound</span>
+      <span class="ml-auto shrink-0 rounded bg-black/10 px-1.5 py-0.5 text-[10px] font-medium uppercase dark:bg-white/15">inbound</span>
     {/if}
   </div>
 
@@ -154,6 +153,9 @@
       </div>
     {/each}
   </div>
+
+  <!-- Bottom accent bar: the channel's binding color (calm, thin, flush). -->
+  <div class="absolute inset-x-0 bottom-0 h-1 {colors.accent}"></div>
 </div>
 
 <style>

@@ -1,16 +1,17 @@
 // Pure node color derivation for the 4-color scheme (see channel-model.md).
 //
 // Color encodes WHAT is across the boundary (or that there is none). A `channel`
-// node's color comes from its channel's binding; the gray kinds map directly:
-//   - channel + ui      -> green  (a person via an app)
+// node's color comes from its channel's binding; the internal kinds map directly:
+//   - channel + ui      -> yellow (a person via an app)
 //   - channel + flow    -> purple (a nested flow)
 //   - channel + service -> yellow (a service)
-//   - agent             -> gray-dark  (AI, non-deterministic)
-//   - action / decision -> gray-light (deterministic internal logic)
+//   - agent             -> cyan       (AI, non-deterministic)
+//   - action            -> gray-light (deterministic internal logic)
+//   - decision          -> gray-dark  (deterministic branch point)
 //
 // This module is pure (no runes, no DOM): it returns a semantic NodeColor and a
 // small palette of muted Tailwind class fragments so the card stays calm -- color
-// is an accent (icon tint + thin top border), not a full fill.
+// is an accent (icon tint + thin bottom border), not a full fill.
 
 import type {
   ChannelBindingKind,
@@ -21,17 +22,18 @@ import type {
 
 /** Semantic color of a node, independent of any specific CSS framework. */
 export type NodeColor =
-  | "green"
   | "purple"
   | "yellow"
-  | "gray-static"
-  | "gray-agent";
+  | "cyan"
+  | "gray-light"
+  | "gray-dark";
 
-/** Map a channel binding kind to its node color. */
+/** Map a channel binding kind to its node color. Channels are yellow; a
+ *  nested-flow channel is the one exception (purple) so nesting stands out. */
 export function colorForBinding(binding: ChannelBindingKind): NodeColor {
   switch (binding) {
     case "ui":
-      return "green";
+      return "yellow";
     case "flow":
       return "purple";
     case "service":
@@ -41,7 +43,7 @@ export function colorForBinding(binding: ChannelBindingKind): NodeColor {
 
 /**
  * Derive a node's color. `channel` nodes look up their binding in the registry;
- * an unresolved channel (missing id / not in registry) falls back to gray-static
+ * an unresolved channel (missing id / not in registry) falls back to gray-light
  * so the canvas never throws on a dangling reference.
  */
 export function nodeColor(
@@ -51,13 +53,14 @@ export function nodeColor(
   switch (node.kind) {
     case "channel": {
       const ch = node.channelId ? registry[node.channelId] : undefined;
-      return ch ? colorForBinding(ch.binding.kind) : "gray-static";
+      return ch ? colorForBinding(ch.binding.kind) : "gray-light";
     }
     case "agent":
-      return "gray-agent";
+      return "cyan";
     case "action":
+      return "gray-light";
     case "decision":
-      return "gray-static";
+      return "gray-dark";
   }
 }
 
@@ -65,7 +68,7 @@ export function nodeColor(
 export interface ColorClasses {
   /** Text color for the kind icon. */
   icon: string;
-  /** Top accent bar color (a thin colored strip on the card's top edge). */
+  /** Bottom accent bar color (a thin colored strip on the card's bottom edge). */
   accent: string;
   /** A small swatch background (used by the palette legend). */
   swatch: string;
@@ -73,11 +76,6 @@ export interface ColorClasses {
 
 /** The muted palette. Kept soft so a busy canvas does not turn into a rainbow. */
 export const COLOR_CLASSES: Record<NodeColor, ColorClasses> = {
-  green: {
-    icon: "text-emerald-600 dark:text-emerald-400",
-    accent: "bg-emerald-500",
-    swatch: "bg-emerald-500",
-  },
   purple: {
     icon: "text-violet-600 dark:text-violet-400",
     accent: "bg-violet-500",
@@ -88,15 +86,20 @@ export const COLOR_CLASSES: Record<NodeColor, ColorClasses> = {
     accent: "bg-amber-500",
     swatch: "bg-amber-500",
   },
-  "gray-static": {
+  cyan: {
+    icon: "text-cyan-600 dark:text-cyan-400",
+    accent: "bg-cyan-500",
+    swatch: "bg-cyan-500",
+  },
+  "gray-light": {
     icon: "text-zinc-500 dark:text-zinc-400",
     accent: "bg-zinc-300 dark:bg-zinc-600",
     swatch: "bg-zinc-300 dark:bg-zinc-600",
   },
-  "gray-agent": {
+  "gray-dark": {
     icon: "text-zinc-700 dark:text-zinc-200",
-    accent: "bg-zinc-700 dark:bg-zinc-300",
-    swatch: "bg-zinc-700 dark:bg-zinc-300",
+    accent: "bg-zinc-600 dark:bg-zinc-400",
+    swatch: "bg-zinc-600 dark:bg-zinc-400",
   },
 };
 

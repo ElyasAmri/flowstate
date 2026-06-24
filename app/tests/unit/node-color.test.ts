@@ -28,8 +28,8 @@ function node(kind: FlowNode["kind"], channelId?: string): FlowNode {
 }
 
 describe("colorForBinding", () => {
-  it("maps each binding kind to its color", () => {
-    expect(colorForBinding("ui")).toBe("green");
+  it("maps each binding kind to its color (channels yellow; nested flow purple)", () => {
+    expect(colorForBinding("ui")).toBe("yellow");
     expect(colorForBinding("flow")).toBe("purple");
     expect(colorForBinding("service")).toBe("yellow");
   });
@@ -37,20 +37,20 @@ describe("colorForBinding", () => {
 
 describe("nodeColor", () => {
   it("derives a channel node's color from its binding", () => {
-    expect(nodeColor(node("channel", "ch-ui"), registry)).toBe("green");
+    expect(nodeColor(node("channel", "ch-ui"), registry)).toBe("yellow");
     expect(nodeColor(node("channel", "ch-flow"), registry)).toBe("purple");
     expect(nodeColor(node("channel", "ch-svc"), registry)).toBe("yellow");
   });
 
-  it("falls back to gray-static for an unresolved channel reference", () => {
-    expect(nodeColor(node("channel", "missing"), registry)).toBe("gray-static");
-    expect(nodeColor(node("channel"), registry)).toBe("gray-static");
+  it("falls back to gray-light for an unresolved channel reference", () => {
+    expect(nodeColor(node("channel", "missing"), registry)).toBe("gray-light");
+    expect(nodeColor(node("channel"), registry)).toBe("gray-light");
   });
 
-  it("colors agent gray-dark and action/decision gray-static", () => {
-    expect(nodeColor(node("agent"), registry)).toBe("gray-agent");
-    expect(nodeColor(node("action"), registry)).toBe("gray-static");
-    expect(nodeColor(node("decision"), registry)).toBe("gray-static");
+  it("colors agent cyan, action gray-light, and decision gray-dark", () => {
+    expect(nodeColor(node("agent"), registry)).toBe("cyan");
+    expect(nodeColor(node("action"), registry)).toBe("gray-light");
+    expect(nodeColor(node("decision"), registry)).toBe("gray-dark");
   });
 });
 

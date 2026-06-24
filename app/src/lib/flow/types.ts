@@ -12,10 +12,10 @@
 // in a registry; nodes reference them by id. The four node kinds and the
 // 4-color scheme follow from that boundary rule:
 //   - channel  -> crosses a boundary; colored by its channel's binding
-//                 (ui = green, flow = purple, service = yellow)
-//   - agent    -> internal, AI does the work (gray-dark, non-deterministic)
-//   - action   -> internal deterministic logic/computation (gray-static)
-//   - decision -> internal deterministic branch point (gray-static)
+//                 (ui = yellow, service = yellow, flow = purple)
+//   - agent    -> internal, AI does the work (cyan, non-deterministic)
+//   - action   -> internal deterministic logic/computation (gray-light)
+//   - decision -> internal deterministic branch point (gray-dark)
 
 /** The kind of a node, which determines its role in the executed flow. */
 export type NodeKind =

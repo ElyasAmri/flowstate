@@ -43,7 +43,7 @@
 </script>
 
 <div
-  class="group absolute select-none overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
+  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
       : active
@@ -51,8 +51,8 @@
         : 'hover:-translate-y-0.5 hover:shadow-lg'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
 >
-  <!-- Top accent bar: the node's color in the 4-color scheme (calm, thin). -->
-  <div class="absolute inset-x-0 top-0 h-1 {colors.accent}"></div>
+  <!-- Bottom accent bar: the node's color in the 4-color scheme (calm, thin). -->
+  <div class="absolute inset-x-0 bottom-0 h-1 {colors.accent}"></div>
 
   <!-- Card body: drag handle. Two columns: kind (icon + type) | name + desc. -->
   <div
@@ -63,7 +63,7 @@
     ondblclick={(e) => onbodydblclick(node, e)}
   >
     <!-- Left column: neutral kind/binding icon with the type label beneath.
-         Color lives only in the top accent bar -- the icon and text stay neutral. -->
+         Color lives only in the bottom accent bar -- the icon and text stay neutral. -->
     <div
       class="flex w-24 shrink-0 flex-col items-center justify-center gap-1 pl-2 pr-1 text-zinc-500 dark:text-zinc-400"
     >
