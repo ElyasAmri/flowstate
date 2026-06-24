@@ -3,6 +3,7 @@
   import { FlowEditor, slugifyFlowName, type SaveState } from "../flow/editor.svelte";
   import {
     blankFlow,
+    draftDecisionLetter,
     exampleChannels,
     residenceCertificateRunnable,
   } from "../flow/fixtures";
@@ -13,6 +14,9 @@
   import NodePalette from "../flow/components/NodePalette.svelte";
   import NodeInspector from "../flow/components/NodeInspector.svelte";
   import RunPanel from "../flow/components/RunPanel.svelte";
+  // Self-import so a nested-flow window can host another editor (the modern
+  // replacement for the deprecated `<svelte:self>`).
+  import Self from "./FlowEditor.svelte";
 
   interface Props {
     /** Which flow to open (a bare flow id from the selector). */
@@ -30,7 +34,7 @@
   // wraps this view in {#key route.id}, so a different flow remounts it fresh.
   // svelte-ignore state_referenced_locally
   const initialId = flowId;
-  const bundled = [residenceCertificateRunnable];
+  const bundled = [residenceCertificateRunnable, draftDecisionLetter];
   const fixture = bundled.find((f) => f.id === initialId);
   const seed = fixture ? structuredClone(fixture) : blankFlow(initialId);
   const editor = new FlowEditor(seed);
@@ -176,11 +180,43 @@
     submitTarget = nodeId;
   }
 
-  // Double-clicking an entry "door" on the canvas opens its submission modal.
-  // Double-clicking any other node just selects it (a no-op here).
+  // Double-clicking an entry "door" opens its submission modal. Double-clicking
+  // a channel node bound to another flow opens that nested flow in its own
+  // window (layered over this editor). Any other node double-click is a no-op.
   function handleNodeActivate(node: FlowNode) {
+    const ch = node.channelId ? editor.channels[node.channelId] : undefined;
+    if (ch?.binding.kind === "flow") {
+      openNested(ch.binding.flowId);
+      return;
+    }
     if (isEntryChannel(node, editor.channels, editor.flow.edges)) openSubmit(node.id);
   }
+
+  // The nested flow currently opened in its own window (layered over this
+  // editor), or null when none. A nested editor can itself open further nests,
+  // so this supports arbitrary drill-in depth.
+  let openNestedId = $state<string | null>(null);
+  function openNested(flowId: string) {
+    openNestedId = flowId;
+  }
+  function closeNested() {
+    openNestedId = null;
+  }
+
+  // Dev-only probe: expose the node-activate handler so automated UI checks can
+  // drive a node double-click reliably (synthetic pointer gestures don't trigger
+  // canvas selection). Stripped from production builds.
+  $effect(() => {
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__activateNode = (id: string) => {
+        const n = editor.flow.nodes.find((x) => x.id === id);
+        if (n) handleNodeActivate(n);
+      };
+      (window as unknown as Record<string, unknown>).__selectNode = (id: string) => {
+        editor.select(id);
+      };
+    }
+  });
 
   // Inline rename of the flow (title + file name). `renaming` holds the draft
   // title while the input is open; committing slugs it to the file name too.
@@ -320,7 +356,7 @@
     <div class="min-h-0 flex-1">
       <FlowCanvas {editor} {activeNodeId} {activeEdgeId} onnodeactivate={handleNodeActivate} />
     </div>
-    <NodeInspector {editor} onsubmit={openSubmit} />
+    <NodeInspector {editor} onsubmit={openSubmit} onopenflow={openNested} />
   </div>
 </div>
 
@@ -333,5 +369,32 @@
       onactive={handleRunActive}
       onclose={handleRunClose}
     />
+  {/key}
+{/if}
+
+{#if openNestedId}
+  <!-- Nested flow window: a full-screen overlay hosting another editor for the
+       referenced sub-flow. Keyed on the id so opening a different nest remounts
+       it fresh; its own back button closes this layer (drilling back out). A
+       nested editor can open further nests, so this stacks to any depth. -->
+  {#key openNestedId}
+    <div class="fixed inset-0 z-40 flex flex-col bg-white dark:bg-zinc-950" data-testid="nested-window">
+      <div
+        class="flex items-center gap-2 border-b border-purple-300 bg-purple-50 px-4 py-1.5 text-xs text-purple-700 dark:border-purple-900 dark:bg-purple-950/30 dark:text-purple-300"
+      >
+        <span class="font-medium">Nested flow</span>
+        <span class="font-mono text-purple-600 dark:text-purple-400">{openNestedId}</span>
+        <span class="text-purple-400">— opened from “{editor.flow.title}”</span>
+        <button
+          type="button"
+          class="ml-auto rounded px-2 py-0.5 hover:bg-purple-100 dark:hover:bg-purple-900/40"
+          data-testid="nested-close"
+          onclick={closeNested}>Close ✕</button
+        >
+      </div>
+      <div class="min-h-0 flex-1">
+        <Self flowId={openNestedId} onback={closeNested} />
+      </div>
+    </div>
   {/key}
 {/if}

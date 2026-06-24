@@ -114,7 +114,93 @@ export const exampleChannels: ChannelDefinition[] = [
       },
     ],
   },
+  {
+    id: "ch-draft-letter",
+    title: "Draft decision letter (nested flow)",
+    description:
+      "A channel bound to another flow: it runs the 'Draft decision letter' " +
+      "sub-flow, which takes the case as input and returns a drafted letter.",
+    direction: "both",
+    binding: { kind: "flow", flowId: "draft-decision-letter" },
+    accepts: [],
+    returns: [],
+  },
+  {
+    id: "ch-draft-intake",
+    title: "Draft service",
+    description: "Internal service boundary the draft sub-flow runs behind.",
+    direction: "both",
+    binding: { kind: "service", scope: "internal" },
+    accepts: [],
+    returns: [
+      {
+        name: "case",
+        description: "The decided case handed to the drafting sub-flow.",
+        fields: [
+          { name: "applicant_name", type: "string" },
+          { name: "outcome", type: "string" },
+          { name: "decision_reason", type: "string", required: false },
+        ],
+      },
+    ],
+  },
 ];
+
+/**
+ * A small sub-flow used to demonstrate nesting (README goal: take input from a
+ * service/channel and output a draft update to the flow). An inbound service
+ * channel receives the case; an agent drafts a citizen-facing decision letter;
+ * an outbound service channel returns it. When a parent flow references this via
+ * a `{ kind: "flow" }` channel, the runner runs it inline and merges its
+ * `draft_letter` variable back into the parent run.
+ */
+export const draftDecisionLetter: FlowDefinition = {
+  id: "draft-decision-letter",
+  title: "Draft decision letter",
+  description:
+    "Nested sub-flow: takes the decided case as input and drafts the " +
+    "citizen-facing letter, returning it to the parent flow.",
+  nodes: [
+    {
+      id: "d-in",
+      kind: "channel",
+      channelId: "ch-draft-intake",
+      label: "Receive case",
+      description: "Inbound service channel: the parent flow hands off the case.",
+      position: { x: 80, y: 160 },
+    },
+    {
+      id: "d-draft",
+      kind: "agent",
+      agentRef: "arabic-reasoner",
+      label: "Draft decision letter",
+      description: "Fanar drafts a short, polite letter conveying the outcome.",
+      prompt:
+        "Write a short, polite decision letter to the applicant.\n\n" +
+        "Applicant: {{applicant_name}}\nOutcome: {{outcome}}\n" +
+        "Reason: {{decision_reason}}\n\n" +
+        "Return only the letter body.",
+      position: { x: 520, y: 160 },
+    },
+    {
+      id: "d-out",
+      kind: "channel",
+      channelId: "ch-draft-intake",
+      label: "Return draft",
+      outcome: "issued",
+      position: { x: 960, y: 160 },
+    },
+  ],
+  edges: [
+    { id: "de-in-draft", from: "d-in", to: "d-draft" },
+    {
+      id: "de-draft-out",
+      from: "d-draft",
+      to: "d-out",
+      set: [{ var: "draft_letter", expr: "outcome.text" }],
+    },
+  ],
+};
 
 /**
  * The bundled worked example, authored entirely in the channel model (see
@@ -180,6 +266,16 @@ export const residenceCertificateRunnable: FlowDefinition = {
       label: "Issue certificate",
       description: "Generate the certificate document.",
       position: { x: 80, y: 560 },
+    },
+    {
+      id: "n-draft",
+      kind: "channel",
+      channelId: "ch-draft-letter",
+      label: "Draft decision letter",
+      description:
+        "Nested flow: hands the decided case to the 'Draft decision letter' " +
+        "sub-flow, which returns a citizen-facing letter (double-click to open).",
+      position: { x: 520, y: 560 },
     },
     {
       id: "n-check-id",
@@ -297,10 +393,15 @@ export const residenceCertificateRunnable: FlowDefinition = {
       ],
     },
     {
-      id: "e-issue-approved",
+      id: "e-issue-draft",
       from: "n-issue",
-      to: "n-approved",
+      to: "n-draft",
       set: [{ var: "certificate_url", expr: '"cert://residence/issued"' }],
+    },
+    {
+      id: "e-draft-approved",
+      from: "n-draft",
+      to: "n-approved",
     },
   ],
 };

@@ -2,7 +2,13 @@
   import type { ChannelRegistry, FlowDefinition } from "../types";
   import { entryPayloadFields } from "../types";
   import { tryInvoke } from "../tauri";
-  import { FlowRun, type Executors, type Value } from "../run/run.svelte";
+  import { draftDecisionLetter, residenceCertificateRunnable } from "../fixtures";
+  import {
+    FlowRun,
+    type Executors,
+    type RunContext,
+    type Value,
+  } from "../run/run.svelte";
 
   interface Props {
     /** The flow to run (the editor's current in-memory flow). */
@@ -79,11 +85,39 @@
     return out;
   }
 
+  /** Build the run context that resolves nested-flow channels. Pre-loads every
+   *  flow referenced by a `{ kind: "flow" }` channel in this flow (the backend
+   *  read is async, but the runner resolves synchronously), so a channel node
+   *  bound to another flow runs that sub-flow inline. */
+  async function runContext(): Promise<RunContext> {
+    const dir = await tryInvoke<string>("project_dir");
+    const flows = new Map<string, FlowDefinition>();
+    // Bundled fixtures are always resolvable (covers dev / off-Tauri).
+    flows.set(residenceCertificateRunnable.id, residenceCertificateRunnable);
+    flows.set(draftDecisionLetter.id, draftDecisionLetter);
+    for (const node of flow.nodes) {
+      const ch = node.channelId ? channels[node.channelId] : undefined;
+      if (!ch || ch.binding.kind !== "flow") continue;
+      const id = ch.binding.flowId;
+      if (flows.has(id) || dir === null) continue;
+      const sub = await tryInvoke<FlowDefinition>("read_flow", { dir, name: id });
+      if (sub) flows.set(id, sub);
+    }
+    return {
+      channels,
+      resolveFlow: (id) => flows.get(id) ?? null,
+    };
+  }
+
   async function submit() {
     if (!entryNode) return;
     starting = true;
     try {
-      const r = new FlowRun(structuredClone(flow), await executors());
+      const r = new FlowRun(
+        structuredClone(flow),
+        await executors(),
+        await runContext(),
+      );
       run = r;
       await r.start(entryNode.id, payload());
     } finally {

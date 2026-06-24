@@ -158,14 +158,14 @@ async function main(): Promise<void> {
     });
     log(`flow editor open; counts = "${await countsText(browser)}"`);
 
-    // 3) The fixture seeds 8 nodes / 10 transitions.
-    await waitFor("fixture loaded (8 nodes)", async () =>
-      (await countsText(browser!)).startsWith("8 nodes"),
+    // 3) The fixture seeds 9 nodes / 11 transitions (incl. the nested-flow node).
+    await waitFor("fixture loaded (9 nodes)", async () =>
+      (await countsText(browser!)).startsWith("9 nodes"),
     );
     log("fixture flow loaded with expected counts");
 
     // 4) On mount the editor persists the fixture (no prior file) -> write_flow.
-    //    The disk file should exist and parse to 8 nodes.
+    //    The disk file should exist and parse to 9 nodes.
     const flowsDir = path.join(SANDBOX, ".flowstate", "flows");
     const flowFile = path.join(flowsDir, `${FLOW_ID}.json`);
     await waitFor("initial autosave (flow file on disk)", async () => existsSync(flowFile));
@@ -174,10 +174,10 @@ async function main(): Promise<void> {
       log(`on-disk .flowstate/flows: ${JSON.stringify(onDisk)}`);
       const parsed = JSON.parse(readFileSync(flowFile, "utf8"));
       assert.equal(parsed.id, FLOW_ID, "persisted flow id should match the fixture");
-      assert.equal(parsed.nodes.length, 8, "persisted flow should start with 8 nodes");
+      assert.equal(parsed.nodes.length, 9, "persisted flow should start with 9 nodes");
       assert.ok(!("startNodeId" in parsed), "flow should no longer carry a startNodeId");
     }
-    log("initial autosave verified on disk (8 nodes, no startNodeId)");
+    log("initial autosave verified on disk (9 nodes, no startNodeId)");
 
     // 4b) Channel registry: opening the empty library seeds the example channels
     //     the worked flow references. Prove the registry is on disk with the
@@ -205,13 +205,13 @@ async function main(): Promise<void> {
     log("channel registry verified on disk (tagged binding, node references channel)");
 
     // 5) Canvas interaction: add a node via the palette (data-flow-kind) -> the
-    //    count increments to 9 and the debounced autosave (write_flow) fires.
+    //    count increments to 10 and the debounced autosave (write_flow) fires.
     await browser.execute(() => {
       const el = document.querySelector('[data-flow-kind="action"]');
       if (el) (el as HTMLElement).click();
     });
-    await waitFor("node added via palette (count -> 9)", async () =>
-      (await countsText(browser!)).startsWith("9 nodes"),
+    await waitFor("node added via palette (count -> 10)", async () =>
+      (await countsText(browser!)).startsWith("10 nodes"),
     );
     log(`palette add ok: "${await countsText(browser)}"`);
 
@@ -222,10 +222,10 @@ async function main(): Promise<void> {
     });
     log("autosave fired after edit (Saved indicator)");
 
-    // 7) Disk proof: the JSON now has 9 nodes (the new action node persisted).
-    await waitFor("autosave wrote 9 nodes to disk", async () => {
+    // 7) Disk proof: the JSON now has 10 nodes (the new action node persisted).
+    await waitFor("autosave wrote 10 nodes to disk", async () => {
       const parsed = JSON.parse(readFileSync(flowFile, "utf8"));
-      return parsed.nodes.length === 9;
+      return parsed.nodes.length === 10;
     });
     {
       const parsed = JSON.parse(readFileSync(flowFile, "utf8"));

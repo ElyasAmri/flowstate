@@ -13,13 +13,23 @@
     editor: FlowEditor;
     /** Open the submission panel for an inbound channel node (the entry door). */
     onsubmit: (nodeId: string) => void;
+    /** Open a nested flow (a channel bound to another flow) in its own window. */
+    onopenflow: (flowId: string) => void;
   }
 
-  let { editor, onsubmit }: Props = $props();
+  let { editor, onsubmit, onopenflow }: Props = $props();
 
   const node = $derived(editor.selectedNode);
   const isEntry = $derived(
     !!node && isEntryChannel(node, editor.channels, editor.flow.edges),
+  );
+  // The channel assigned to the selected node (if any) and, when it is bound to
+  // another flow, that flow's id -- the nested-flow target this node opens.
+  const channel = $derived(
+    node?.channelId ? editor.channels[node.channelId] : undefined,
+  );
+  const nestedFlowId = $derived(
+    channel?.binding.kind === "flow" ? channel.binding.flowId : null,
   );
   const edges = $derived(node ? editor.outgoingEdges(node.id) : []);
   const targets = $derived(editor.flow.nodes.filter((n) => n.id !== node?.id));
@@ -258,6 +268,27 @@
             {/each}
           </select>
         </label>
+
+        {#if nestedFlowId}
+          <div
+            class="space-y-1 rounded-md border border-purple-300 bg-purple-50 p-2 dark:border-purple-900 dark:bg-purple-950/30"
+            data-testid="nested-flow"
+          >
+            <p class="text-[11px] font-medium text-purple-700 dark:text-purple-300">
+              Nested flow — this channel is bound to another flow. Double-click
+              the node, or use the button, to open it in its own window.
+            </p>
+            <p class="font-mono text-[11px] text-purple-600 dark:text-purple-400">
+              {nestedFlowId}
+            </p>
+            <button
+              type="button"
+              class="rounded bg-purple-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-purple-700"
+              data-testid="open-nested-flow"
+              onclick={() => onopenflow(nestedFlowId)}>Open nested flow ▸</button
+            >
+          </div>
+        {/if}
       {/if}
 
       {#if isEntry}

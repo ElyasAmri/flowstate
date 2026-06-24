@@ -7,9 +7,27 @@
 // backend: shell actions and Fanar agent calls are the only impure steps; the
 // human-approval gate pauses the run for the operator.
 
-import type { FlowDefinition, FlowEdge, FlowNode } from "../types";
+import type {
+  ChannelRegistry,
+  FlowDefinition,
+  FlowEdge,
+  FlowNode,
+} from "../types";
+import { isEntryChannel } from "../types";
 import { evalExpr, evalGuard, type EvalContext, type Value } from "./expr";
 export type { Value };
+
+/**
+ * Context a run needs to resolve nested flows: the channel registry (to read a
+ * channel node's binding) and a resolver from a flow id to its definition. When
+ * a channel node is bound to `{ kind: "flow" }`, the runner runs that referenced
+ * sub-flow inline. Optional so a plain run (no nesting) needs no extra wiring.
+ */
+export interface RunContext {
+  channels: ChannelRegistry;
+  /** Resolve a flow id to its definition, or `null` if it cannot be found. */
+  resolveFlow(flowId: string): FlowDefinition | null;
+}
 
 export type RunStatus = "idle" | "running" | "awaiting" | "done" | "error";
 
@@ -63,6 +81,10 @@ export class FlowRun {
   constructor(
     private flow: FlowDefinition,
     private exec: Executors,
+    /** Resolves nested-flow channels; omit for flows that never nest. */
+    private context: RunContext | null = null,
+    /** Recursion depth, incremented for each nested sub-flow run (guards loops). */
+    private depth = 0,
   ) {
     this.byId = new Map(flow.nodes.map((n) => [n.id, n]));
   }
@@ -175,7 +197,7 @@ export class FlowRun {
         this.log(node, "decision (branch on data)");
         return {};
       case "channel":
-        return this.executeChannel(node);
+        return await this.executeChannel(node);
     }
   }
 
@@ -210,7 +232,7 @@ export class FlowRun {
     }
   }
 
-  private executeChannel(node: FlowNode): Outcome | null {
+  private async executeChannel(node: FlowNode): Promise<Outcome | null> {
     const isEntry = node.id === this.entryId;
     if (!isEntry && !node.outcome && this.hasGuardedSplit(node.id)) {
       // A human gate: suspend for the operator's decision (null = suspended).
@@ -223,8 +245,62 @@ export class FlowRun {
       this.log(node, "awaiting human decision");
       return null;
     }
+    // A channel bound to another flow runs that sub-flow inline: it takes the
+    // parent's current variables as input and merges the sub-flow's result vars
+    // back (how a nested flow "outputs a draft update" to the parent run).
+    if (!isEntry) {
+      const sub = this.nestedFlowFor(node);
+      if (sub) return this.runNested(node, sub);
+    }
     this.log(node, node.label);
     return { text: node.label };
+  }
+
+  /** If `node` is a channel bound to `{ kind: "flow" }`, resolve the referenced
+   *  sub-flow definition; otherwise `null`. */
+  private nestedFlowFor(node: FlowNode): FlowDefinition | null {
+    if (node.kind !== "channel" || !node.channelId || !this.context) return null;
+    const ch = this.context.channels[node.channelId];
+    if (!ch || ch.binding.kind !== "flow") return null;
+    return this.context.resolveFlow(ch.binding.flowId);
+  }
+
+  /** Run `sub` as a nested flow from this node, seeded with the parent's vars,
+   *  and merge its resulting vars back into the parent. */
+  private async runNested(
+    node: FlowNode,
+    sub: FlowDefinition,
+  ): Promise<Outcome> {
+    if (this.depth >= 8) {
+      throw new Error(`nested flows too deep at "${node.label}" (over 8 levels)`);
+    }
+    const entry = firstEntry(sub, this.context!.channels);
+    if (!entry) {
+      throw new Error(`nested flow "${sub.id}" has no entry channel`);
+    }
+    const child = new FlowRun(
+      sub,
+      this.exec,
+      this.context,
+      this.depth + 1,
+    );
+    child.stepDelay = this.stepDelay;
+    await child.start(entry.id, { ...this.vars });
+    if (child.status === "error") {
+      throw new Error(`nested flow "${sub.id}": ${child.error}`);
+    }
+    if (child.status !== "done") {
+      // A nested flow that pauses (e.g. its own human gate) can't be resumed
+      // through the parent yet; surface it rather than continuing with partial
+      // state. Inline nested flows are expected to run to completion.
+      throw new Error(
+        `nested flow "${sub.id}" did not complete (status: ${child.status})`,
+      );
+    }
+    // Merge the sub-flow's vars back so the parent can branch on / use them.
+    this.vars = { ...this.vars, ...child.vars };
+    this.log(node, `ran nested flow "${sub.title}"`);
+    return { ...child.vars, text: child.result || node.label };
   }
 
   /** True when `id` branches: more than one out-edge, at least one guarded. */
@@ -288,4 +364,15 @@ export class FlowRun {
     this.currentId = null;
     this.status = "error";
   }
+}
+
+/** The flow's entry "door": the first inbound channel node with no incoming
+ *  edge. Used to start a nested sub-flow run. Returns `null` if it has none. */
+function firstEntry(
+  flow: FlowDefinition,
+  registry: ChannelRegistry,
+): FlowNode | null {
+  return (
+    flow.nodes.find((n) => isEntryChannel(n, registry, flow.edges)) ?? null
+  );
 }

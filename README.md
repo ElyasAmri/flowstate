@@ -98,6 +98,13 @@ guards, and the escalation points.
 
 ---
 
+## Goals
+
+- **Nested flows** -- let a flow node embed another flow, so procedures compose
+  instead of duplicating logic. Use this to:
+  - take input from a service/channel, and
+  - output a draft update to the flow.
+
 ## Repository Layout
 
 ```
