@@ -10,6 +10,19 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Restore each window's last size and position on launch, and save them
+        // on exit. Registered first so it applies as windows are created.
+        // Deliberately NOT restoring MAXIMIZED/FULLSCREEN: on macOS a fullscreen
+        // window is its own Space, so restoring that flag onto a second monitor
+        // switches that monitor's desktop. Size + position alone is what we want.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(
+                    tauri_plugin_window_state::StateFlags::SIZE
+                        | tauri_plugin_window_state::StateFlags::POSITION,
+                )
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // Let a running maestro drive this app through its `desktop` tool.
