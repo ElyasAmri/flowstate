@@ -59,6 +59,8 @@ function defaultLabel(kind: NodeKind): string {
       return "New action";
     case "decision":
       return "New decision";
+    case "group":
+      return "New group";
   }
 }
 
@@ -188,12 +190,39 @@ export class FlowEditor {
     this.history.breakCoalescing();
   }
 
+  /** Apply several node positions in one history step (group stack layout). When
+   *  `coalesceKey` is given, consecutive calls with that key merge into one
+   *  step (e.g. while dragging a whole group). */
+  setPositions(updates: { id: string; position: Position }[], coalesceKey?: string): void {
+    for (const u of updates) {
+      const n = this.flow.nodes.find((x) => x.id === u.id);
+      if (n) n.position = u.position;
+    }
+    this.commit(coalesceKey);
+  }
+
+  /**
+   * Stack a node inside a `group` node (or detach it when `groupId` is null).
+   * Membership is purely visual; it never touches edges or compilation.
+   */
+  setNodeGroup(id: string, groupId: string | null): void {
+    const node = this.flow.nodes.find((n) => n.id === id);
+    if (!node) return;
+    if (groupId) node.groupId = groupId;
+    else delete node.groupId;
+    this.commit();
+  }
+
   /** Delete a node and any edges touching it. */
   deleteNode(id: string): void {
     this.flow.nodes = this.flow.nodes.filter((n) => n.id !== id);
     this.flow.edges = this.flow.edges.filter(
       (e) => e.from !== id && e.to !== id,
     );
+    // Deleting a group releases its members back onto the canvas.
+    for (const n of this.flow.nodes) {
+      if (n.groupId === id) delete n.groupId;
+    }
     if (this.selectedNodeId === id) this.selectedNodeId = null;
     this.commit();
   }

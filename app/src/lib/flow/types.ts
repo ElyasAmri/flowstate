@@ -12,17 +12,20 @@
 // in a registry; nodes reference them by id. The four node kinds and the
 // 4-color scheme follow from that boundary rule:
 //   - channel  -> crosses a boundary; colored by its channel's binding
-//                 (ui = yellow, service = yellow, flow = purple)
+//                 (ui = yellow, service = green, flow = purple)
 //   - agent    -> internal, AI does the work (cyan, non-deterministic)
 //   - action   -> internal deterministic logic/computation (gray-light)
 //   - decision -> internal deterministic branch point (gray-dark)
+
+import type { NodeColor } from "./node-color";
 
 /** The kind of a node, which determines its role in the executed flow. */
 export type NodeKind =
   | "channel" // crosses a boundary; references a channel by id
   | "agent" // an AI agent reasons / classifies / extracts / drafts
   | "action" // deterministic internal logic / computation
-  | "decision"; // deterministic branch on data (guarded out-edges)
+  | "decision" // deterministic branch on data (guarded out-edges)
+  | "group"; // purely visual container; stacks member nodes, no runtime behaviour
 
 /** How an ending (outbound) channel node resolves the case. */
 export type TerminalOutcome = "approved" | "rejected" | "issued";
@@ -69,6 +72,18 @@ export interface FlowNode {
    * `channel` node that returns a result to the consumer.
    */
   outcome?: TerminalOutcome;
+  /**
+   * Id of the `group` node this node is stacked inside, if any. Purely a visual
+   * organisation; it has no effect on compilation or runtime. A `group` node
+   * never has its own `groupId`.
+   */
+  groupId?: string;
+  /**
+   * Explicit color override. Used by `group` containers so the author can
+   * color-code stacks; ignored for kinds whose color is derived (channels,
+   * agent, action, decision).
+   */
+  color?: NodeColor;
 
   // --- executable detail (used by the compiler; optional while authoring) ---
 
@@ -240,6 +255,11 @@ export const NODE_KINDS: NodeKindMeta[] = [
     kind: "decision",
     label: "Decision",
     blurb: "Branch on data with guarded edges.",
+  },
+  {
+    kind: "group",
+    label: "Group",
+    blurb: "Visual container: drag nodes in to stack them.",
   },
 ];
 

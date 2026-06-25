@@ -4,9 +4,22 @@
   import { isEntryChannel } from "../types";
   import { onMount } from "svelte";
   import { Viewport, type Point, type Size } from "../viewport.svelte";
-  import { nodesBounds, portPosition, groupPortPosition } from "../geometry";
+  import {
+    nodesBounds,
+    portPosition,
+    groupPortPosition,
+    groupCardHeight,
+    NODE_W,
+    NODE_H,
+    HEADER_H,
+    GROUP_PAD,
+    GROUP_GAP,
+    GROUP_EMPTY_H,
+  } from "../geometry";
+  import { nodeColorClasses } from "../node-color";
   import FlowNodeCard from "./FlowNodeCard.svelte";
   import FlowChannelCard from "./FlowChannelCard.svelte";
+  import FlowGroupCard from "./FlowGroupCard.svelte";
   import FlowEdges from "./FlowEdges.svelte";
   import CanvasControls from "./CanvasControls.svelte";
 
@@ -36,7 +49,7 @@
 
   /** Frame all nodes within the viewport (the n8n "fit view"). */
   function fitView() {
-    const box = nodesBounds(editor.flow.nodes, channelGroups);
+    const box = nodesBounds(editor.flow.nodes, channelGroups, nodeGroups);
     if (box) viewport.fitTo(box, viewSize());
   }
 
@@ -46,8 +59,28 @@
     requestAnimationFrame(fitView);
   });
 
+  // Ids of all `group` container nodes, for membership resolution.
+  const groupNodeIds = $derived(
+    new Set(editor.flow.nodes.filter((n) => n.kind === "group").map((n) => n.id)),
+  );
+
+  // --- Node groups: nodes whose groupId points at a `group` container ---
+  // Members render stacked inside that group's card (in flow order).
+  const nodeGroups = $derived.by(() => {
+    const groups = new Map<string, FlowNode[]>();
+    for (const n of editor.flow.nodes) {
+      if (n.kind === "group" || !n.groupId || !groupNodeIds.has(n.groupId)) continue;
+      let list = groups.get(n.groupId);
+      if (!list) groups.set(n.groupId, (list = []));
+      list.push(n);
+    }
+    return groups;
+  });
+
   // --- Channel groups: nodes with the same channelId render as one card ---
   // Non-channel nodes, and channels that appear only once, render as regular cards.
+  // Channel grouping is independent of group membership: a channel card keeps its
+  // multi-slot form even when stacked inside a `group` container.
   const channelGroups = $derived.by(() => {
     const groups = new Map<string, FlowNode[]>();
     for (const n of editor.flow.nodes) {
@@ -59,36 +92,97 @@
     return groups;
   });
 
-  /** True when a node is part of a multi-node channel group. */
-  function isGrouped(node: FlowNode): boolean {
-    const g = channelGroups.get(node.channelId ?? "");
-    return !!g && g.length > 1;
+  // --- group container layout -----------------------------------------------
+  // A `group` is a frame that stacks its members as real cards. Each "item" is a
+  // standalone node (NODE_H) or a channel-group rendered as one card. The anchor
+  // node is the one whose position drives that card (the channel primary, or the
+  // node itself); the canvas writes anchor positions to stack them vertically.
+
+  interface GroupItem {
+    anchorId: string;
+    height: number;
   }
 
-  /** All renderables: grouped channel cards + standalone nodes. */
+  function groupItems(group: FlowNode): GroupItem[] {
+    const members = nodeGroups.get(group.id) ?? [];
+    const consumed = new Set<string>();
+    const items: GroupItem[] = [];
+    for (const m of members) {
+      if (consumed.has(m.id)) continue;
+      if (m.kind === "channel" && m.channelId) {
+        const ch = channelGroups.get(m.channelId) ?? [m];
+        const entry = ch.find((c) => isEntryChannel(c, editor.channels, editor.flow.edges)) ?? ch[0];
+        for (const c of ch) consumed.add(c.id);
+        items.push({ anchorId: entry.id, height: groupCardHeight(ch.length) });
+        continue;
+      }
+      consumed.add(m.id);
+      items.push({ anchorId: m.id, height: NODE_H });
+    }
+    return items;
+  }
+
+  /** Frame size of a group, derived from the stacked member cards it holds. */
+  function groupFrameSize(group: FlowNode): Size {
+    const items = groupItems(group);
+    const body = items.length
+      ? items.reduce((s, it) => s + it.height, 0) + GROUP_GAP * (items.length - 1)
+      : GROUP_EMPTY_H;
+    return { width: NODE_W + 2 * GROUP_PAD, height: HEADER_H + 2 * GROUP_PAD + body };
+  }
+
+  /** Position updates that stack a group's members under its header. `originPos`
+   *  is the group's (possibly new) top-left; the group node is repositioned too. */
+  function groupLayoutUpdates(group: FlowNode, originPos: Point): { id: string; position: Point }[] {
+    const updates = [{ id: group.id, position: originPos }];
+    let y = originPos.y + HEADER_H + GROUP_PAD;
+    for (const it of groupItems(group)) {
+      updates.push({ id: it.anchorId, position: { x: originPos.x + GROUP_PAD, y } });
+      y += it.height + GROUP_GAP;
+    }
+    return updates;
+  }
+
+  /** Restack a group in place (after a member joins/leaves), one history step. */
+  function layoutGroup(groupId: string): void {
+    const group = editor.flow.nodes.find((n) => n.id === groupId);
+    if (group) editor.setPositions(groupLayoutUpdates(group, group.position));
+  }
+
+  /** All renderables. Group frames render first (behind); members render as their
+   *  normal cards on top, positioned by the stack layout into the frame. */
   type RenderItem =
     | { kind: "channel-group"; primary: FlowNode; siblings: FlowNode[] }
+    | { kind: "group-frame"; group: FlowNode }
     | { kind: "standalone"; node: FlowNode };
 
   const renderItems = $derived.by((): RenderItem[] => {
-    const groupedIds = new Set<string>();
-    const items: RenderItem[] = [];
+    const consumed = new Set<string>();
+    const frames: RenderItem[] = [];
+    const cards: RenderItem[] = [];
 
-    for (const [chId, members] of channelGroups) {
+    // Group frames sit behind their members (drawn first).
+    for (const g of editor.flow.nodes) {
+      if (g.kind !== "group") continue;
+      frames.push({ kind: "group-frame", group: g });
+      consumed.add(g.id);
+    }
+
+    for (const [, members] of channelGroups) {
       if (members.length < 2) continue;
       // Use the entry node (or first) as the primary position anchor.
       const entry = members.find((m) => isEntryChannel(m, editor.channels, editor.flow.edges)) ?? members[0];
       const siblings = members.filter((m) => m.id !== entry.id);
-      items.push({ kind: "channel-group", primary: entry, siblings });
-      for (const m of members) groupedIds.add(m.id);
+      cards.push({ kind: "channel-group", primary: entry, siblings });
+      for (const m of members) consumed.add(m.id);
     }
 
     for (const n of editor.flow.nodes) {
-      if (!groupedIds.has(n.id)) {
-        items.push({ kind: "standalone", node: n });
+      if (!consumed.has(n.id)) {
+        cards.push({ kind: "standalone", node: n });
       }
     }
-    return items;
+    return [...frames, ...cards];
   });
 
   // Pointer-interaction state machine. Window listeners are attached only while
@@ -117,12 +211,16 @@
     if (i.kind !== "connecting") return null;
     const from = editor.flow.nodes.find((n) => n.id === i.fromNodeId);
     if (!from) return null;
-    const group = channelGroups.get(from.channelId ?? "");
-    const fp = group && group.length > 1
-      ? groupPortPosition(from, "out", group)
-      : portPosition(from, "out");
-    return { from: fp, to: i.cursorWorld };
+    return { from: outPortPos(from), to: i.cursorWorld };
   });
+
+  /** World position of a node's output port (channel-group aware). */
+  function outPortPos(node: FlowNode): Point {
+    const group = channelGroups.get(node.channelId ?? "");
+    return group && group.length > 1
+      ? groupPortPosition(node, "out", group)
+      : portPosition(node, "out");
+  }
 
   // --- node body: select + begin drag ---
   function handleBodyDown(node: FlowNode, e: PointerEvent) {
@@ -135,6 +233,23 @@
       grabOffsetWorld: { x: world.x - node.position.x, y: world.y - node.position.y },
     };
     startGesture(e);
+  }
+
+  /** The `group` node whose frame contains world point `p` (excluding `excludeId`). */
+  function groupAt(p: Point, excludeId: string): FlowNode | null {
+    for (const g of editor.flow.nodes) {
+      if (g.kind !== "group" || g.id === excludeId) continue;
+      const { width, height } = groupFrameSize(g);
+      if (
+        p.x >= g.position.x &&
+        p.x <= g.position.x + width &&
+        p.y >= g.position.y &&
+        p.y <= g.position.y + height
+      ) {
+        return g;
+      }
+    }
+    return null;
   }
 
   // --- node body: double-click to activate (select handled on pointer-down) ---
@@ -209,17 +324,49 @@
         y: interaction.originPan.y + (s.y - interaction.originScreen.y),
       };
     } else if (interaction.kind === "draggingNode") {
-      const world = toWorld(e);
-      editor.moveNode(interaction.nodeId, {
-        x: world.x - interaction.grabOffsetWorld.x,
-        y: world.y - interaction.grabOffsetWorld.y,
-      });
+      const nodeId = interaction.nodeId;
+      const node = editor.flow.nodes.find((n) => n.id === nodeId);
+      const pos = {
+        x: toWorld(e).x - interaction.grabOffsetWorld.x,
+        y: toWorld(e).y - interaction.grabOffsetWorld.y,
+      };
+      if (node?.kind === "group") {
+        // Dragging a group header moves the frame and restacks its members under
+        // it, all in one coalesced history step.
+        editor.setPositions(groupLayoutUpdates(node, pos), `drag:${node.id}`);
+      } else {
+        editor.moveNode(nodeId, pos);
+      }
     } else if (interaction.kind === "connecting") {
       interaction = { ...interaction, cursorWorld: toWorld(e) };
     }
   }
 
-  function onWindowUp() {
+  function onWindowUp(e: PointerEvent) {
+    // Membership is decided on drop: a card dropped on a group frame joins it; a
+    // member dropped outside its frame leaves. A multi-slot channel card moves as
+    // a whole (all its slots together) so siblings are never orphaned.
+    if (interaction.kind === "draggingNode") {
+      const nodeId = interaction.nodeId;
+      const node = editor.flow.nodes.find((n) => n.id === nodeId);
+      if (node && node.kind !== "group") {
+        const prev = node.groupId ?? null;
+        const target = groupAt(toWorld(e), node.id);
+        const chMembers = node.channelId ? channelGroups.get(node.channelId) : undefined;
+        const members = chMembers && chMembers.length > 1 ? chMembers : [node];
+
+        if (target && target.id !== prev) {
+          for (const m of members) editor.setNodeGroup(m.id, target.id);
+          layoutGroup(target.id);
+          if (prev) layoutGroup(prev);
+        } else if (target && target.id === prev) {
+          layoutGroup(prev); // snap back into the stack
+        } else if (!target && prev) {
+          for (const m of members) editor.setNodeGroup(m.id, null);
+          layoutGroup(prev);
+        }
+      }
+    }
     endGesture();
   }
 </script>
@@ -250,7 +397,19 @@
     />
 
     {#each renderItems as item}
-      {#if item.kind === "channel-group"}
+      {#if item.kind === "group-frame"}
+        {@const size = groupFrameSize(item.group)}
+        <FlowGroupCard
+          node={item.group}
+          width={size.width}
+          height={size.height}
+          empty={(nodeGroups.get(item.group.id)?.length ?? 0) === 0}
+          selected={editor.selectedNodeId === item.group.id}
+          colors={nodeColorClasses(item.group, editor.channels)}
+          onbodydown={handleBodyDown}
+          onbodydblclick={handleBodyDblClick}
+        />
+      {:else if item.kind === "channel-group"}
         <FlowChannelCard
           node={item.primary}
           siblings={item.siblings}

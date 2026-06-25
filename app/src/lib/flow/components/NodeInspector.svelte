@@ -8,6 +8,17 @@
     type VarAssignment,
   } from "../types";
   import { isEntryChannel } from "../types";
+  import { COLOR_CLASSES, type NodeColor } from "../node-color";
+
+  // Selectable group colors (a calm neutral first, then the accent hues).
+  const GROUP_COLORS: NodeColor[] = [
+    "gray-light",
+    "green",
+    "cyan",
+    "yellow",
+    "purple",
+    "gray-dark",
+  ];
 
   interface Props {
     editor: FlowEditor;
@@ -108,6 +119,26 @@
           oninput={(e) => editor.updateNode(node.id, { description: e.currentTarget.value })}
         ></textarea>
       </label>
+
+      <!-- group: a color to organise the stack -->
+      {#if node.kind === "group"}
+        <div class="space-y-1 text-sm">
+          <span class="text-zinc-500">Color</span>
+          <div class="flex flex-wrap gap-1.5">
+            {#each GROUP_COLORS as c (c)}
+              <button
+                type="button"
+                aria-label={c}
+                onclick={() => editor.updateNode(node.id, { color: c })}
+                class="h-6 w-6 rounded-md {COLOR_CLASSES[c].swatch}
+                  {(node.color ?? 'gray-light') === c
+                    ? 'ring-2 ring-zinc-900 ring-offset-1 dark:ring-zinc-100 dark:ring-offset-zinc-900'
+                    : ''}"
+              ></button>
+            {/each}
+          </div>
+        </div>
+      {/if}
 
       <!-- agent: which agent runs + the prompt it receives -->
       {#if node.kind === "agent"}

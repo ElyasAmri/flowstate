@@ -18,6 +18,9 @@ export const kindIconPath: Record<IconKey, string> = {
   action: '<path d="M13 2L4 14h7l-1 8 9-12h-7z" />',
   // decision: a diamond -- a branch point.
   decision: '<path d="M12 3l9 9-9 9-9-9z" />',
+  // group: stacked rows -- a container that stacks member nodes vertically.
+  group:
+    '<rect x="4" y="4" width="16" height="5" rx="1.5" /><rect x="4" y="11" width="16" height="5" rx="1.5" /><path d="M7 19h10" />',
   // channel (generic / unresolved): two arrows crossing a boundary.
   channel:
     '<path d="M12 3v18" stroke-dasharray="3 3" /><path d="M3 9h6l-2-2m2 2-2 2" /><path d="M21 15h-6l2-2m-2 2 2 2" />',

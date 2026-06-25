@@ -79,7 +79,11 @@ export function compileFlow(
   registry: ChannelRegistry = {},
 ): CompileResult {
   const errors: string[] = [];
-  const byId = new Map(flow.nodes.map((n) => [n.id, n]));
+  // `group` nodes are a pure authoring/visual aid: they stack other nodes on the
+  // canvas and have no runtime behaviour, so they are excluded from compilation
+  // entirely (they have no ports, so no edge references them).
+  const nodes = flow.nodes.filter((n) => n.kind !== "group");
+  const byId = new Map(nodes.map((n) => [n.id, n]));
   const outgoing = (id: string): FlowEdge[] =>
     flow.edges.filter((e) => e.from === id);
 
@@ -87,13 +91,13 @@ export function compileFlow(
   // takes the first such "door" as maestro's `initial`; if none resolves (no
   // registry, or no inbound channel), it falls back to the first node so the
   // emitted YAML still has an entry, and reachability is reported below.
-  const entryNodes = flow.nodes.filter((n) =>
+  const entryNodes = nodes.filter((n) =>
     isEntryChannel(n, registry, flow.edges),
   );
-  const initialId = entryNodes[0]?.id ?? flow.nodes[0]?.id ?? "";
+  const initialId = entryNodes[0]?.id ?? nodes[0]?.id ?? "";
 
   // --- structural checks ---
-  if (!flow.nodes.length) errors.push("flow has no nodes");
+  if (!nodes.length) errors.push("flow has no nodes");
   if (!entryNodes.length) {
     errors.push(
       "flow has no inbound channel node to trigger it (add a channel bound to an inbound channel)",
@@ -124,7 +128,7 @@ export function compileFlow(
     reached.add(id);
     for (const e of outgoing(id)) stack.push(e.to);
   }
-  for (const n of flow.nodes) {
+  for (const n of nodes) {
     if (!reached.has(n.id))
       errors.push(
         `node ${n.id} (${n.label}) is unreachable from any entry node`,
@@ -141,7 +145,7 @@ export function compileFlow(
   lines.push(`initial: ${scalar(initialId)}`);
 
   lines.push("nodes:");
-  for (const node of flow.nodes) {
+  for (const node of nodes) {
     const edges = orderedEdges(node, outgoing(node.id), errors);
     const terminal = isTerminal(node, edges);
     lines.push(`  ${key(node.id)}:`);
@@ -212,6 +216,10 @@ function emitNodeBody(
       emitChannel(lines, node, errors, entryNodes, edges);
       return;
     }
+    case "group":
+      // Unreachable: group nodes are filtered out before emission. Present so the
+      // switch stays exhaustive over NodeKind.
+      return;
   }
 }
 

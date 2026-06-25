@@ -15,6 +15,12 @@ export const SLOT_H = 36;
 /** Height of the header bar inside a channel group card. */
 export const HEADER_H = 40;
 
+/** `group` container layout: inner padding, gap between stacked member cards,
+ *  and the height reserved for an empty group's drop hint. */
+export const GROUP_PAD = 12;
+export const GROUP_GAP = 10;
+export const GROUP_EMPTY_H = 30;
+
 export type PortSide = "in" | "out";
 
 /**
@@ -77,10 +83,14 @@ export function groupCardHeight(slotCount: number): number {
   return HEADER_H + Math.max(slotCount, 1) * SLOT_H;
 }
 
-/** World-space bounding box enclosing all nodes (each node's full card). */
+/** World-space bounding box enclosing all nodes (each node's full card).
+ *  `groups` maps channelId -> channel-group members; `nodeGroups` maps a `group`
+ *  node id -> its stacked members, so the group card is sized by its row count
+ *  and the stacked members (placeholder positions) are skipped. */
 export function nodesBounds(
   nodes: FlowNode[],
   groups?: Map<string, FlowNode[]>,
+  nodeGroups?: Map<string, FlowNode[]>,
 ): BoundingBox | null {
   if (nodes.length === 0) return null;
   let minX = Infinity;
@@ -92,7 +102,8 @@ export function nodesBounds(
     // Skip nodes that are just slots inside a channel group (their position is
     // placeholder and may be way off-screen).
     if (group && group.length > 1 && n.id !== group[0].id) continue;
-    const h = group && group.length > 1 ? groupCardHeight(group.length)
+    const h = n.kind === "group" ? groupCardHeight(nodeGroups?.get(n.id)?.length ?? 0)
+      : group && group.length > 1 ? groupCardHeight(group.length)
       : n.kind === "channel" ? groupCardHeight(1)
       : NODE_H;
     minX = Math.min(minX, n.position.x);

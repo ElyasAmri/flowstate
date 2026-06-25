@@ -198,6 +198,9 @@ export class FlowRun {
         return {};
       case "channel":
         return await this.executeChannel(node);
+      case "group":
+        // A group is a visual container with no edges; it is never traversed.
+        return {};
     }
   }
 

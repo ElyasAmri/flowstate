@@ -70,19 +70,6 @@
     // to the cursor. onportup only completes a connection when one is in flight.
     onportup(slotNode, e);
   }
-
-  function outcomeBadgeClass(outcome: string | undefined): string {
-    switch (outcome) {
-      case "issued":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
-      case "approved":
-        return "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300";
-      case "rejected":
-        return "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300";
-      default:
-        return "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400";
-    }
-  }
 </script>
 
 <div
@@ -108,9 +95,6 @@
     <span class="min-w-0 truncate text-sm font-medium">
       {channel?.title ?? node.label}
     </span>
-    {#if isEntry}
-      <span class="ml-auto shrink-0 rounded bg-black/10 px-1.5 py-0.5 text-[10px] font-medium uppercase dark:bg-white/15">inbound</span>
-    {/if}
   </div>
 
   <!-- Slot list -->
@@ -137,14 +121,6 @@
         ></button>
 
         <span class="min-w-0 flex-1 truncate">{slot.label}</span>
-
-        {#if slot.outcome}
-          <span
-            class="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase {outcomeBadgeClass(slot.outcome)}"
-          >
-            {slot.outcome}
-          </span>
-        {/if}
 
         <!-- Output port (only for non-terminal) -->
         <button
