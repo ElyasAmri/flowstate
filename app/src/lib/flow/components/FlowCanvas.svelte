@@ -181,7 +181,13 @@
   }
 
   function startGesture(e: PointerEvent) {
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    // Don't capture the pointer for connection drags: capture would deliver the
+    // final pointerup to the source output port, so the destination input port's
+    // onpointerup (which completes the edge) would never fire. Panning and node
+    // drags still capture so the gesture survives the cursor leaving the element.
+    if (interaction.kind !== "connecting") {
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+    }
     window.addEventListener("pointermove", onWindowMove);
     window.addEventListener("pointerup", onWindowUp);
   }
@@ -241,7 +247,6 @@
       {pending}
       {activeEdgeId}
       {channelGroups}
-      ondelete={(id) => editor.deleteEdge(id)}
     />
 
     {#each renderItems as item}

@@ -20,7 +20,7 @@
     onbodydblclick: (node: FlowNode, e: MouseEvent) => void;
     /** Pointer-down on the output port: begin a connection drag. */
     onportdown: (node: FlowNode, e: PointerEvent) => void;
-    /** Pointer-up over the input port: complete a connection here. */
+    /** Pointer-up anywhere on the node: complete a connection to this node. */
     onportup: (node: FlowNode, e: PointerEvent) => void;
   }
 
@@ -42,14 +42,18 @@
     "shadow transition-all hover:scale-125 hover:bg-sky-500 group-hover:bg-sky-400 dark:border-zinc-800";
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- The whole card is a connection drop target: releasing a drag anywhere on it
+     completes the edge to this node (handled via pointer-up bubbling from here). -->
 <div
-  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
+  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-shadow duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
       : active
         ? 'animate-pulse-ring ring-2 ring-emerald-500'
-        : 'hover:-translate-y-0.5 hover:shadow-lg'}"
+        : 'hover:shadow-md hover:ring-1 hover:ring-zinc-300 dark:hover:ring-zinc-600'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {NODE_H}px;"
+  onpointerup={(e) => onportup(node, e)}
 >
   <!-- Bottom accent bar: the node's color in the 4-color scheme (calm, thin). -->
   <div class="absolute inset-x-0 bottom-0 h-1 {colors.accent}"></div>
@@ -105,13 +109,11 @@
     </div>
   </div>
 
-  <!-- Input port (left). Connections complete on pointer-up here. -->
+  <!-- Input port (left): a visual affordance. The drop itself is handled by the
+       card root (pointer-up anywhere on the node completes the connection). -->
   <div
     class="{portClass} -left-[7px]"
-    role="button"
-    tabindex="-1"
-    aria-label="input"
-    onpointerup={(e) => onportup(node, e)}
+    aria-hidden="true"
   ></div>
 
   <!-- Output port (right). Connections start on pointer-down here. -->

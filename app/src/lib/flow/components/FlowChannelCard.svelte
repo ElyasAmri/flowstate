@@ -65,7 +65,9 @@
   }
 
   function handleSlotPortUp(slotNode: FlowNode, e: PointerEvent) {
-    e.stopPropagation();
+    // Don't stop propagation here: the gesture ends via the window pointerup
+    // listener (endGesture), and swallowing the event would leave a drag stuck
+    // to the cursor. onportup only completes a connection when one is in flight.
     onportup(slotNode, e);
   }
 
@@ -84,12 +86,12 @@
 </script>
 
 <div
-  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-[box-shadow,transform] duration-150 dark:border-zinc-700 dark:bg-zinc-800
+  class="group absolute select-none overflow-hidden rounded-t-xl border border-zinc-200 bg-white shadow-sm transition-shadow duration-150 dark:border-zinc-700 dark:bg-zinc-800
     {selected
       ? 'ring-2 ring-zinc-900 dark:ring-zinc-100'
       : anyActive
         ? 'animate-pulse-ring ring-2 ring-emerald-500'
-        : 'hover:-translate-y-0.5 hover:shadow-lg'}"
+        : 'hover:shadow-md hover:ring-1 hover:ring-zinc-300 dark:hover:ring-zinc-600'}"
   style="left: {node.position.x}px; top: {node.position.y}px; width: {NODE_W}px; height: {GROUP_H}px;"
 >
   <!-- Channel header bar (neutral; color lives in the bottom accent bar) -->
@@ -114,21 +116,24 @@
   <!-- Slot list -->
   <div class="divide-y divide-black/5 dark:divide-white/5">
     {#each allSlots as slot, i (slot.id)}
+      <!-- The whole slot row is a connection drop target: releasing a drag
+           anywhere on it completes the edge to that slot's node. -->
       <div
         role="button"
         tabindex="-1"
         class="flex h-9 items-center gap-2 px-3 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5"
         class:active-slot={slot.id === activeNodeId}
         onpointerdown={(e) => handleSlotDown(slot, e)}
+        onpointerup={(e) => handleSlotPortUp(slot, e)}
         ondblclick={(e) => handleSlotDblClick(slot, e)}
       >
-        <!-- Input port (always visible — groups receive connections) -->
+        <!-- Input port (always visible — groups receive connections). Visual
+             affordance only; the drop is handled by the slot row. -->
         <button
           type="button"
           aria-label="input port"
           class="z-10 h-3 w-3 shrink-0 rounded-full border-2 border-white bg-zinc-400 shadow-sm hover:bg-emerald-500"
           onpointerdown={(e) => handleSlotPortDown(slot, e)}
-          onpointerup={(e) => handleSlotPortUp(slot, e)}
         ></button>
 
         <span class="min-w-0 flex-1 truncate">{slot.label}</span>
@@ -148,7 +153,6 @@
           class="z-10 h-3 w-3 shrink-0 rounded-full border-2 border-white bg-zinc-400 shadow-sm hover:bg-emerald-500"
           class:invisible={!!slot.outcome}
           onpointerdown={(e) => handleSlotPortDown(slot, e)}
-          onpointerup={(e) => handleSlotPortUp(slot, e)}
         ></button>
       </div>
     {/each}

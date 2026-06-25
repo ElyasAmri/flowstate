@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FlowDefinition, FlowNode } from "../types";
   import type { Point } from "../viewport.svelte";
-  import { edgeMidpoint, edgePath, portPosition, groupPortPosition, HEADER_H, SLOT_H } from "../geometry";
+  import { edgeMidpoint, edgePath, portPosition, groupPortPosition } from "../geometry";
 
   interface Props {
     flow: FlowDefinition;
@@ -11,13 +11,11 @@
     activeEdgeId?: string | null;
     /** Map of channelId → member nodes, for grouped port positioning. */
     channelGroups?: Map<string, FlowNode[]>;
-    /** Delete an edge (click its line or the × badge that appears on hover). */
-    ondelete: (edgeId: string) => void;
   }
 
-  let { flow, pending, activeEdgeId = null, channelGroups, ondelete }: Props = $props();
+  let { flow, pending, activeEdgeId = null, channelGroups }: Props = $props();
 
-  // The edge the cursor is over, for the n8n-style highlight + delete badge.
+  // The edge the cursor is over, highlighted white so its path is easy to trace.
   let hoveredId = $state<string | null>(null);
 
   function nodeById(id: string) {
@@ -35,8 +33,8 @@
 </script>
 
 <!-- One SVG spanning the whole world layer; overflow visible so edges aren't
-     clipped. pointer-events none so nodes underneath stay grabbable; individual
-     edge hit-paths and badges re-enable events on themselves. -->
+     clipped. pointer-events none so nodes underneath stay grabbable; each edge's
+     invisible hit-path re-enables events on itself for hover tracing. -->
 <svg class="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1">
   <defs>
     <marker
@@ -63,28 +61,24 @@
       {@const hovered = hoveredId === edge.id}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <g
-        role="button"
-        tabindex="-1"
-        class="pointer-events-auto cursor-pointer"
+        class="pointer-events-auto"
         onpointerenter={() => (hoveredId = edge.id)}
         onpointerleave={() => (hoveredId = null)}
-        onpointerdown={(e) => {
-          // Don't let the canvas start a pan; delete on primary click.
-          e.stopPropagation();
-          if (e.button === 0) ondelete(edge.id);
-        }}
       >
-        <!-- Wide invisible hit area for an easy click target. -->
-        <path d={d} fill="none" stroke="transparent" stroke-width="16" />
+        <!-- Wide invisible hit area so hover is easy to land on the edge.
+             pointer-events="stroke" hit-tests the stroke geometry directly, so it
+             works even though the stroke is transparent — WebKit (the macOS Tauri
+             webview) won't register hits on alpha-0 paint under visiblePainted. -->
+        <path d={d} fill="none" stroke="transparent" stroke-width="16" pointer-events="stroke" />
         <path
           {d}
           fill="none"
           class={hovered
-            ? "stroke-rose-400"
+            ? "stroke-white"
             : activeEdgeId === edge.id
               ? "stroke-emerald-500 animated-edge"
               : "stroke-zinc-400 dark:stroke-zinc-500"}
-          stroke-width={hovered ? 3 : activeEdgeId === edge.id ? 3 : 2}
+          stroke-width={hovered || activeEdgeId === edge.id ? 3 : 2}
           marker-end="url(#flow-arrow)"
         />
       </g>
@@ -102,30 +96,6 @@
           <text text-anchor="middle" dy="3" class="fill-zinc-500 text-[11px]">
             {edge.label}
           </text>
-        </g>
-      {/if}
-
-      {#if hovered}
-        <!-- Delete badge at the edge midpoint. -->
-        <g
-          transform="translate({mid.x}, {mid.y})"
-          role="button"
-          tabindex="-1"
-          aria-label="Delete connection"
-          class="pointer-events-auto cursor-pointer"
-          onpointerenter={() => (hoveredId = edge.id)}
-          onpointerdown={(e) => {
-            e.stopPropagation();
-            ondelete(edge.id);
-          }}
-        >
-          <circle r="9" class="fill-rose-500" />
-          <path
-            d="M -3.5 -3.5 L 3.5 3.5 M 3.5 -3.5 L -3.5 3.5"
-            class="stroke-white"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
         </g>
       {/if}
     {/if}
