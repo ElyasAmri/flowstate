@@ -11,7 +11,7 @@ import type { BoundingBox, Point } from "./viewport.svelte";
 export const NODE_W = 300;
 export const NODE_H = 96;
 /** Height of a slot inside a channel group card. */
-export const SLOT_H = 36;
+export const SLOT_H = 48;
 /** Height of the header bar inside a channel group card. */
 export const HEADER_H = 40;
 
@@ -57,18 +57,62 @@ export function groupPortPosition(
   };
 }
 
+/** Corner radius for the rounded bends of a smoothstep edge. */
+const EDGE_RADIUS = 16;
+
+/** SVG path through a polyline with each interior corner rounded by `r`
+ *  (clamped to half the shorter adjacent segment so short edges stay clean). */
+function roundedPolyline(pts: Point[], r: number): string {
+  if (pts.length < 3) {
+    return pts.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" ");
+  }
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const d1 = Math.hypot(p1.x - p0.x, p1.y - p0.y) || 1;
+    const d2 = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+    const rr = Math.min(r, d1 / 2, d2 / 2);
+    const a = { x: p1.x + ((p0.x - p1.x) / d1) * rr, y: p1.y + ((p0.y - p1.y) / d1) * rr };
+    const b = { x: p1.x + ((p2.x - p1.x) / d2) * rr, y: p1.y + ((p2.y - p1.y) / d2) * rr };
+    d += ` L ${a.x} ${a.y} Q ${p1.x} ${p1.y} ${b.x} ${b.y}`;
+  }
+  const last = pts[pts.length - 1];
+  d += ` L ${last.x} ${last.y}`;
+  return d;
+}
+
 /**
- * Cubic-bezier path from an output point to an input point with horizontal
- * control handles -- the smooth left-to-right curve n8n draws between nodes.
- * The handle length scales with horizontal distance so short and long edges
- * both look natural.
+ * Smoothstep path from an output point to an input point: horizontal out of the
+ * source (right port), vertical, then horizontal into the target (left port),
+ * with rounded corners. The segments adjacent to each port always run away from
+ * / into the card horizontally, so an arrowhead never hides behind a node, even
+ * for backward edges (target left of source).
  */
+const EDGE_STUB = 24;
+
 export function edgePath(from: Point, to: Point): string {
-  const dx = Math.abs(to.x - from.x);
-  const handle = Math.max(40, dx * 0.5);
-  const c1x = from.x + handle;
-  const c2x = to.x - handle;
-  return `M ${from.x} ${from.y} C ${c1x} ${from.y}, ${c2x} ${to.y}, ${to.x} ${to.y}`;
+  const { x: sx, y: sy } = from;
+  const { x: tx, y: ty } = to;
+  // Same height and going forward: a clean straight line.
+  if (Math.abs(ty - sy) < 1 && tx > sx) {
+    return `M ${sx} ${sy} L ${tx} ${ty}`;
+  }
+  let pts: Point[];
+  if (tx - sx >= 2 * EDGE_STUB) {
+    // Enough room ahead: one vertical at the midpoint.
+    const cx = (sx + tx) / 2;
+    pts = [from, { x: cx, y: sy }, { x: cx, y: ty }, to];
+  } else {
+    // Tight or backward: stub out to the right of the source, cross at mid
+    // height, then stub into the target from the left.
+    const ax = sx + EDGE_STUB;
+    const bx = tx - EDGE_STUB;
+    const my = (sy + ty) / 2;
+    pts = [from, { x: ax, y: sy }, { x: ax, y: my }, { x: bx, y: my }, { x: bx, y: ty }, to];
+  }
+  return roundedPolyline(pts, EDGE_RADIUS);
 }
 
 /** Midpoint of an edge, used to place its label. */

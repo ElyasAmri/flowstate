@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FlowDefinition, FlowNode } from "../types";
+  import type { FlowDefinition, FlowEdge, FlowNode } from "../types";
   import type { Point } from "../viewport.svelte";
   import { edgeMidpoint, edgePath, portPosition, groupPortPosition } from "../geometry";
 
@@ -22,13 +22,40 @@
     return flow.nodes.find((n) => n.id === id);
   }
 
-  /** Port position, accounting for channel-group slot offsets. */
-  function portPos(node: FlowNode, side: "in" | "out"): Point {
-    const group = channelGroups?.get(node.channelId ?? "");
-    if (node.kind === "channel" && group) {
-      return groupPortPosition(node, side, group);
+  // Edges grouped by the node they leave (from) / enter (to), so several edges
+  // sharing a port can be fanned out instead of stacking on the same line.
+  const outgoing = $derived.by(() => groupEdges((e) => e.from));
+  const incoming = $derived.by(() => groupEdges((e) => e.to));
+  function groupEdges(keyOf: (e: FlowEdge) => string): Map<string, FlowEdge[]> {
+    const m = new Map<string, FlowEdge[]>();
+    for (const e of flow.edges) {
+      const k = keyOf(e);
+      let list = m.get(k);
+      if (!list) m.set(k, (list = []));
+      list.push(e);
     }
-    return portPosition(node, side);
+    return m;
+  }
+
+  /** Vertical offset that fans edges sharing a port apart, centred on the port.
+   *  The gap shrinks as more edges share the port so they stay on the card edge. */
+  function fanOffset(list: FlowEdge[] | undefined, edgeId: string): number {
+    const n = list?.length ?? 0;
+    if (n <= 1) return 0;
+    const i = list!.findIndex((e) => e.id === edgeId);
+    const gap = Math.min(14, 36 / (n - 1));
+    return (i - (n - 1) / 2) * gap;
+  }
+
+  /** Port position for one edge's endpoint, fanned apart from siblings. */
+  function endpoint(node: FlowNode, side: "in" | "out", edge: FlowEdge): Point {
+    const group = channelGroups?.get(node.channelId ?? "");
+    const base =
+      node.kind === "channel" && group
+        ? groupPortPosition(node, side, group)
+        : portPosition(node, side);
+    const list = side === "out" ? outgoing.get(node.id) : incoming.get(node.id);
+    return { x: base.x, y: base.y + fanOffset(list, edge.id) };
   }
 </script>
 
@@ -54,8 +81,8 @@
     {@const a = nodeById(edge.from)}
     {@const b = nodeById(edge.to)}
     {#if a && b}
-      {@const from = portPos(a, "out")}
-      {@const to = portPos(b, "in")}
+      {@const from = endpoint(a, "out", edge)}
+      {@const to = endpoint(b, "in", edge)}
       {@const mid = edgeMidpoint(from, to)}
       {@const d = edgePath(from, to)}
       {@const hovered = hoveredId === edge.id}

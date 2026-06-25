@@ -3,7 +3,7 @@
   import { isEntryChannel } from "../types";
   import { nodeColorClasses, iconKeyForNode } from "../node-color";
   import { kindIconPath } from "../kind-icon";
-  import { NODE_W } from "../geometry";
+  import { NODE_W, SLOT_H, HEADER_H } from "../geometry";
 
   interface Props {
     /** The channel's canonical card — its first/entry node in the group. */
@@ -40,14 +40,9 @@
   const allSlots = $derived([node, ...siblings]);
   const anyActive = $derived(activeNodeId !== null && [node, ...siblings].some((s) => s.id === activeNodeId));
 
-  /** Height grows with the number of sibling outcomes. */
-  const SLOT_H = 36;
-  const HEADER_H = 40;
+  /** Height grows with the number of sibling outcomes. Uses the shared geometry
+   *  constants so the rendered rows line up with the edge port positions. */
   const GROUP_H = $derived(HEADER_H + allSlots.length * SLOT_H);
-
-  function slotPortY(index: number, side: "in" | "out"): number {
-    return HEADER_H + index * SLOT_H + SLOT_H / 2;
-  }
 
   function handleSlotDown(slotNode: FlowNode, e: PointerEvent) {
     e.stopPropagation();
@@ -85,7 +80,8 @@
   <div
     role="button"
     tabindex="-1"
-    class="flex h-10 items-center gap-2 border-b border-black/5 px-3 text-zinc-600 dark:border-white/10 dark:text-zinc-300"
+    class="flex items-center gap-2 border-b border-black/5 px-3 text-zinc-600 dark:border-white/10 dark:text-zinc-300"
+    style="height: {HEADER_H}px"
     onpointerdown={(e) => onbodydown(node, e)}
     ondblclick={(e) => onbodydblclick(node, e)}
   >
@@ -99,37 +95,39 @@
 
   <!-- Slot list -->
   <div class="divide-y divide-black/5 dark:divide-white/5">
-    {#each allSlots as slot, i (slot.id)}
+    {#each allSlots as slot (slot.id)}
       <!-- The whole slot row is a connection drop target: releasing a drag
            anywhere on it completes the edge to that slot's node. -->
       <div
         role="button"
         tabindex="-1"
-        class="flex h-9 items-center gap-2 px-3 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+        class="relative flex items-center gap-2 px-3 text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+        style="height: {SLOT_H}px"
         class:active-slot={slot.id === activeNodeId}
         onpointerdown={(e) => handleSlotDown(slot, e)}
         onpointerup={(e) => handleSlotPortUp(slot, e)}
         ondblclick={(e) => handleSlotDblClick(slot, e)}
       >
-        <!-- Input port (always visible — groups receive connections). Visual
-             affordance only; the drop is handled by the slot row. -->
+        <!-- Input port: a vertical rounded-rectangle bar straddling the card's
+             left edge (matches groupPortPosition; spans the edge fan-out). -->
         <button
           type="button"
           aria-label="input port"
-          class="z-10 h-3 w-3 shrink-0 rounded-full border-2 border-white bg-zinc-400 shadow-sm hover:bg-emerald-500"
+          class="absolute -left-[4px] top-1/2 z-10 h-6 w-2 -translate-y-1/2 rounded border-2 border-white bg-zinc-400 shadow-sm hover:bg-sky-500 dark:border-zinc-800"
           onpointerdown={(e) => handleSlotPortDown(slot, e)}
         ></button>
 
         <span class="min-w-0 flex-1 truncate">{slot.label}</span>
 
-        <!-- Output port (only for non-terminal) -->
-        <button
-          type="button"
-          aria-label="output port"
-          class="z-10 h-3 w-3 shrink-0 rounded-full border-2 border-white bg-zinc-400 shadow-sm hover:bg-emerald-500"
-          class:invisible={!!slot.outcome}
-          onpointerdown={(e) => handleSlotPortDown(slot, e)}
-        ></button>
+        <!-- Output port: bar straddling the card's right edge (non-terminal only). -->
+        {#if !slot.outcome}
+          <button
+            type="button"
+            aria-label="output port"
+            class="absolute -right-[4px] top-1/2 z-10 h-6 w-2 -translate-y-1/2 rounded border-2 border-white bg-zinc-400 shadow-sm hover:bg-sky-500 dark:border-zinc-800"
+            onpointerdown={(e) => handleSlotPortDown(slot, e)}
+          ></button>
+        {/if}
       </div>
     {/each}
   </div>

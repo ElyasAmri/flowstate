@@ -37,9 +37,11 @@
   // channel node is a "door" a consumer submits to -- mark it as the entry.
   const annotation = $derived(isEntry ? "inbound" : (node.outcome ?? null));
 
+  // A vertical rounded-rectangle bar (not a dot): edges fan across a range of
+  // heights, so the port spans that range instead of converging to one point.
   const portClass =
-    "absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-400 " +
-    "shadow transition-all hover:scale-125 hover:bg-sky-500 group-hover:bg-sky-400 dark:border-zinc-800";
+    "absolute top-1/2 h-9 w-2 -translate-y-1/2 rounded border-2 border-white bg-zinc-400 " +
+    "shadow transition-colors hover:bg-sky-500 group-hover:bg-sky-400 dark:border-zinc-800";
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -112,13 +114,13 @@
   <!-- Input port (left): a visual affordance. The drop itself is handled by the
        card root (pointer-up anywhere on the node completes the connection). -->
   <div
-    class="{portClass} -left-[7px]"
+    class="{portClass} -left-[4px]"
     aria-hidden="true"
   ></div>
 
   <!-- Output port (right). Connections start on pointer-down here. -->
   <div
-    class="{portClass} -right-[7px]"
+    class="{portClass} -right-[4px]"
     role="button"
     tabindex="-1"
     aria-label="output"
