@@ -28,10 +28,10 @@ function node(kind: FlowNode["kind"], channelId?: string): FlowNode {
 }
 
 describe("colorForBinding", () => {
-  it("maps each binding kind to its color (channels yellow; nested flow purple)", () => {
+  it("maps each binding kind to a distinct color (ui yellow, service green, flow purple)", () => {
     expect(colorForBinding("ui")).toBe("yellow");
     expect(colorForBinding("flow")).toBe("purple");
-    expect(colorForBinding("service")).toBe("yellow");
+    expect(colorForBinding("service")).toBe("green");
   });
 });
 
@@ -39,7 +39,7 @@ describe("nodeColor", () => {
   it("derives a channel node's color from its binding", () => {
     expect(nodeColor(node("channel", "ch-ui"), registry)).toBe("yellow");
     expect(nodeColor(node("channel", "ch-flow"), registry)).toBe("purple");
-    expect(nodeColor(node("channel", "ch-svc"), registry)).toBe("yellow");
+    expect(nodeColor(node("channel", "ch-svc"), registry)).toBe("green");
   });
 
   it("falls back to gray-light for an unresolved channel reference", () => {
