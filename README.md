@@ -36,9 +36,9 @@ Every routine government procedure (a residence certificate, a permit renewal,
 a benefit claim) is really a decision tree: validate the inputs, classify the
 evidence, branch on the result, and either issue, reject, or escalate to a human.
 Today a person walks each case through that tree by hand. It is slow,
-inconsistent, and expensive, even though **most cases are unambiguous**.
+inconsistent, and expensive, even though most cases are unambiguous.
 
-Flowstate lets a **policy maker draw that decision tree once**, as a flow, and
+Flowstate lets a policy maker draw that decision tree once, as a flow, and
 then runs it:
 
 - **Deterministic by construction.** The control flow is a state machine. Given
@@ -52,17 +52,17 @@ then runs it:
   at a **human gate** and a bureaucrat approves or rejects. The routine 90% never
   reaches a person.
 
-The unit of value: **automate the routine deterministically, escalate only the
-exceptions, and keep the whole thing accountable.**
+In short: automate the routine, escalate the exceptions, and keep the whole
+thing accountable.
 
 ## 2. How it works
 
 ### 2.1 The channel model
 
 The core design rule (see `docs/channel-model.md`): the executing engine is
-**sealed and deterministic**, it never touches the outside world directly.
+sealed and deterministic, it never touches the outside world directly.
 Everything outside it (a citizen's app, a government registry, a bureaucrat's
-desk, even another flow) is reached **only across a typed channel**. That single
+desk, even another flow) is reached only across a typed channel. That single
 boundary rule is what makes a flow auditable: every external or non-deterministic
 interaction is named, typed, and visible on the canvas.
 
@@ -113,7 +113,7 @@ An agent node's reply is parsed for a `VERDICT: <word>` line (e.g.
 The same authored flow drives two execution paths:
 
 1. **In-app runner (live demo path).** The desktop app walks the authored graph
-   directly with a faithful, deterministic interpreter
+   directly with a deterministic interpreter
    (`app/src/lib/flow/run/run.svelte.ts`). It animates each node/edge on the
    canvas, pauses at human gates for approve/reject, and shows a step-by-step
    trace. The interpreter's core is pure; its only two impure steps, shell
@@ -173,8 +173,8 @@ browser for development.
 
 ## 4. Fanar integration (online and self-hosted)
 
-Fanar is the **only** model Flowstate talks to, and it talks to it in **exactly
-one place**: the `run_agent` Tauri command
+Fanar is the only model Flowstate talks to, and it does so in exactly one
+place: the `run_agent` Tauri command
 (`app/src-tauri/src/commands/run.rs`). Every agent node, in the live runner and
 (via the harness) in the compiled flow, routes through it.
 
@@ -198,10 +198,10 @@ one place**: the `run_agent` Tauri command
 `temperature: 0` keeps the agent step as reproducible as an LLM allows: the
 deterministic-by-design principle extends to the one non-deterministic node.
 
-Because the contract is the **standard OpenAI chat-completions shape**, the same
-code path serves Fanar whether it is hosted by QCRI or by you. **Online vs.
+Because the contract is the standard OpenAI chat-completions shape, the same
+code path serves Fanar whether it is hosted by QCRI or by you. Online vs.
 self-hosted is purely a `base_url` + `model` + key change in one config file:
-no code changes, no rebuild.**
+no code changes, no rebuild.
 
 ### 4.2 Configuration: `.maestro/backends.json`
 
@@ -287,18 +287,18 @@ python -m vllm.entrypoints.openai.api_server \
 ollama run fanar
 ```
 
-### 4.5 Why this matters
+### 4.5 Online vs. self-hosted, at a glance
 
 | Concern              | Online (hosted)                  | Self-hosted (on-prem)                         |
 | -------------------- | -------------------------------- | --------------------------------------------- |
 | Setup                | a key + endpoint                 | run a server with the weights                 |
-| Data residency       | leaves the machine               | **never leaves your infrastructure**          |
+| Data residency       | leaves the machine               | never leaves your infrastructure              |
 | Cost                 | per-token API billing            | your hardware                                 |
-| Offline / air-gapped | no                               | **yes**, works with no internet               |
+| Offline / air-gapped | no                               | yes, works with no internet                   |
 | Code changes         | none                             | none, same contract                           |
 
 Government workloads frequently demand on-prem, air-gapped, data-resident
-inference. Flowstate supports that **without a forked code path**: the same
+inference. Flowstate supports that without a forked code path: the same
 deterministic flow, the same agent runner, only a different `base_url`. The
 hosted Fanar API gets you running in seconds; the self-hosted path keeps
 sensitive citizen data inside the institution. Either is a one-file switch.
@@ -411,9 +411,9 @@ agentic-workflow targets directly through its architecture:
 - **Autonomous execution**: the deterministic runner / harness drives the flow.
 - **Human-in-the-loop**: escalation gates for genuine exceptions.
 
-**Arabic capability** is exercised through Fanar at the agent nodes (reading
+Arabic capability is exercised through Fanar at the agent nodes (reading
 Arabic descriptions and proofs, drafting citizen-facing replies rendered
-right-to-left). The **online vs. self-hosted** flexibility (section 4) is the
+right-to-left). The online vs. self-hosted flexibility (section 4) is the
 practical answer to a real government constraint: keep citizen data on-prem and
 air-gapped when required, without giving up the hosted model's convenience
 during development.
