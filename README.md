@@ -240,8 +240,7 @@ maestro YAML. Improvement loop: 4,567 exceptions aggregated into 5 data-backed
 flow updates.
 
 All four models score 100% on conformance. On Arabic-LJP the three frontier
-models score **100%** with the **byte-identical same 0 errors** — but only after
-an audit. Initially all three "failed" the same 4 cases, which on inspection
+models score **100%** with zero errors, but only after an audit. Initially all three "failed" the same 4 cases, which on inspection
 turned out to be **ground-truth labeling errors**: the keyword labeler tagged
 rulings as `reject` when they actually granted the claim (`بإلزام ... بأن يدفع`,
 ordering payment) and only rejected the *remainder* of requests
