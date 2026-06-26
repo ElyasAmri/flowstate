@@ -21,7 +21,7 @@ the same `reject -> accept` tail and loses one extra point to a single unparsed
 verdict (`accept -> abstain`, a format artifact), not a worse ruling. That four
 models, including a frontier reasoning model, fail on exactly the same cases
 means the Arabic tail is task difficulty (the human-gate cases), not a model
-weakness. (gpt-4o, an older model, scored only 52% with route recall 0/10 — the
+weakness. (gpt-4o, an older model, scored only 52% with route recall 0/10; the
 latest models are required for this task.)
 
 Road-traffic conformance: Fanar matches Claude exactly (60/60).
