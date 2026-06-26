@@ -230,12 +230,20 @@ flows alone with `python3 eval/build_flows.py`:
    contests concentrate; article-specific triage for codes with 10–29% appeal
    rates vs. a ~2.3% baseline). See `eval/data/improvements.md`.
 
-| Track | Task | Fanar | Claude |
+| Track | Fanar | Claude | DeepSeek |
 | --- | --- | --- | --- |
-| Road-Traffic Fines | routine vs. non-routine (60 blind) | 100% | 100% |
-| Arabic-LJP | accept / reject / route (50 blind, full facts) | **90%** | 92% |
-| Flow artifacts | 3 flows authored (`examples/`) | compile clean, valid YAML | n/a |
-| Improvement loop | 4,567 exceptions → updates | 5 data-backed updates | n/a |
+| Road-Traffic Fines: routine vs. non-routine (60 blind) | 100% | 100% | 100% |
+| Arabic-LJP: accept / reject / route (50 blind, full facts) | 90% | 92% | 92% |
+
+Flow artifacts: 3 flows authored in `examples/`, all compile clean to valid
+maestro YAML. Improvement loop: 4,567 exceptions aggregated into 5 data-backed
+flow updates.
+
+Three independent models (Fanar, Claude, DeepSeek) converge: identical 100% on
+conformance and 90-92% on Arabic-LJP with the same `reject -> accept` residual.
+That the routine/exception split is solved across models, and the Arabic tail is
+the same procedural-rejection cases for all three, indicates the boundary is a
+property of the task (what the human gate is for), not of any one model.
 
 ### Live Fanar validation
 

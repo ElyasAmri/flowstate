@@ -8,10 +8,16 @@ change. Scripts: `eval/run_fanar.py`, `eval/_fanar_sweep.py`,
 
 ## Headline results
 
-| Track | Fanar | Claude (cross-check) |
-| --- | --- | --- |
-| Road-traffic conformance (routine vs non-routine, 60 blind) | **100%** | 100% |
-| Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% |
+| Track | Fanar | Claude | DeepSeek |
+| --- | --- | --- | --- |
+| Road-traffic conformance (60 blind) | **100%** | 100% | 100% |
+| Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% | 92% |
+
+Three independent models converge: identical conformance and near-identical
+Arabic-LJP (Claude and DeepSeek both 92% with the exact same recall profile,
+accept 20/20, reject 16/20, route 10/10; Fanar 90%). All three share the
+`reject -> accept` residual, so the Arabic tail is task difficulty (procedural
+rejections), not a single model's weakness.
 
 Road-traffic conformance: Fanar matches Claude exactly (60/60).
 
