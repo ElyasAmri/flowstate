@@ -34,6 +34,50 @@ decision leaves an auditable, replayable trace.
 
 ## 2. Solution Architecture
 
+```mermaid
+flowchart TB
+    subgraph users[Users]
+        PM[Policy maker<br/>authors]
+        BUR[Bureaucrat<br/>intervenes / signs off]
+        CON[Consumer<br/>is served]
+    end
+
+    subgraph discovery[Discovery]
+        DS[(Dataset)] --> MIN[Mining] --> DRAFT[Draft flow]
+    end
+
+    subgraph runtime[Flow runtime]
+        CFG[Flow configuration]
+        HAR[Harness<br/>deterministic execution]
+        IL[Interaction layer<br/>app / hotline]
+    end
+
+    subgraph core[Core services]
+        AUD[(Audit / record store)]
+        IDS[(Case / identity store)]
+    end
+
+    subgraph ext[External services]
+        REG[Gov registry]
+        EID[eID]
+        PAY[Payment]
+        NOT[Notification / ticketing]
+    end
+
+    FANAR[[Fanar<br/>model backend]]
+
+    PM --> CFG
+    DRAFT --> CFG
+    CFG --> HAR
+    CON <--> IL <--> HAR
+    BUR <--> HAR
+    HAR <--> FANAR
+    HAR --> AUD
+    HAR <--> IDS
+    HAR <--> ext
+    REG -. knowledge source .-> MIN
+```
+
 - **Discovery**: dataset (pre-existing + accumulated) -> mining -> draft flow.
 - **Users**: policy maker (authors), bureaucrat (intervenes / signs off),
   consumer (is served).
@@ -47,6 +91,30 @@ decision leaves an auditable, replayable trace.
 - **Fanar**: model backend for the harness (and the hotline channel).
 
 ## 3. Agentic Workflow Design
+
+A flow is a graph of typed nodes joined by guarded edges. A typed payload
+submitted to an entry channel (the door) triggers it; deterministic nodes do
+the routine work, the agent node defers judgement to Fanar, and only genuine
+exceptions pause at a human gate.
+
+```mermaid
+flowchart LR
+    door([Entry channel<br/>door]):::ui --> val[Action<br/>validate inputs]:::plain
+    val --> agent{{Agent<br/>classify · Fanar}}:::agent
+    agent --> dec{Decision<br/>branch on verdict}:::plain
+    dec -->|clear| issue([Issue · notify]):::service
+    dec -->|ambiguous| gate([Human gate<br/>bureaucrat]):::ui
+    gate -->|approve| issue
+    gate -->|reject| rej([Reject]):::ui
+
+    classDef ui fill:#fde68a,stroke:#d97706,color:#000;
+    classDef service fill:#bbf7d0,stroke:#16a34a,color:#000;
+    classDef agent fill:#e5e7eb,stroke:#6b7280,color:#000;
+    classDef plain fill:#fff,stroke:#9ca3af,color:#000;
+```
+
+Node colors carry the channel binding: yellow `ui` (a human-operated app),
+green `service` (a core/external service), purple `flow` (a nested flow).
 
 Maps to the agentic requirement targets:
 
