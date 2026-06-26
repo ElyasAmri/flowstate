@@ -154,13 +154,17 @@ Maps to the agentic requirement targets:
 
 ## 4. Use of Fanar and External Tools
 
-- **Fanar as harness backend**: runs the flow-runtime agents and the
-  mining/draft-flow procedure.
-- **Fanar for the hotline**: Arabic speech / dialect interaction layer.
-- **Arabic capability demonstration**: a capability showcase, not a training
-  method.
-- **External tools**: aiXamine (security safeguards), eID / registry /
-  payment integrations.
+### 4.1 Main
+
+- **Powering the harness**: Fanar is the model backend for the flow-runtime
+  agent nodes (and the mining / draft-flow procedure).
+- **Document parsing**: reading and extracting from uploaded evidence (text,
+  images, transcript summaries) into structured verdicts the flow branches on.
+
+### 4.2 Extra
+
+- **Hotline as a separate workflow**: an Arabic speech / dialect interaction
+  layer, run as its own flow rather than part of the core procedure.
 
 ## 5. Evaluation Results
 
