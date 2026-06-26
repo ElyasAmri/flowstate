@@ -1,18 +1,18 @@
 # Flowstate
 
-> Codify bureaucratic procedures as deterministic, agent-driven workflows.
-> Most applications can be processed automatically; only the genuine
-> exceptions are escalated to a human.
+> Codify bureaucratic procedures as deterministic workflows, with AI agents
+> only where judgement is needed. Most procedures run automatically; humans
+> stay in the loop for the genuine exceptions.
 
-Flowstate turns a government/institutional procedure into a **flow** -- a
-deterministic state machine -- so routine applications flow through
+Flowstate turns a government/institutional procedure into a **flow**, a
+deterministic state machine, so routine applications flow through
 automatically and only special cases pause for a bureaucrat. A policy maker
 authors the flow visually; consumers submit applications across typed channels;
 an AI agent (powered by **Fanar**) does the judgement-heavy steps; and every
 decision leaves an auditable, replayable trace.
 
 - **Theme:** Smart Government & Citizen Services
-- **Model backend:** Fanar (Arabic-capable LLM) -- usable **online** (Fanar API)
+- **Model backend:** Fanar (Arabic-capable LLM), usable **online** (Fanar API)
   or **self-hosted** (any OpenAI-compatible server), swapped by config alone.
 - **Team:** Osama, Elyas
 
@@ -32,8 +32,8 @@ decision leaves an auditable, replayable trace.
 
 ## 1. What Flowstate is
 
-Every routine government procedure -- a residence certificate, a permit renewal,
-a benefit claim -- is really a decision tree: validate the inputs, classify the
+Every routine government procedure (a residence certificate, a permit renewal,
+a benefit claim) is really a decision tree: validate the inputs, classify the
 evidence, branch on the result, and either issue, reject, or escalate to a human.
 Today a person walks each case through that tree by hand. It is slow,
 inconsistent, and expensive, even though **most cases are unambiguous**.
@@ -42,10 +42,10 @@ Flowstate lets a **policy maker draw that decision tree once**, as a flow, and
 then runs it:
 
 - **Deterministic by construction.** The control flow is a state machine. Given
-  the same inputs it always takes the same path -- so a run is replayable and a
+  the same inputs it always takes the same path, so a run is replayable and a
   decision is appealable.
 - **AI only where judgement is needed.** A flow has exactly one
-  non-deterministic node kind -- the **agent** node -- where Fanar reads free
+  non-deterministic node kind, the **agent** node, where Fanar reads free
   text (an uploaded proof, an Arabic description) and returns a structured
   verdict. Everything else is plain, inspectable logic.
 - **Humans only for the exceptions.** When the agent is unsure, the flow pauses
@@ -60,15 +60,15 @@ exceptions, and keep the whole thing accountable.**
 ### 2.1 The channel model
 
 The core design rule (see `docs/channel-model.md`): the executing engine is
-**sealed and deterministic** -- it never touches the outside world directly.
+**sealed and deterministic**, it never touches the outside world directly.
 Everything outside it (a citizen's app, a government registry, a bureaucrat's
 desk, even another flow) is reached **only across a typed channel**. That single
 boundary rule is what makes a flow auditable: every external or non-deterministic
 interaction is named, typed, and visible on the canvas.
 
 A **channel** is a registered, typed interaction layer. It declares a
-`direction` (`inbound` / `outbound` / `both`) and a `binding` -- what implements
-the far side:
+`direction` (`inbound` / `outbound` / `both`) and a `binding` (what implements
+the far side):
 
 | Binding   | Far side                              | Node color |
 | --------- | ------------------------------------- | ---------- |
@@ -89,7 +89,7 @@ A flow is a graph of typed nodes joined by guarded edges. Node color encodes
 | `decision` | branch point; its out-edges carry guards                   | Yes            |
 
 There is **no global Run button and no `start` node**. A flow is *triggered* by
-submitting a typed payload to an **entry channel node** -- an inbound channel
+submitting a typed payload to an **entry channel node**, an inbound channel
 with no incoming edge (a "door"). Each field of the submitted payload seeds a
 flow variable of the same name, readable downstream as `{{name}}`. A flow *ends*
 at an outbound channel node, which may carry an `outcome` (`approved` /
@@ -97,7 +97,7 @@ at an outbound channel node, which may carry an `outcome` (`approved` /
 
 ### 2.3 Edges, guards, and variables
 
-Edges may carry a **guard** -- the condition under which that branch is taken.
+Edges may carry a **guard**, the condition under which that branch is taken.
 The runtime orders a node's out-edges guarded-first, takes the first guard that
 evaluates true, else the single unconditional fall-through. Edges and `set`
 actions assign **flow variables** from expressions (the guard language in
@@ -105,7 +105,7 @@ actions assign **flow variables** from expressions (the guard language in
 discretion.
 
 An agent node's reply is parsed for a `VERDICT: <word>` line (e.g.
-`VERDICT: ambiguous`), lowercased into the `verdict` variable -- so a downstream
+`VERDICT: ambiguous`), lowercased into the `verdict` variable, so a downstream
 `decision` node can branch on what Fanar concluded.
 
 ### 2.4 Two ways a flow runs
@@ -116,8 +116,8 @@ The same authored flow drives two execution paths:
    directly with a faithful, deterministic interpreter
    (`app/src/lib/flow/run/run.svelte.ts`). It animates each node/edge on the
    canvas, pauses at human gates for approve/reject, and shows a step-by-step
-   trace. The interpreter's core is pure; its only two impure steps -- shell
-   actions and **Fanar agent calls** -- are delegated to native Tauri commands
+   trace. The interpreter's core is pure; its only two impure steps, shell
+   actions and **Fanar agent calls**, are delegated to native Tauri commands
    (`run_shell`, `run_agent` in `app/src-tauri/src/commands/run.rs`).
 
 2. **Compiled maestro flow (production path).** The editor compiles an authored
@@ -134,7 +134,7 @@ chat-completions contract described below.
 ## 3. Capabilities
 
 **Visual flow authoring (n8n-style).** `FlowEditor.svelte` is a three-pane
-editor -- palette, canvas, inspector:
+editor (palette, canvas, inspector):
 
 - Drag nodes; drag output->input ports to connect; click an edge (or its hover
   badge) to delete it.
@@ -175,8 +175,8 @@ browser for development.
 
 Fanar is the **only** model Flowstate talks to, and it talks to it in **exactly
 one place**: the `run_agent` Tauri command
-(`app/src-tauri/src/commands/run.rs`). Every agent node -- in the live runner and
-(via the harness) in the compiled flow -- routes through it.
+(`app/src-tauri/src/commands/run.rs`). Every agent node, in the live runner and
+(via the harness) in the compiled flow, routes through it.
 
 ### 4.1 The contract: OpenAI-compatible chat-completions
 
@@ -195,12 +195,12 @@ one place**: the `run_agent` Tauri command
    ```
 4. Return `choices[0].message.content`.
 
-`temperature: 0` keeps the agent step as reproducible as an LLM allows -- the
+`temperature: 0` keeps the agent step as reproducible as an LLM allows: the
 deterministic-by-design principle extends to the one non-deterministic node.
 
 Because the contract is the **standard OpenAI chat-completions shape**, the same
 code path serves Fanar whether it is hosted by QCRI or by you. **Online vs.
-self-hosted is purely a `base_url` + `model` + key change in one config file --
+self-hosted is purely a `base_url` + `model` + key change in one config file:
 no code changes, no rebuild.**
 
 ### 4.2 Configuration: `.maestro/backends.json`
@@ -224,7 +224,7 @@ This file lives under the **project directory** the app runs against (the same
 `.maestro/` the Compile step writes flows into). It is machine-local and
 gitignored.
 
-### 4.3 Option A -- Fanar online (hosted API)
+### 4.3 Option A: Fanar online (hosted API)
 
 Point `base_url` at the Fanar API endpoint from your Fanar credentials and read
 the key from the environment:
@@ -240,7 +240,7 @@ the key from the environment:
 ]
 ```
 
-Provide the key without committing it -- either export it or put it in
+Provide the key without committing it: either export it or put it in
 `<project>/.maestro/.env.local`:
 
 ```powershell
@@ -253,14 +253,14 @@ $env:FANAR_API_KEY = "sk-..."
 FANAR_API_KEY=sk-...
 ```
 
-> `base_url` and `model` above are placeholders -- use the exact endpoint and
+> `base_url` and `model` above are placeholders; use the exact endpoint and
 > model id from your Fanar account. The only requirement is an
 > OpenAI-compatible `/chat/completions` route.
 
-### 4.4 Option B -- Fanar self-hosted (local / on-prem)
+### 4.4 Option B: Fanar self-hosted (local / on-prem)
 
-Run a Fanar model behind any OpenAI-compatible server -- **vLLM**, **Ollama**,
-**llama.cpp / llama-server**, **LM Studio**, or **TGI** -- and point `base_url`
+Run a Fanar model behind any OpenAI-compatible server (**vLLM**, **Ollama**,
+**llama.cpp / llama-server**, **LM Studio**, or **TGI**) and point `base_url`
 at it. Self-hosted servers usually need no real key (any non-empty string
 satisfies the bearer header):
 
@@ -275,7 +275,7 @@ satisfies the bearer header):
 ]
 ```
 
-Examples of standing up that server (illustrative -- use your Fanar weights and
+Examples of standing up that server (illustrative; use your Fanar weights and
 the server you prefer):
 
 ```bash
@@ -294,8 +294,8 @@ ollama run fanar
 | Setup                | a key + endpoint                 | run a server with the weights                 |
 | Data residency       | leaves the machine               | **never leaves your infrastructure**          |
 | Cost                 | per-token API billing            | your hardware                                 |
-| Offline / air-gapped | no                               | **yes** -- works with no internet             |
-| Code changes         | none                             | none -- same contract                         |
+| Offline / air-gapped | no                               | **yes**, works with no internet               |
+| Code changes         | none                             | none, same contract                           |
 
 Government workloads frequently demand on-prem, air-gapped, data-resident
 inference. Flowstate supports that **without a forked code path**: the same
@@ -307,9 +307,9 @@ sensitive citizen data inside the institution. Either is a one-file switch.
 
 ### 5.1 Prerequisites
 
-- **Rust** (stable; MSVC toolchain on Windows -- needs the Visual Studio C++
+- **Rust** (stable; MSVC toolchain on Windows, needs the Visual Studio C++
   Build Tools for the linker) and **Node.js >= 20**.
-- A Fanar backend -- online or self-hosted (section 4).
+- A Fanar backend, online or self-hosted (section 4).
 
 ### 5.2 Build and run
 
@@ -334,7 +334,7 @@ cargo build --manifest-path app/src-tauri/Cargo.toml   # native shell
 
 ### 5.3 Author a flow
 
-1. Launch the app -- the **Flows** list is the landing view. Open the bundled
+1. Launch the app; the **Flows** list is the landing view. Open the bundled
    **Residence Certificate Request** example, or create a **New flow**.
 2. Add nodes from the palette (channel / agent / action / decision), drag to
    arrange, and connect output->input ports.
@@ -346,10 +346,10 @@ cargo build --manifest-path app/src-tauri/Cargo.toml   # native shell
 
 ### 5.4 Run a flow (in-app)
 
-1. Submit a payload to an **entry channel node** (the door) -- this triggers the
+1. Submit a payload to an **entry channel node** (the door); this triggers the
    run; there is no global Run button.
 2. Watch the canvas animate node by node. At a **human gate** the run pauses and
-   shows the **Escalated** inbox -- approve or reject to resume.
+   shows the **Escalated** inbox; approve or reject to resume.
 3. See the **Outcome**, the citizen-facing message, and the numbered **Trace**.
 
 Agent nodes call Fanar through `run_agent` using your `.maestro/backends.json`.
@@ -358,7 +358,7 @@ browser.)
 
 ### 5.5 Compile to the maestro harness
 
-Compiling an authored flow emits `.maestro/flows/<id>.yaml` -- the deterministic
+Compiling an authored flow emits `.maestro/flows/<id>.yaml`, the deterministic
 state machine the headless harness runs in production, with Fanar as its model
 backend. The authored JSON is the source of truth; the YAML is regenerated, not
 hand-edited.
@@ -403,13 +403,13 @@ npm run render -w video         # render a composition to mp4
 Flowstate is a Smart Government & Citizen Services entry. It demonstrates the
 agentic-workflow targets directly through its architecture:
 
-- **Multi-step planning / decomposition** -- the flow graph itself.
-- **Tool usage & orchestration** -- deterministic action nodes (shell/set/send)
+- **Multi-step planning / decomposition**: the flow graph itself.
+- **Tool usage & orchestration**: deterministic action nodes (shell/set/send)
   and the channel boundary.
-- **Memory & state management** -- flow variables seeded from channel payloads.
-- **Retrieval & knowledge integration** -- agent nodes reading uploaded evidence.
-- **Autonomous execution** -- the deterministic runner / harness drives the flow.
-- **Human-in-the-loop** -- escalation gates for genuine exceptions.
+- **Memory & state management**: flow variables seeded from channel payloads.
+- **Retrieval & knowledge integration**: agent nodes reading uploaded evidence.
+- **Autonomous execution**: the deterministic runner / harness drives the flow.
+- **Human-in-the-loop**: escalation gates for genuine exceptions.
 
 **Arabic capability** is exercised through Fanar at the agent nodes (reading
 Arabic descriptions and proofs, drafting citizen-facing replies rendered
