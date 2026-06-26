@@ -129,7 +129,7 @@ exceptions pause at a human gate.
 ```mermaid
 flowchart LR
     door([Entry channel<br/>door]):::ui --> val[Action<br/>validate inputs]:::plain
-    val --> agent{{Agent<br/>classify (Fanar)}}:::agent
+    val --> agent{{"Agent<br/>classify (Fanar)"}}:::agent
     agent --> dec{Decision<br/>branch on verdict}:::plain
     dec -->|clear| issue([Issue and notify]):::service
     dec -->|ambiguous| gate([Human gate<br/>bureaucrat]):::ui
