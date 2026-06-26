@@ -59,12 +59,20 @@ def multiclass(track, predf, keyf):
     print(f"  misclassified ({len(errs)}): " + ", ".join(f"{y}->{yh}" for i,y,yh in errs[:20]))
     return {"track":track,"n":n,"accuracy":acc,"per_class":per,"errors":errs}
 
+def have(n): return os.path.exists(os.path.join(D, n))
+
 if __name__=="__main__":
     out={}
-    out["rtf"]=binary("Road-Traffic Fines: routine vs non-routine",
+    out["rtf"]=binary("Road-Traffic Fines: routine vs non-routine [Claude]",
                       "classify_out.json","sample_key.json","non_routine")
-    out["ljp"]=multiclass("Arabic-LJP: accept/reject/route",
+    out["ljp"]=multiclass("Arabic-LJP: accept/reject/route [Claude]",
                           "ljp_out.json","ljp_key.json")
+    if have("classify_fanar_out.json"):
+        out["rtf_fanar"]=binary("Road-Traffic Fines: routine vs non-routine [Fanar]",
+                          "classify_fanar_out.json","sample_key.json","non_routine")
+    if have("ljp_fanar_out.json"):
+        out["ljp_fanar"]=multiclass("Arabic-LJP: accept/reject/route [Fanar]",
+                          "ljp_fanar_out.json","ljp_key.json")
     json.dump(out, open(os.path.join(D,"scores.json"),"w"),
               ensure_ascii=False, indent=2, default=str)
     print("\nwrote scores.json")

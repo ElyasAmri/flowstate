@@ -1,0 +1,252 @@
+[
+  {
+    "id": "922a9897-4fb4-4ded-b7be-f847571744d1",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff contracted with the defendant to "
+  },
+  {
+    "id": "afcedafc-713b-4de6-8bd8-d5533c28fec7",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff's lawyer is claiming 80,000 riyal"
+  },
+  {
+    "id": "7e8e4de0-de2f-4ec6-8884-992ae3111f97",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for 200,000 riyals as the principal amount in a مضاربة (mudarabah) contract. The المدعي (plaintiff) says he gave the money to the المدعى عليه (defendant) for a specific business, but after "
+  },
+  {
+    "id": "7831742f-6d28-4c24-a7f3-ae4d43908f92",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial dispute between a plaintiff and a defendant. The plaintiff is claiming that the defendant hasn't paid for services provided, specifically for maintenance and mechanical work, along wit"
+  },
+  {
+    "id": "e22e975e-902f-4f75-b038-8c2421340958",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user wants me to predict whether the court will accept, reject, or route the case based on the provided facts.  First, I need to read through the case details carefully. The plaintiff (المدعي) is claiming that t"
+  },
+  {
+    "id": "f19aa875-4b19-40ad-9682-be5e503f48f9",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a rental agreement for equipment where the plaintiff claims the defendant didn't pay the remaining rent. The plaintiff is asking for 181,182 riyals. The court's role is to decide whether to accept "
+  },
+  {
+    "id": "ec72ce3f-d6e7-40d4-8d1d-b7b8d8d430f3",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial dispute between a supplier (the plaintiff) and a buyer (the defendant). The plaintiff is claiming 199,472 riyals for goods delivered but not paid for. The defendant didn't show up in c"
+  },
+  {
+    "id": "85eb43c7-eb41-45f9-8aa8-8513b1289385",
+    "decision": "accept",
+    "reason": "The decisive reason is that the court found the evidence presented by the plaintiff to be sufficient and valid, leading to the acceptance of the claim.  VERDICT: accept"
+  },
+  {
+    "id": "b466a9cf-2b5d-48be-8645-36a48d2a243d",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. So the case is about a contractor who did some work for a client but hasn't been paid. The contractor is suing for the amount of 32,462.50 SAR. The court mentions that the case is about \"المقاولات\" which is construc"
+  },
+  {
+    "id": "2ad2d0d4-8e90-460c-b91c-8fc978dc6fab",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial dispute where the plaintiff is claiming that the defendant hasn't paid the full amount for air conditioners they bought. The plaintiff wants the court to order the defendant to pay the"
+  },
+  {
+    "id": "df753e9f-286a-4c14-be39-a168f35f3660",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a supplier who provided building materials to the defendant and is claiming the remaining amount of 3,909 riyals. The plaintiff presented a signed and stamped receipt that shows the defendant has a"
+  },
+  {
+    "id": "c61ff3c7-95d7-4de2-9f63-1b952a7e859d",
+    "decision": "accept",
+    "reason": "The court accepts the settlement agreement between the parties. VERDICT: accept"
+  },
+  {
+    "id": "5e5bb91f-7f5b-4bfe-976a-c648c9d14368",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a supplier (the plaintiff) who provided goods like tires, batteries, and oil to the defendant for 7,570 riyals. The defendant hasn't paid, so the plaintiff wants the court to order the defendant to"
+  },
+  {
+    "id": "c89bdaca-93ee-4dda-9b4e-51ba264735c5",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The case involves a plaintiff's agent who initi"
+  },
+  {
+    "id": "93783574-56b1-49c8-8402-6f6c663a61c2",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a مضاربة company where the plaintiff paid 120,000 SAR to the defendant for a partnership. The defendant was supposed to manage and invest the money but didn't pay anything back. The plaintiff wants"
+  },
+  {
+    "id": "e87a6e45-6810-4154-b965-3ad26b1aae96",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. So, the case is about a plaintiff (the المدعية) who supplied plastic panels to the defendant (المدعى عليها) for a total of 128,880.45 SAR. The plaintiff says they received 64,000 SAR and the remaining 64,880.45 SAR "
+  },
+  {
+    "id": "addb4875-6fb1-4a6a-a2d9-30b4acc261f0",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a supplier (the plaintiff) who provided electrical equipment to a company (the defendant) for a cafeteria project. The total price was 1,741,860 riyals, and the plaintiff claims that 1,535,602 riya"
+  },
+  {
+    "id": "d1d89230-5a2d-483b-ad18-02a72360201d",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user wants me to read the case facts in Arabic and predict whether the court will accept, reject, or route the claim. The key is to find the decisive reason from the provided text.  First, I'll look at the \"الأس"
+  },
+  {
+    "id": "ce2fe945-cc42-4446-bff7-32ab148570a9",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a supplier (the plaintiff) who provided food products to the defendant, and there's a remaining amount of 8456 riyals that the defendant hasn't paid. The plaintiff's lawyer presented the case, and "
+  },
+  {
+    "id": "c7b82be3-cc1b-489a-8ed3-5212836fc33d",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a company that sold building materials to another company on credit. The plaintiff is claiming 521,691 riyals for the materials delivered but not paid. The defendant admitted to the amount owed. Th"
+  },
+  {
+    "id": "049a17c7-538e-496a-8c7f-d1ff496b87a4",
+    "decision": "accept",
+    "reason": "The court finds that the claim meets the criteria for a precautionary attachment due to the existence of a serious and urgent matter.  VERDICT: accept"
+  },
+  {
+    "id": "cbbe036c-fbb3-40f6-801b-885596511784",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a contractor (the plaintiff) who did some construction work for a company (the defendant). The plaintiff claims they're owed 180,428.33 SAR because they completed the work but only received part of"
+  },
+  {
+    "id": "724bd257-cf19-4464-bf72-9bc0dad24c5c",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial court in Saudi Arabia. The plaintiff's lawyer is claiming that the defendant should pay 80,000 riyals for a contract involving paint supply. The court had a session where the plaintiff"
+  },
+  {
+    "id": "b44cce30-93ca-4d48-bd07-5d8fc28dfb03",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a shareholder who claims he was supposed to get 3.5 million riyals for his share in a company called Fustaqi Trading. The problem is that the lawsuit was filed against the company itself, not the o"
+  },
+  {
+    "id": "1236cb00-07bb-4198-ba2c-d444afb4d5d3",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for the value of a share in a partnership. The plaintiffs' agent says that the deceased partner's share was registered under the defendant's deceased partner's name, and they want to be pai"
+  },
+  {
+    "id": "aa4bd44e-4f23-41cd-ae06-048bcf1132fe",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a partnership where the plaintiff claims the defendant didn't return the capital and profits. The plaintiff provided an agreement and a promissory note as evidence. The defendant didn't show up or "
+  },
+  {
+    "id": "8213bf6d-6c15-477e-a808-b08e43cbc2ef",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a car sale where the buyer paid part of the price but didn't pay the rest. The plaintiff is asking the court to make the defendant pay the remaining amount.  First, the decisive reason. The court n"
+  },
+  {
+    "id": "0cec5a63-2848-47e4-8427-b82fb21199fd",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided the case facts in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the الوقائع (facts) and الأسباب (reasons) carefully. The key poi"
+  },
+  {
+    "id": "97d23c9b-9cf7-47ae-b860-64ed4ebf5875",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a company, Iron Eagle, filing a lawsuit to annul an arbitration award against Sheikhah bint Muhammad bin Ali's commercial institution. The key points are that the arbitration already happened, and "
+  },
+  {
+    "id": "e9dacfef-da2e-46ed-a67a-152d149881c9",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for compensation for attorney fees after a previous lawsuit. The plaintiff, Hazem Othman, won a partnership case against Mohammed bin Sulaiman, and now he's asking for 149,000 riyals in att"
+  },
+  {
+    "id": "35c5be17-6120-4dcc-a315-9c938d4ae53e",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user wants me to read the case facts in Arabic and predict whether the court will accept, reject, or route the claim. The key is to find the decisive reason from the provided text.  First, I'll look at the الوقا"
+  },
+  {
+    "id": "a404ef8c-e2c5-484d-ab02-9ddb0574b557",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial dispute where the plaintiff (the المدعية) is claiming compensation from the defendant (المدعى عليها) for delayed delivery of goods. The plaintiff says they paid the full amount of 79,6"
+  },
+  {
+    "id": "39f0e05f-bf42-49f3-ba94-05f0bf6f8e4d",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user wants me to read the case facts in Arabic and predict whether the court will accept, reject, or route the claim. The key is to find the decisive reason in the provided text.  First, I'll look at the الوقائع"
+  },
+  {
+    "id": "7a113c1d-3999-4acb-9072-8f5e1ba23704",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a request from the plaintiff to inspect and document the work done at a site in Neom. The defendant's representative was present, but the plaintiff didn't show up despite being notified through the"
+  },
+  {
+    "id": "2212603f-01b4-4038-8d8b-10542b2815ac",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff is a partner in a company called "
+  },
+  {
+    "id": "6e3e2412-c2fa-46a7-9595-f0304c454f42",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff claims that he entered into a lea"
+  },
+  {
+    "id": "09b65449-ea0a-4656-a6e7-b062db8bf1c0",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a plaintiff claiming that the defendant owes them 4270 riyals for food supplies. The plaintiff presented a \"مصادقة الرصيد\" which I think is a balance confirmation or a document showing the remainin"
+  },
+  {
+    "id": "0f48c433-0674-4dca-a2f8-c09fc0d8decd",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to determine whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff's lawyer filed a claim against "
+  },
+  {
+    "id": "c76f00fb-bd37-4e15-9f74-99fa057f7325",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for 1 million riyals from a guarantor (the defendant) because he didn't pay for a company's debt. The plaintiff wants the court to order the defendant to pay.  The key part here is the cour"
+  },
+  {
+    "id": "2116457a-91aa-4922-945d-6310c2953aa2",
+    "decision": "reject",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a commercial dispute where the plaintiff is claiming that the defendant owes them 143,060 riyals for oil and lubricants supplied. The plaintiff's lawyer presented various documents like invoices an"
+  },
+  {
+    "id": "d90ba7ce-0636-48cf-91ee-1f87f13abbf4",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for a large sum of money related to a hospital sale. The key points are that the plaintiff's agent is suing someone named مرزوق عيد سليم الصاعدي for 1,483,314 Saudi Riyals. The reason is a "
+  },
+  {
+    "id": "17f8b235-1483-4483-aaab-a1ebf233d06a",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a dispute over the sale of 30,000 shares in a company called Fish Wash for Foodstuffs. The plaintiff claims that the defendant agreed to sell these shares for 3 million riyals but didn't deliver th"
+  },
+  {
+    "id": "ab099e5f-95a5-41d6-8115-a3a797f4bf76",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a plaintiff who is a partner in a company called Kiliyat Al-Qassim Private Colleges for Boys and Girls. The plaintiff is claiming ownership of 45,095 shares due to their partnership stake. The defe"
+  },
+  {
+    "id": "cdf62db4-af9a-4827-af6b-f8648bbba80e",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a request to stop the execution of a court decision from the Enforcement Court. The plaintiff claims that they've already paid part of the amount, so the remaining debt should be less. The defendan"
+  },
+  {
+    "id": "a8897c89-a791-4fca-b818-07b916677bb0",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a rental agreement for 14 cars where the plaintiff claims the defendant owes them money. The defendant's lawyer argues that the court doesn't have jurisdiction because the defendant is owned by the"
+  },
+  {
+    "id": "6c5d793b-6873-42fe-8e66-e0f66ed70a8c",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a claim for payment of 632,558.60 riyals for materials supplied. The key points are that the defendant's agent argued that the court in Jeddah doesn't have jurisdiction because the defendant's head"
+  },
+  {
+    "id": "43ad57fb-c711-4ec9-9503-8a2811e5b988",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The user provided a case summary in Arabic, and I need to predict whether the court will accept, reject, or route the claim.  First, I'll read through the facts again. The plaintiff's lawyer is claiming that the def"
+  },
+  {
+    "id": "dccebece-00d4-485d-acd3-74d5aa7ac438",
+    "decision": "accept",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a plaintiff claiming that the defendant owes them 255,168 riyals for medical devices supplied based on an agreement. The plaintiff filed the case electronically and the court held a virtual session"
+  },
+  {
+    "id": "65a1b414-27ab-443a-92c9-fc3172679bd4",
+    "decision": "route",
+    "reason": "<think> Okay, let's try to figure out the court's decision here. The case is about a dispute where the plaintiff paid 175,000 riyals to the defendant for providing artists for an event, but the defendant didn't perform the service. The plaintiff is asking for the money back.  The"
+  },
+  {
+    "id": "22aa9d7d-c3ae-43a2-897a-5626a0e058ad",
+    "decision": "accept",
+    "reason": "The court accepts the claim as the parties have reached a settlement and the dispute is resolved.  VERDICT: accept"
+  }
+]

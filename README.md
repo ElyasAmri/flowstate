@@ -169,10 +169,10 @@ Maps to the agentic requirement targets:
 
 ## 5. Evaluation Results
 
-We evaluated the full Flowstate loop on two real public-sector datasets. The
-agent node was driven live by Claude as a stand-in for Fanar; because the model
-is reached through one OpenAI-compatible config entry (section 4), swapping in
-Fanar is a config change, not a code change. The harness, scoring scripts, and
+We evaluated the full Flowstate loop on two real public-sector datasets, run
+**live against the real Fanar model** (`QCRI/Fanar-2-27B-Instruct`, self-hosted
+on RunPod via vLLM), with Claude as a cross-check. The model swap was a one-line
+config change (section 4), no code change. The harness, scoring scripts, and
 model outputs are in `eval/` (run `python3 eval/parse_rtf.py && python3
 eval/parse_ljp.py && python3 eval/score.py`); scoring is done by script against
 a held-out key, never by the model.
@@ -220,37 +220,55 @@ flows alone with `python3 eval/build_flows.py`:
 3. **Process the routine / flag the exceptions.** The 97% routine majority runs
    the deterministic spine with no model discretion; only the 3% appeal cases
    reach the agent and the human gate.
-4. **Arabic judgement.** On 50 blind Arabic cases the agent reached **86%
-   accuracy**, with jurisdiction-routing at **100% precision / 90% recall**:
-   the cases that should leave the flow are reliably routed out.
+4. **Arabic judgement.** On 50 blind Arabic cases, real Fanar reached **90%
+   accuracy** (best config), beating Claude's 86%, with jurisdiction-routing at
+   **100% recall**. See the lever sweep and the live-Fanar details below.
 5. **Improve the flow from accumulated exceptions.** Aggregating all 4,567
    appealed cases, the agent proposed five concrete, data-backed flow updates
    (e.g. a guard `amount > 100 OR points > 0` targeting the ~834 appeals where
    contests concentrate; article-specific triage for codes with 10–29% appeal
    rates vs. a ~2.3% baseline). See `eval/data/improvements.md`.
 
-| Track | Task | Result |
-| --- | --- | --- |
-| Road-Traffic Fines | routine vs. non-routine (60 blind) | acc 100%, precision 100%, recall 100% |
-| Arabic-LJP | accept / reject / route (50 blind) | acc 86%; route precision 100%, recall 90% |
-| Flow artifacts | 3 flows authored (`examples/`) | all compile clean (0 errors), valid maestro YAML |
-| Improvement loop | 4,567 exceptions → updates | 5 guards/nodes, each tied to a measured pattern |
+| Track | Task | Fanar | Claude |
+| --- | --- | --- | --- |
+| Road-Traffic Fines | routine vs. non-routine (60 blind) | 100% | 100% |
+| Arabic-LJP | accept / reject / route (50 blind) | **90%** | 86% |
+| Flow artifacts | 3 flows authored (`examples/`) | compile clean, valid YAML | n/a |
+| Improvement loop | 4,567 exceptions → updates | 5 data-backed updates | n/a |
 
-**Where the model did well.** Conformance classification was perfect, including
-the credit-collection trap that a keyword matcher would fail. Jurisdiction
-detection on Arabic legal text was near-perfect, exactly the "route this
-elsewhere" call the flow depends on. Flow mining and the improvement proposals
-were specific and grounded in computed aggregates, not generic advice.
+### Live Fanar validation
 
-**Limitations.** On Arabic-LJP the 7 errors were almost all `reject → accept`:
-the model over-grants borderline claims (predicting the court obliges the
-defendant when it in fact rejected on procedural grounds such as missing
-mediation or standing). This is the judgement-heavy tail where a human gate is
-warranted. Ground-truth labels for the legal track are derived by ruling-text
-keywords, so a small label-noise margin applies. The fine-management routine/
-exception boundary is process-structural and unambiguous; a real deployment
-would also need to confirm Fanar matches Claude on the Arabic facts (the swap is
-config-only, but the numbers above are Claude's).
+Both tracks were re-run on real Fanar (full results in
+[`eval/data/fanar_findings.md`](eval/data/fanar_findings.md)):
+
+- **Conformance: 100%** (60/60), matching Claude exactly, including the
+  credit-collection trap a keyword matcher would fail.
+- **Arabic-LJP: 90%** (best config), above Claude's 86%. The decisive lever was
+  feeding Fanar the **full untruncated case facts**: an earlier 1,800-char clip
+  cut the part of the case that determines a rejection, capping accuracy at 74%.
+  Few-shot (66%) and self-consistency (74%) did not help; not handicapping the
+  input did.
+- **Fanar-2-27B is a reasoning model** (`<think>`). Forcing terse output
+  truncates the verdict, and `/no_think` / `enable_thinking=false` / system
+  prompts do **not** suppress it. The harness must budget tokens and parse after
+  `</think>`.
+- **Self-reported confidence is uninformative** (Fanar returns `high` on every
+  case, including wrong ones), so a human gate cannot rely on it; it needs
+  logprobs or ensemble disagreement.
+- **Arabic generation and the meta-flows work well**: clean formal Arabic
+  decision letters, accurate JSON extraction, and flow mining / improvement
+  proposals comparable to Claude.
+
+**Where it did well.** Perfect conformance (incl. the trap); 90% Arabic
+judgement with strong jurisdiction routing; specific, data-grounded mining and
+improvement proposals.
+
+**Limitations.** The remaining Arabic-LJP errors are `reject → accept`: the
+model over-grants borderline claims the court actually rejected on procedural
+grounds (standing, mediation, jurisdiction): the judgement-heavy tail the human
+gate exists for. Legal-track labels are derived by ruling-text keywords, so a
+small label-noise margin applies; samples (60 / 50) are small, so treat the
+percentages as feasibility signals with wide intervals.
 
 ## 6. Recommendations for Future Fanar Improvements
 
