@@ -169,12 +169,93 @@ Maps to the agentic requirement targets:
 
 ## 5. Evaluation Results
 
-- Fanar vs. alternative model on the key Arabic tasks.
-- Where Fanar handled the task well.
-- Where we needed external tools or a different model.
-- Limitations encountered during development.
+We evaluated the full Flowstate loop on two real public-sector datasets. The
+agent node was driven live by Claude as a stand-in for Fanar; because the model
+is reached through one OpenAI-compatible config entry (section 4), swapping in
+Fanar is a config change, not a code change. The harness, scoring scripts, and
+model outputs are in `eval/` (run `python3 eval/parse_rtf.py && python3
+eval/parse_ljp.py && python3 eval/score.py`); scoring is done by script against
+a held-out key, never by the model.
+
+**Datasets.**
+
+- **Road-Traffic Fine Management** (BPI, an Italian municipality): 150,370 fine
+  cases, 231 process variants. Ground-truth routine vs. non-routine is derived
+  from process structure: a case is non-routine only if the offender appeals
+  (prefecture or judge). This yields **97.0% routine, 3.0% exceptions**, the
+  "few true exceptions" the system is built for.
+- **Arabic-LJP** (Saudi commercial court): 538 judgements with Arabic case
+  facts. The agent reads the facts (الوقائع) and predicts the ruling class:
+  `accept`, `reject`, or `route` (declined jurisdiction). Facts never contain
+  the ruling, so this is a genuine Arabic legal-judgement test.
+
+**The loop, end to end.**
+
+1. **Generate a flow from data.** From the variant statistics alone, the agent
+   mined a ~21-node draft flow: a deterministic spine (create → send → notify →
+   pay, with credit collection as a routine unpaid branch) that forks at the
+   notification step into an appeal branch: agent assessment, then a human gate
+   (prefecture bureaucrat), then judge escalation. See `eval/data/mined_flow.md`.
+2. **Classify routine vs. non-routine.** On a balanced blind sample of 60 fine
+   cases, the agent scored **100% (60/60)**: it caught every appeal and, on the
+   trap, never mistook automated credit collection for an exception.
+3. **Process the routine / flag the exceptions.** The 97% routine majority runs
+   the deterministic spine with no model discretion; only the 3% appeal cases
+   reach the agent and the human gate.
+4. **Arabic judgement.** On 50 blind Arabic cases the agent reached **86%
+   accuracy**, with jurisdiction-routing at **100% precision / 90% recall**:
+   the cases that should leave the flow are reliably routed out.
+5. **Improve the flow from accumulated exceptions.** Aggregating all 4,567
+   appealed cases, the agent proposed five concrete, data-backed flow updates
+   (e.g. a guard `amount > 100 OR points > 0` targeting the ~834 appeals where
+   contests concentrate; article-specific triage for codes with 10–29% appeal
+   rates vs. a ~2.3% baseline). See `eval/data/improvements.md`.
+
+| Track | Task | Result |
+| --- | --- | --- |
+| Road-Traffic Fines | routine vs. non-routine (60 blind) | acc 100%, precision 100%, recall 100% |
+| Arabic-LJP | accept / reject / route (50 blind) | acc 86%; route precision 100%, recall 90% |
+| Flow mining | variants → draft flow | ~21 nodes, human gate on the appeal branch |
+| Improvement loop | 4,567 exceptions → updates | 5 guards/nodes, each tied to a measured pattern |
+
+**Where the model did well.** Conformance classification was perfect, including
+the credit-collection trap that a keyword matcher would fail. Jurisdiction
+detection on Arabic legal text was near-perfect, exactly the "route this
+elsewhere" call the flow depends on. Flow mining and the improvement proposals
+were specific and grounded in computed aggregates, not generic advice.
+
+**Limitations.** On Arabic-LJP the 7 errors were almost all `reject → accept`:
+the model over-grants borderline claims (predicting the court obliges the
+defendant when it in fact rejected on procedural grounds such as missing
+mediation or standing). This is the judgement-heavy tail where a human gate is
+warranted. Ground-truth labels for the legal track are derived by ruling-text
+keywords, so a small label-noise margin applies. The fine-management routine/
+exception boundary is process-structural and unambiguous; a real deployment
+would also need to confirm Fanar matches Claude on the Arabic facts (the swap is
+config-only, but the numbers above are Claude's).
 
 ## 6. Recommendations for Future Fanar Improvements
 
-- Actionable recommendations distilled from section 5.
+Distilled from section 5, focused on what would make Fanar a stronger backend
+for deterministic, auditable government flows:
+
+- **Calibrated abstention.** The agent's costliest errors were confident
+  `reject → accept` flips on procedural dismissals. A reliable, calibrated
+  confidence (or an explicit "unsure") would let the flow escalate exactly the
+  borderline cases to the human gate instead of deciding them, which is the
+  whole point of the design.
+- **Structured verdict output.** Flowstate parses a `VERDICT: <word>` line.
+  First-class support for constrained/structured output (a fixed label set,
+  optionally with a confidence field) would remove the parsing seam and make the
+  one non-deterministic node more predictable.
+- **Saudi/Gulf legal and administrative grounding.** The reject→accept errors
+  track Saudi-specific procedure (mediation prerequisites, standing/صفة,
+  jurisdiction). Stronger grounding in local procedural rules would lift exactly
+  the cases that currently need a human.
+- **Long-document robustness.** Facts were clipped to ~1,800 characters to fit;
+  real dossiers (uploaded proofs, transcripts) are longer. Stable judgement over
+  long Arabic documents would widen the set of procedures Flowstate can automate.
+- **Determinism aids.** `temperature: 0` is necessary but not sufficient.
+  Run-to-run stability guarantees on identical prompts would strengthen the
+  replayable/appealable property the harness promises.
 </content>

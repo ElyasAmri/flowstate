@@ -1,0 +1,76 @@
+{
+  "rtf": {
+    "track": "Road-Traffic Fines: routine vs non-routine",
+    "n": 60,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "tp": 30,
+    "fp": 0,
+    "fn": 0,
+    "errors": []
+  },
+  "ljp": {
+    "track": "Arabic-LJP: accept/reject/route",
+    "n": 50,
+    "accuracy": 0.86,
+    "per_class": {
+      "accept": {
+        "precision": 0.7916666666666666,
+        "recall": 0.95,
+        "f1": 0.8636363636363635,
+        "support": 20
+      },
+      "reject": {
+        "precision": 0.8823529411764706,
+        "recall": 0.75,
+        "f1": 0.8108108108108107,
+        "support": 20
+      },
+      "route": {
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1": 0.9473684210526316,
+        "support": 10
+      }
+    },
+    "errors": [
+      [
+        "afcedafc-713b-4de6-8bd8-d5533c28fec7",
+        "accept",
+        "reject"
+      ],
+      [
+        "aa4bd44e-4f23-41cd-ae06-048bcf1132fe",
+        "reject",
+        "accept"
+      ],
+      [
+        "8213bf6d-6c15-477e-a808-b08e43cbc2ef",
+        "reject",
+        "accept"
+      ],
+      [
+        "e9dacfef-da2e-46ed-a67a-152d149881c9",
+        "reject",
+        "accept"
+      ],
+      [
+        "39f0e05f-bf42-49f3-ba94-05f0bf6f8e4d",
+        "reject",
+        "accept"
+      ],
+      [
+        "09b65449-ea0a-4656-a6e7-b062db8bf1c0",
+        "reject",
+        "accept"
+      ],
+      [
+        "22aa9d7d-c3ae-43a2-897a-5626a0e058ad",
+        "route",
+        "reject"
+      ]
+    ]
+  }
+}

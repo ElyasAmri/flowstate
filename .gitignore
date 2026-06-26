@@ -28,3 +28,6 @@ node_modules/
 .DS_Store
 # Local development notes
 dev.local.md
+
+# Large derived eval data
+eval/data/cases.jsonl

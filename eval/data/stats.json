@@ -1,0 +1,71 @@
+{
+  "dataset": "Road Traffic Fine Management (BPI, Italian municipality)",
+  "total_cases": 150370,
+  "routine": 145803,
+  "non_routine": 4567,
+  "routine_pct": 97.0,
+  "non_routine_pct": 3.0,
+  "distinct_variants": 231,
+  "top_variants": [
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Add penalty -> Send for Credit Collection",
+      "count": 56482,
+      "pct": 37.6
+    },
+    {
+      "variant": "Create Fine -> Payment",
+      "count": 46371,
+      "pct": 30.8
+    },
+    {
+      "variant": "Create Fine -> Send Fine",
+      "count": 20385,
+      "pct": 13.6
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Add penalty -> Payment",
+      "count": 9520,
+      "pct": 6.3
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Add penalty -> Payment -> Payment",
+      "count": 3736,
+      "pct": 2.5
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Payment -> Add penalty -> Payment",
+      "count": 3301,
+      "pct": 2.2
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Payment",
+      "count": 3131,
+      "pct": 2.1
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Insert Date Appeal to Prefecture -> Add penalty -> Send Appeal to Prefecture",
+      "count": 2497,
+      "pct": 1.7
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Add penalty -> Payment -> Send for Credit Collection",
+      "count": 1515,
+      "pct": 1.0
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Payment -> Add penalty -> Send for Credit Collection",
+      "count": 522,
+      "pct": 0.3
+    },
+    {
+      "variant": "Create Fine -> Send Fine -> Insert Fine Notification -> Add penalty -> Insert Date Appeal to Prefecture -> Send Appeal to Prefecture",
+      "count": 443,
+      "pct": 0.3
+    },
+    {
+      "variant": "Create Fine -> Payment -> Send Fine",
+      "count": 362,
+      "pct": 0.2
+    }
+  ]
+}
