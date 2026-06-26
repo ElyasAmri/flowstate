@@ -19,9 +19,11 @@ SRC = os.path.join(HERE, "..", "datasets", "arabic", "Arabic-LJP", "test.parquet
 OUT = os.path.join(HERE, "data")
 os.makedirs(OUT, exist_ok=True)
 
+import re as _re
 def label(o):
     o = o or ""
-    if "عدم اختصاص" in o or "غير مختصة" in o:
+    # jurisdiction decline -> route. Catches عدم اختصاص / عدم الاختصاص / غير مختص.
+    if _re.search(r"عدم\s+ال?اختصاص|غير\s+مختص|لا\s+تختص", o):
         return "route"
     # An obligation to pay/act means the claim was GRANTED (accept), even when
     # the ruling also rejects the *remainder* of requests ("رفض ما عدا ذلك") or

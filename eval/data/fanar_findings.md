@@ -8,10 +8,16 @@ change. Scripts: `eval/run_fanar.py`, `eval/_fanar_sweep.py`,
 
 ## Headline results
 
-| Track | Fanar | Claude | DeepSeek | GPT-5.5 |
-| --- | --- | --- | --- | --- |
-| Road-traffic conformance (60 blind) | **100%** | 100% | 100% | 100% |
-| Arabic-LJP verdict (50 blind, full facts, corrected labels) | ~98%* | 100% | 100% | 100% |
+| Track | Fanar | Claude | DeepSeek | GPT-5.5 | gpt-4o |
+| --- | --- | --- | --- | --- | --- |
+| Conformance (60 blind) | **100%** | 100% | 100% | 100% | 100% |
+| Arabic structured-verdict (50 blind, full facts, corrected) | **98%** | 100% | 100% | 100% | 52% |
+
+Fanar full-facts re-run live: **98%** (49/50), accept 23/24, reject 16/16,
+route 10/10. Its only miss is a single unparsed verdict (a `<think>` that ran
+past the token budget), not a wrong ruling. NOTE: the Arabic task measures
+comprehension + structured output, not blind judgement, because the dataset's
+`input` already contains the court's reasoning (`الأسباب`).
 
 ### The "shared 4 errors" were label noise, not model failure
 

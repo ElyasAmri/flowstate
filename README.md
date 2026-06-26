@@ -220,63 +220,62 @@ flows alone with `python3 eval/build_flows.py`:
 3. **Process the routine / flag the exceptions.** The 97% routine majority runs
    the deterministic spine with no model discretion; only the 3% appeal cases
    reach the agent and the human gate.
-4. **Arabic judgement.** On 50 blind Arabic cases (full facts), real Fanar
-   reached **90% accuracy**, on par with Claude's **92%** on the same inputs,
-   both with jurisdiction-routing at **100% recall**. See the lever sweep and
-   the live-Fanar details below.
+4. **Arabic structured-verdict extraction.** The agent reads an Arabic Saudi
+   commercial-court case and emits a deterministically-branchable verdict
+   (`accept` / `reject` / `route`). On 50 blind cases, real Fanar scored
+   **98%**, with Claude, DeepSeek, and GPT-5.5 at **100%** (corrected labels).
+   Honest scope: the dataset's `input` already contains the court's reasoning
+   (`الأسباب`), so this measures Arabic legal-text comprehension and clean
+   structured output, **not** blind outcome prediction. See the details below.
 5. **Improve the flow from accumulated exceptions.** Aggregating all 4,567
    appealed cases, the agent proposed five concrete, data-backed flow updates
    (e.g. a guard `amount > 100 OR points > 0` targeting the ~834 appeals where
    contests concentrate; article-specific triage for codes with 10–29% appeal
    rates vs. a ~2.3% baseline). See `eval/data/improvements.md`.
 
-| Track | Fanar | Claude | DeepSeek | GPT-5.5 |
-| --- | --- | --- | --- | --- |
-| Road-Traffic Fines: routine vs. non-routine (60 blind) | 100% | 100% | 100% | 100% |
-| Arabic-LJP: accept / reject / route (50 blind, full facts) | ~98%* | 100% | 100% | 100% |
+| Track | Fanar | Claude | DeepSeek | GPT-5.5 | gpt-4o |
+| --- | --- | --- | --- | --- | --- |
+| Conformance: routine vs. non-routine (60 blind) | 100% | 100% | 100% | 100% | 100% |
+| Arabic structured-verdict (50 blind) | 98% | 100% | 100% | 100% | 52% |
 
 Flow artifacts: 3 flows authored in `examples/`, all compile clean to valid
 maestro YAML. Improvement loop: 4,567 exceptions aggregated into 5 data-backed
 flow updates.
 
-All four models score 100% on conformance. On Arabic-LJP the three frontier
-models score **100%** with zero errors, but only after an audit. Initially all three "failed" the same 4 cases, which on inspection
-turned out to be **ground-truth labeling errors**: the keyword labeler tagged
-rulings as `reject` when they actually granted the claim (`بإلزام ... بأن يدفع`,
-ordering payment) and only rejected the *remainder* of requests
-(`رفض ما عدا ذلك`). The models were right; the labels were wrong. Fixing the
-labeler (`accept` wins over a partial-rejection clause, see `eval/parse_ljp.py`)
-takes every frontier model to 100%.
+**Conformance** is the load-bearing result: deriving routine vs. exception from
+process structure is solved across every model (100%), including the
+credit-collection trap a keyword matcher fails. This is the "automate the
+routine, escalate the exceptions" thesis, validated.
 
-*Fanar's full-facts per-case predictions were not persisted (only error-type
-counts: 4 `reject -> accept` + 1 unparsed verdict), so its corrected score is
-estimated at ~98%: the 4 `reject -> accept` align with the corrected labels,
-leaving the single format artifact. A clean recompute needs re-running the
-endpoint.
+**Arabic structured-verdict** measures the agent node's Arabic capability:
+turn a Saudi-court case into a typed `accept` / `reject` / `route` the flow
+branches on, and reliably route out-of-scope cases (`عدم اختصاص`). Frontier
+models do this at 100%, Fanar at 98% (its single miss is an unparsed verdict, a
+format artifact, not a wrong call). Two honest caveats:
 
-The lesson: at this sample size, frontier models solve Arabic-LJP once the
-labels are clean; the binding constraint was eval-label quality, not model
-capability. The human gate earns its keep on genuinely ambiguous cases and on
-the conformance design, not on these four.
+- **It is comprehension, not blind judgement.** The dataset's `input` contains
+  the court's reasoning (`الأسباب`); 83% of inputs literally contain an outcome
+  cue. So the task is "read the Arabic ruling's logic and extract the verdict,"
+  which the agent node genuinely needs, but it is not evidence the model can
+  *decide* an undecided case. A true judgement test would strip `الأسباب` and
+  give only the raw facts.
+- **The eval labels were the noisy part, not the models.** Ground-truth labels
+  are keyword-scraped from the ruling text and we found and fixed several
+  errors (e.g. a ruling tagged `reject` because the *judge's surname* `الزامل`
+  contains the keyword `الزام`; grants tagged `reject` because of a trailing
+  "rejected the remainder" clause). After the fixes, frontier models are at
+  100%; the binding constraint was label quality. Model *tier* still matters:
+  the older gpt-4o scored only 52% (never predicting `route`).
 
-### Live Fanar validation
+### Other live-Fanar findings
 
-Both tracks were re-run on real Fanar (full results in
-[`eval/data/fanar_findings.md`](eval/data/fanar_findings.md)):
+(full results in [`eval/data/fanar_findings.md`](eval/data/fanar_findings.md))
 
-- **Conformance: 100%** (60/60), matching Claude exactly, including the
-  credit-collection trap a keyword matcher would fail.
-- **Arabic-LJP: 90%** on full facts, on par with **Claude's 92%** on the same
-  full facts (a fair head-to-head; Claude's earlier 86% was on clipped facts).
-  The decisive lever was feeding the **full untruncated case facts**: an earlier
-  1,800-char clip cut the part of the case that determines a rejection, capping
-  Fanar at 74%. Few-shot (66%) and self-consistency (74%) did not help; not
-  handicapping the input did. Both models share the same residual error mode
-  (`reject → accept` on procedural rejections).
 - **Fanar-2-27B is a reasoning model** (`<think>`). Forcing terse output
   truncates the verdict, and `/no_think` / `enable_thinking=false` / system
   prompts do **not** suppress it. The harness must budget tokens and parse after
-  `</think>`.
+  `</think>`. Full untruncated input also matters: clipping facts to 1,800 chars
+  capped Fanar at 74%; full facts gave 98%.
 - **Self-reported confidence is uninformative** (Fanar returns `high` on every
   case, including wrong ones), so a human gate cannot rely on it; it needs
   logprobs or ensemble disagreement.
@@ -284,39 +283,36 @@ Both tracks were re-run on real Fanar (full results in
   decision letters, accurate JSON extraction, and flow mining / improvement
   proposals comparable to Claude.
 
-**Where it did well.** Perfect conformance (incl. the trap); 90% Arabic
-judgement with strong jurisdiction routing; specific, data-grounded mining and
-improvement proposals.
-
-**Limitations.** The remaining Arabic-LJP errors are `reject → accept`: the
-model over-grants borderline claims the court actually rejected on procedural
-grounds (standing, mediation, jurisdiction): the judgement-heavy tail the human
-gate exists for. Legal-track labels are derived by ruling-text keywords, so a
-small label-noise margin applies; samples (60 / 50) are small, so treat the
-percentages as feasibility signals with wide intervals.
+**Honest bottom line.** The conformance/automation thesis is validated and
+model-agnostic. The Arabic agent-node capability (read Arabic, emit a clean
+typed verdict, route out-of-scope) is solid. We did *not* demonstrate hard legal
+judgement, and we won't claim it. Sample sizes (60 / 50) are small, so treat the
+percentages as feasibility signals.
 
 ## 6. Recommendations for Future Fanar Improvements
 
 Distilled from section 5, focused on what would make Fanar a stronger backend
 for deterministic, auditable government flows:
 
-- **Calibrated abstention.** The agent's costliest errors were confident
-  `reject → accept` flips on procedural dismissals. A reliable, calibrated
-  confidence (or an explicit "unsure") would let the flow escalate exactly the
-  borderline cases to the human gate instead of deciding them, which is the
-  whole point of the design.
-- **Structured verdict output.** Flowstate parses a `VERDICT: <word>` line.
-  First-class support for constrained/structured output (a fixed label set,
-  optionally with a confidence field) would remove the parsing seam and make the
-  one non-deterministic node more predictable.
-- **Saudi/Gulf legal and administrative grounding.** The reject→accept errors
-  track Saudi-specific procedure (mediation prerequisites, standing/صفة,
-  jurisdiction). Stronger grounding in local procedural rules would lift exactly
-  the cases that currently need a human.
-- **Long-document robustness.** Facts were clipped to ~1,800 characters to fit;
-  real dossiers (uploaded proofs, transcripts) are longer. Stable judgement over
-  long Arabic documents would widen the set of procedures Flowstate can automate.
-- **Determinism aids.** `temperature: 0` is necessary but not sufficient.
-  Run-to-run stability guarantees on identical prompts would strengthen the
+- **Reasoning controllable from the API.** Fanar-2-27B always emits `<think>`,
+  and `/no_think` / `enable_thinking=false` / system prompts do not turn it off.
+  A reliable toggle (or a separate reasoning/answer field) would let the harness
+  budget tokens correctly and avoid the one failure we saw: a truncated reply
+  that never reached its verdict. This was Fanar's only miss on the Arabic track.
+- **First-class structured output.** Flowstate parses a `VERDICT: <word>` line.
+  Native constrained/structured output (a fixed label set, optionally with a
+  confidence field) would remove the parsing seam and make the one
+  non-deterministic node predictable.
+- **Calibrated confidence for escalation.** Fanar self-reports `high` confidence
+  on every case, including wrong ones, so the human gate cannot use it. Exposing
+  token logprobs (or a calibrated score) would let the flow escalate exactly the
+  uncertain cases, which is the whole point of the design.
+- **Local grounding for genuine judgement.** Our Arabic track was comprehension,
+  not blind judgement. For the harder task (decide from raw facts, no embedded
+  reasoning), grounding in Saudi/Gulf procedure (mediation prerequisites,
+  standing/صفة, jurisdiction) is what would let Fanar handle the ambiguous cases
+  that otherwise must reach a human.
+- **Run-to-run determinism.** `temperature: 0` is necessary but not sufficient;
+  stability guarantees on identical prompts would strengthen the
   replayable/appealable property the harness promises.
 </content>
