@@ -8,7 +8,8 @@ Flowstate turns a government/institutional procedure into a **flow**, a
 deterministic state machine, so routine applications flow through
 automatically and only special cases pause for a bureaucrat. A policy maker
 authors the flow visually; consumers submit applications across typed channels;
-an AI agent (powered by **Fanar**) does the judgement-heavy steps; and every
+an AI agent (powered by **Fanar**) does the judgement-heavy steps and document
+parsing (text, images, transcript summaries); and every
 decision leaves an auditable, replayable trace.
 
 - **Theme:** Smart Government & Citizen Services
