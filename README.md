@@ -220,9 +220,10 @@ flows alone with `python3 eval/build_flows.py`:
 3. **Process the routine / flag the exceptions.** The 97% routine majority runs
    the deterministic spine with no model discretion; only the 3% appeal cases
    reach the agent and the human gate.
-4. **Arabic judgement.** On 50 blind Arabic cases, real Fanar reached **90%
-   accuracy** (best config), beating Claude's 86%, with jurisdiction-routing at
-   **100% recall**. See the lever sweep and the live-Fanar details below.
+4. **Arabic judgement.** On 50 blind Arabic cases (full facts), real Fanar
+   reached **90% accuracy**, on par with Claude's **92%** on the same inputs,
+   both with jurisdiction-routing at **100% recall**. See the lever sweep and
+   the live-Fanar details below.
 5. **Improve the flow from accumulated exceptions.** Aggregating all 4,567
    appealed cases, the agent proposed five concrete, data-backed flow updates
    (e.g. a guard `amount > 100 OR points > 0` targeting the ~834 appeals where
@@ -232,7 +233,7 @@ flows alone with `python3 eval/build_flows.py`:
 | Track | Task | Fanar | Claude |
 | --- | --- | --- | --- |
 | Road-Traffic Fines | routine vs. non-routine (60 blind) | 100% | 100% |
-| Arabic-LJP | accept / reject / route (50 blind) | **90%** | 86% |
+| Arabic-LJP | accept / reject / route (50 blind, full facts) | **90%** | 92% |
 | Flow artifacts | 3 flows authored (`examples/`) | compile clean, valid YAML | n/a |
 | Improvement loop | 4,567 exceptions → updates | 5 data-backed updates | n/a |
 
@@ -243,11 +244,13 @@ Both tracks were re-run on real Fanar (full results in
 
 - **Conformance: 100%** (60/60), matching Claude exactly, including the
   credit-collection trap a keyword matcher would fail.
-- **Arabic-LJP: 90%** (best config), above Claude's 86%. The decisive lever was
-  feeding Fanar the **full untruncated case facts**: an earlier 1,800-char clip
-  cut the part of the case that determines a rejection, capping accuracy at 74%.
-  Few-shot (66%) and self-consistency (74%) did not help; not handicapping the
-  input did.
+- **Arabic-LJP: 90%** on full facts, on par with **Claude's 92%** on the same
+  full facts (a fair head-to-head; Claude's earlier 86% was on clipped facts).
+  The decisive lever was feeding the **full untruncated case facts**: an earlier
+  1,800-char clip cut the part of the case that determines a rejection, capping
+  Fanar at 74%. Few-shot (66%) and self-consistency (74%) did not help; not
+  handicapping the input did. Both models share the same residual error mode
+  (`reject → accept` on procedural rejections).
 - **Fanar-2-27B is a reasoning model** (`<think>`). Forcing terse output
   truncates the verdict, and `/no_think` / `enable_thinking=false` / system
   prompts do **not** suppress it. The harness must budget tokens and parse after

@@ -11,13 +11,15 @@ change. Scripts: `eval/run_fanar.py`, `eval/_fanar_sweep.py`,
 | Track | Fanar | Claude (cross-check) |
 | --- | --- | --- |
 | Road-traffic conformance (routine vs non-routine, 60 blind) | **100%** | 100% |
-| Arabic-LJP verdict (50 blind), best config | **90%** | 86% |
+| Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% |
 
 Road-traffic conformance: Fanar matches Claude exactly (60/60).
 
-Arabic-LJP: Fanar reaches **90%** with the right setup, beating Claude's 86%
-(both numbers above for Claude were on the *clipped* facts; Fanar's 90% is on
-full facts). The path to 90% is below.
+Arabic-LJP, fair head-to-head on the SAME full facts: **Fanar 90%, Claude 92%**,
+essentially on par. (Claude's earlier 86% was on the clipped facts, so the
+clipped-vs-full comparison was unfair; both re-run on full facts here.) Both
+share the same residual error mode (`reject -> accept`). The path to 90% is
+below.
 
 ## Arabic-LJP lever sweep (50 blind cases)
 
