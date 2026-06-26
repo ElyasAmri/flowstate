@@ -12,10 +12,10 @@ an AI agent (powered by **Fanar**) does the judgement-heavy steps and document
 parsing (text, images, transcript summaries); and every
 decision leaves an auditable, replayable trace.
 
-- **Theme:** Smart Government & Citizen Services
-- **Model backend:** Fanar (Arabic-capable LLM), usable **online** (Fanar API)
-  or **self-hosted** (any OpenAI-compatible server), swapped by config alone.
-- **Team:** Osama, Elyas
+- Theme: Smart Government & Citizen Services
+- Model backend: Fanar (Arabic-capable LLM), usable online via Fanar API
+  or self-hosted (any OpenAI-compatible server), swapped by config alone.
+- Team: return 0; performed by Elyas Al-Amri and Osama Hasoneh
 
 > Build, run, repository layout, and the demo walkthrough live in
 > [demo.md](demo.md).
@@ -24,13 +24,14 @@ decision leaves an auditable, replayable trace.
 
 ## 1. Problem Statement
 
-- The cost of humans-in-the-loop: routine applications are delayed,
-  inconsistent, and expensive when every case waits on a person.
-- Observation: most cases are automatable; few are true exceptions.
-- Value proposition: automate the routine deterministically, escalate only
-  the exceptions, and keep the whole thing accountable (replayable, appealable).
-- Why Arabic / Gulf government context matters here (Fanar, dialect, local
-  procedures).
+Routine government applications are delayed, inconsistent, and expensive
+because every case waits on a person, even though most cases are unambiguous
+and only a few are true exceptions. Flowstate automates the routine
+deterministically, escalates only the exceptions to a human, and keeps the
+whole process accountable, replayable, and appealable. This matters
+acutely in the Arabic and Gulf government context, where procedures, dialect,
+and local rules demand a model like Fanar that can read and serve citizens in
+their own language.
 
 ## 2. Solution Architecture
 
