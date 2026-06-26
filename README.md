@@ -190,10 +190,11 @@ a held-out key, never by the model.
   the ruling, so this is a genuine Arabic legal-judgement test.
 
 **The three flows.** The loop is encoded as three real Flowstate flows under
-`eval/flows/` (authored to the `FlowDefinition` schema, with their channels in
-`eval/flows/channels/`). All three pass the actual compiler (`compileFlow` in
-`app/src/lib/flow/compile.ts`) with zero errors and emit valid maestro YAML;
-rebuild and re-validate with `python3 eval/build_flows.py`:
+[`examples/`](examples/) (authored to the `FlowDefinition` schema, with their
+channels in `examples/flows/channels/`). All three pass the actual compiler
+(`compileFlow` in `app/src/lib/flow/compile.ts`) with zero errors and emit valid
+maestro YAML. Run the whole loop with `bash demo/run_demo.sh`, or rebuild the
+flows alone with `python3 eval/build_flows.py`:
 
 - **`flow-drafting`**: a meta-flow: event-log door → agent mines the model →
   agent drafts the flow → writes it to the flow library.
@@ -232,7 +233,7 @@ rebuild and re-validate with `python3 eval/build_flows.py`:
 | --- | --- | --- |
 | Road-Traffic Fines | routine vs. non-routine (60 blind) | acc 100%, precision 100%, recall 100% |
 | Arabic-LJP | accept / reject / route (50 blind) | acc 86%; route precision 100%, recall 90% |
-| Flow artifacts | 3 flows authored (`eval/flows/`) | all compile clean (0 errors), valid maestro YAML |
+| Flow artifacts | 3 flows authored (`examples/`) | all compile clean (0 errors), valid maestro YAML |
 | Improvement loop | 4,567 exceptions → updates | 5 guards/nodes, each tied to a measured pattern |
 
 **Where the model did well.** Conformance classification was perfect, including

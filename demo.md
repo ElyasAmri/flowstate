@@ -338,6 +338,9 @@ app/            Tauri 2 desktop client (Vite + Svelte 5 + Tailwind 4)
     run.rs               run_shell + run_agent (the only Fanar touchpoint)
     flows.rs             flow library + compiled-YAML persistence
     channels.rs          channel registry persistence
+examples/       Three loadable example flows (the evaluation loop) + channels
+eval/           Evaluation harness: dataset parsers, flow builder, scorer
+demo/           run_demo.sh: parse -> build -> compile-check -> score, end to end
 video/          Demo video (Remotion 4 + React 19)
 presentation/   Slide deck (Vite + reveal.js)
 crc/            Android client (Kotlin + Jetpack Compose; standalone Gradle)

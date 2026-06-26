@@ -8,12 +8,14 @@ the same rules the compiler enforces (compile.ts):
   2. fine-management major flow: routine processing, exceptions -> human gate
   3. flow-update     meta-flow: accumulated exceptions -> proposed flow update
 
-Run: python3 eval/build_flows.py   (writes eval/flows/, prints validation)
+Output goes to the committed examples/ library (examples/flows/{,channels/}).
+Run: python3 eval/build_flows.py   (writes examples/, prints validation)
 """
 import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "flows")
+ROOT = os.path.dirname(HERE)
+OUT = os.path.join(ROOT, "examples", "flows")
 CH = os.path.join(OUT, "channels")
 os.makedirs(CH, exist_ok=True)
 
