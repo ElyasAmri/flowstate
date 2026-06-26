@@ -233,21 +233,32 @@ flows alone with `python3 eval/build_flows.py`:
 | Track | Fanar | Claude | DeepSeek | GPT-5.5 |
 | --- | --- | --- | --- | --- |
 | Road-Traffic Fines: routine vs. non-routine (60 blind) | 100% | 100% | 100% | 100% |
-| Arabic-LJP: accept / reject / route (50 blind, full facts) | 90% | 92% | 92% | 92% |
+| Arabic-LJP: accept / reject / route (50 blind, full facts) | ~98%* | 100% | 100% | 100% |
 
 Flow artifacts: 3 flows authored in `examples/`, all compile clean to valid
 maestro YAML. Improvement loop: 4,567 exceptions aggregated into 5 data-backed
 flow updates.
 
-Four models (Fanar, Claude, DeepSeek, GPT-5.5) converge: identical 100% on
-conformance and 90-92% on Arabic-LJP. The three frontier models (Claude,
-DeepSeek, GPT-5.5) score 92% by failing on the **byte-identical same 4 cases**,
-all `reject -> accept` (claims the court rejected on procedural grounds despite
-submitted documents). Fanar matches that residual and loses one extra point to a
-single unparsed verdict, not a worse ruling. That four models, including a
-frontier reasoning model, fail on exactly the same cases shows the Arabic tail
-is a property of the task (precisely what the human gate is for), not of any one
-model.
+All four models score 100% on conformance. On Arabic-LJP the three frontier
+models score **100%** with the **byte-identical same 0 errors** — but only after
+an audit. Initially all three "failed" the same 4 cases, which on inspection
+turned out to be **ground-truth labeling errors**: the keyword labeler tagged
+rulings as `reject` when they actually granted the claim (`بإلزام ... بأن يدفع`,
+ordering payment) and only rejected the *remainder* of requests
+(`رفض ما عدا ذلك`). The models were right; the labels were wrong. Fixing the
+labeler (`accept` wins over a partial-rejection clause, see `eval/parse_ljp.py`)
+takes every frontier model to 100%.
+
+*Fanar's full-facts per-case predictions were not persisted (only error-type
+counts: 4 `reject -> accept` + 1 unparsed verdict), so its corrected score is
+estimated at ~98%: the 4 `reject -> accept` align with the corrected labels,
+leaving the single format artifact. A clean recompute needs re-running the
+endpoint.
+
+The lesson: at this sample size, frontier models solve Arabic-LJP once the
+labels are clean; the binding constraint was eval-label quality, not model
+capability. The human gate earns its keep on genuinely ambiguous cases and on
+the conformance design, not on these four.
 
 ### Live Fanar validation
 

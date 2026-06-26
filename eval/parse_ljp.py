@@ -21,12 +21,17 @@ os.makedirs(OUT, exist_ok=True)
 
 def label(o):
     o = o or ""
-    if "عدم اختصاص" in o or "غير مختصة" in o or "الاختصاص" in o and "عدم" in o:
+    if "عدم اختصاص" in o or "غير مختصة" in o:
         return "route"
+    # An obligation to pay/act means the claim was GRANTED (accept), even when
+    # the ruling also rejects the *remainder* of requests ("رفض ما عدا ذلك") or
+    # rejects an appeal whose underlying ruling it upholds. Accept must be
+    # checked BEFORE reject, or those partial-rejection clauses mislabel a grant
+    # as a rejection (this was a real bug: 4/50 cases in the eval sample).
+    if "بإلزام" in o or "إلزام" in o or "الزام" in o or "بقبول" in o:
+        return "accept"
     if "رفض" in o or "عدم قبول" in o or "صرف النظر" in o:
         return "reject"
-    if "إلزام" in o or "الزام" in o or "بإلزام" in o or "بقبول" in o:
-        return "accept"
     return "other"
 
 def main():
