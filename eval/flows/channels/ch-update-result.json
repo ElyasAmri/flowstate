@@ -1,0 +1,21 @@
+{
+  "id": "ch-update-result",
+  "title": "Update outcome",
+  "description": "Outbound: whether the routine flow was updated or left as-is.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "deliver",
+      "fields": [
+        {
+          "name": "outcome",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

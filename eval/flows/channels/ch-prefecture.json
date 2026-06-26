@@ -1,0 +1,43 @@
+{
+  "id": "ch-prefecture",
+  "title": "Prefecture bureaucrat",
+  "description": "Human gate: a bureaucrat rules on a contested fine.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "assign_appeal",
+      "fields": [
+        {
+          "name": "offender_id",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "number"
+        },
+        {
+          "name": "points",
+          "type": "number"
+        },
+        {
+          "name": "recommendation",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "ruling",
+      "fields": [
+        {
+          "name": "upheld",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

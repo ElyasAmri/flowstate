@@ -1,0 +1,284 @@
+{
+  "id": "fine-management-routine",
+  "title": "Road-traffic fine management",
+  "description": "Routine fines run a deterministic spine (create, send, pay or auto-forward to collection); contested fines escalate to an agent assessment and a prefecture human gate.",
+  "nodes": [
+    {
+      "id": "fm-door",
+      "kind": "channel",
+      "channelId": "ch-fine-intake",
+      "label": "Fine intake",
+      "description": "Inbound door: a new fine (amount, article, points, offender).",
+      "position": {
+        "x": 80.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "fm-create",
+      "kind": "action",
+      "op": "log",
+      "label": "Create fine",
+      "message": "Create fine record from payload.",
+      "position": {
+        "x": 420.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "fm-notify",
+      "kind": "action",
+      "op": "log",
+      "label": "Send fine + insert notification",
+      "message": "Send the fine to the offender and record notification.",
+      "position": {
+        "x": 760.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "fm-appeal-q",
+      "kind": "decision",
+      "label": "Appeal filed?",
+      "position": {
+        "x": 1100.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "fm-pay-q",
+      "kind": "decision",
+      "label": "Payment received?",
+      "position": {
+        "x": 1440.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "fm-paid",
+      "kind": "channel",
+      "channelId": "ch-fine-result",
+      "label": "Closed: paid",
+      "outcome": "issued",
+      "position": {
+        "x": 1780.0,
+        "y": 120.0
+      }
+    },
+    {
+      "id": "fm-penalty",
+      "kind": "action",
+      "op": "log",
+      "label": "Add penalty",
+      "message": "Apply statutory surcharge.",
+      "position": {
+        "x": 1780.0,
+        "y": 280.0
+      }
+    },
+    {
+      "id": "fm-collection",
+      "kind": "channel",
+      "channelId": "ch-collection",
+      "label": "Send for credit collection",
+      "description": "Routine automated branch for unpaid fines.",
+      "position": {
+        "x": 2120.0,
+        "y": 280.0
+      }
+    },
+    {
+      "id": "fm-collected",
+      "kind": "channel",
+      "channelId": "ch-fine-result",
+      "label": "Closed: collected",
+      "outcome": "issued",
+      "position": {
+        "x": 2460.0,
+        "y": 280.0
+      }
+    },
+    {
+      "id": "fm-assess",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Assess appeal",
+      "description": "Agent weighs the contested fine and recommends a ruling.",
+      "prompt": "A fine has been contested. Assess whether the appeal is well-founded.\n\nArticle: {{article}}\nAmount: {{amount}}\nPoints: {{points}}\n\nExplain briefly, then end with one line:\n  VERDICT: uphold   -- the appeal should be granted\n  VERDICT: reject   -- the fine stands",
+      "position": {
+        "x": 1440.0,
+        "y": 460.0
+      }
+    },
+    {
+      "id": "fm-gate",
+      "kind": "channel",
+      "channelId": "ch-prefecture",
+      "label": "Prefecture review (human gate)",
+      "description": "Bureaucrat makes the binding ruling on the appeal.",
+      "position": {
+        "x": 1780.0,
+        "y": 460.0
+      }
+    },
+    {
+      "id": "fm-ruling-q",
+      "kind": "decision",
+      "label": "Ruling?",
+      "position": {
+        "x": 2120.0,
+        "y": 460.0
+      }
+    },
+    {
+      "id": "fm-upheld",
+      "kind": "channel",
+      "channelId": "ch-fine-result",
+      "label": "Appeal upheld",
+      "outcome": "approved",
+      "position": {
+        "x": 2460.0,
+        "y": 400.0
+      }
+    },
+    {
+      "id": "fm-judge",
+      "kind": "action",
+      "op": "log",
+      "label": "Escalate to judge",
+      "message": "Forward rejected appeal to a judge.",
+      "position": {
+        "x": 2460.0,
+        "y": 540.0
+      }
+    },
+    {
+      "id": "fm-rejected",
+      "kind": "channel",
+      "channelId": "ch-fine-result",
+      "label": "Appeal rejected",
+      "outcome": "rejected",
+      "position": {
+        "x": 2800.0,
+        "y": 540.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fme-door-create",
+      "from": "fm-door",
+      "to": "fm-create"
+    },
+    {
+      "id": "fme-create-notify",
+      "from": "fm-create",
+      "to": "fm-notify"
+    },
+    {
+      "id": "fme-notify-appeal",
+      "from": "fm-notify",
+      "to": "fm-appeal-q"
+    },
+    {
+      "id": "fme-appeal-yes",
+      "from": "fm-appeal-q",
+      "to": "fm-assess",
+      "label": "contested",
+      "guard": "appeal_filed == true"
+    },
+    {
+      "id": "fme-appeal-no",
+      "from": "fm-appeal-q",
+      "to": "fm-pay-q",
+      "label": "routine"
+    },
+    {
+      "id": "fme-pay-paid",
+      "from": "fm-pay-q",
+      "to": "fm-paid",
+      "label": "paid",
+      "guard": "paid == true",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"paid\""
+        }
+      ]
+    },
+    {
+      "id": "fme-pay-unpaid",
+      "from": "fm-pay-q",
+      "to": "fm-penalty",
+      "label": "unpaid"
+    },
+    {
+      "id": "fme-penalty-collection",
+      "from": "fm-penalty",
+      "to": "fm-collection"
+    },
+    {
+      "id": "fme-collection-closed",
+      "from": "fm-collection",
+      "to": "fm-collected",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"collected\""
+        }
+      ]
+    },
+    {
+      "id": "fme-assess-gate",
+      "from": "fm-assess",
+      "to": "fm-gate",
+      "set": [
+        {
+          "var": "recommendation",
+          "expr": "outcome.verdict"
+        }
+      ]
+    },
+    {
+      "id": "fme-gate-ruling",
+      "from": "fm-gate",
+      "to": "fm-ruling-q",
+      "set": [
+        {
+          "var": "ruling_upheld",
+          "expr": "outcome.upheld"
+        }
+      ]
+    },
+    {
+      "id": "fme-ruling-upheld",
+      "from": "fm-ruling-q",
+      "to": "fm-upheld",
+      "label": "upheld",
+      "guard": "ruling_upheld == true",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"appeal_upheld\""
+        }
+      ]
+    },
+    {
+      "id": "fme-ruling-rejected",
+      "from": "fm-ruling-q",
+      "to": "fm-judge",
+      "label": "rejected"
+    },
+    {
+      "id": "fme-judge-closed",
+      "from": "fm-judge",
+      "to": "fm-rejected",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"appeal_rejected\""
+        }
+      ]
+    }
+  ]
+}

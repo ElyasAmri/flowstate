@@ -1,0 +1,26 @@
+{
+  "id": "ch-exceptions",
+  "title": "Exception batch intake",
+  "description": "Inbound door: a batch of accumulated non-routine cases.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "exception_batch",
+      "fields": [
+        {
+          "name": "cases",
+          "type": "string"
+        },
+        {
+          "name": "current_flow_id",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "ch-collection",
+  "title": "Credit collection service",
+  "description": "External service: unpaid fines are forwarded automatically.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "external"
+  },
+  "accepts": [
+    {
+      "name": "forward",
+      "fields": [
+        {
+          "name": "offender_id",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

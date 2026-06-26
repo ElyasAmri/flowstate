@@ -189,13 +189,30 @@ a held-out key, never by the model.
   `accept`, `reject`, or `route` (declined jurisdiction). Facts never contain
   the ruling, so this is a genuine Arabic legal-judgement test.
 
+**The three flows.** The loop is encoded as three real Flowstate flows under
+`eval/flows/` (authored to the `FlowDefinition` schema, with their channels in
+`eval/flows/channels/`). All three pass the actual compiler (`compileFlow` in
+`app/src/lib/flow/compile.ts`) with zero errors and emit valid maestro YAML;
+rebuild and re-validate with `python3 eval/build_flows.py`:
+
+- **`flow-drafting`**: a meta-flow: event-log door → agent mines the model →
+  agent drafts the flow → writes it to the flow library.
+- **`fine-management-routine`**: the major flow: a deterministic spine
+  (create → notify → pay, or unpaid → penalty → credit collection) that forks on
+  `appeal_filed` into an agent assessment and a prefecture human gate, ending in
+  paid / collected / appeal_upheld / appeal_rejected outcomes.
+- **`flow-update`**: a meta-flow: exception-batch door → shell aggregation →
+  agent proposes updates → `change_score >= 0.5` routes to a policy-maker human
+  gate → writes the approved update back to the library.
+
 **The loop, end to end.**
 
 1. **Generate a flow from data.** From the variant statistics alone, the agent
-   mined a ~21-node draft flow: a deterministic spine (create → send → notify →
+   mined the routine flow: a deterministic spine (create → send → notify →
    pay, with credit collection as a routine unpaid branch) that forks at the
    notification step into an appeal branch: agent assessment, then a human gate
-   (prefecture bureaucrat), then judge escalation. See `eval/data/mined_flow.md`.
+   (prefecture bureaucrat), then judge escalation. This is realised as the
+   `fine-management-routine` flow above; see also `eval/data/mined_flow.md`.
 2. **Classify routine vs. non-routine.** On a balanced blind sample of 60 fine
    cases, the agent scored **100% (60/60)**: it caught every appeal and, on the
    trap, never mistook automated credit collection for an exception.
@@ -215,7 +232,7 @@ a held-out key, never by the model.
 | --- | --- | --- |
 | Road-Traffic Fines | routine vs. non-routine (60 blind) | acc 100%, precision 100%, recall 100% |
 | Arabic-LJP | accept / reject / route (50 blind) | acc 86%; route precision 100%, recall 90% |
-| Flow mining | variants → draft flow | ~21 nodes, human gate on the appeal branch |
+| Flow artifacts | 3 flows authored (`eval/flows/`) | all compile clean (0 errors), valid maestro YAML |
 | Improvement loop | 4,567 exceptions → updates | 5 guards/nodes, each tied to a measured pattern |
 
 **Where the model did well.** Conformance classification was perfect, including

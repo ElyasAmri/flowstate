@@ -1,0 +1,21 @@
+{
+  "id": "ch-fine-result",
+  "title": "Fine outcome",
+  "description": "Outbound: the terminal outcome of a fine case.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "deliver",
+      "fields": [
+        {
+          "name": "outcome",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

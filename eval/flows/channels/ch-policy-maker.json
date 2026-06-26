@@ -1,0 +1,35 @@
+{
+  "id": "ch-policy-maker",
+  "title": "Policy maker",
+  "description": "Human gate: the policy maker approves a proposed flow update.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "propose_update",
+      "fields": [
+        {
+          "name": "summary",
+          "type": "string"
+        },
+        {
+          "name": "diff",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "approval",
+      "fields": [
+        {
+          "name": "approved",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

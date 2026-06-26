@@ -1,0 +1,103 @@
+{
+  "id": "flow-drafting",
+  "title": "Flow drafting (mine a flow from data)",
+  "description": "Meta-flow: ingests an event log's variant statistics and drafts a Flowstate routine flow, writing it to the library.",
+  "nodes": [
+    {
+      "id": "fd-in",
+      "kind": "channel",
+      "channelId": "ch-event-log",
+      "label": "Receive event log",
+      "description": "Inbound door: the mined activities + variant statistics.",
+      "position": {
+        "x": 80.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "fd-mine",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Mine process model",
+      "description": "Identify the dominant routine path and the exception forks.",
+      "prompt": "You are given an event log's activity list and variant statistics.\n\nActivities: {{activities}}\nVariants: {{variant_stats}}\n\nIdentify the dominant deterministic routine path and the points where exception branches fork. End with one line:\n  VERDICT: mined",
+      "position": {
+        "x": 520.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "fd-draft",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Draft Flowstate flow",
+      "description": "Emit a draft flow: deterministic spine + agent node on exceptions + a human gate.",
+      "prompt": "Using the mined model, draft a Flowstate flow as nodes and edges. The routine path must be deterministic (action + decision nodes); route exceptions to an agent node, then a human gate (a channel bound to ui). Return the flow JSON.",
+      "position": {
+        "x": 960.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "fd-assemble",
+      "kind": "action",
+      "op": "set",
+      "label": "Assemble draft",
+      "description": "Capture the drafted flow JSON into a flow variable.",
+      "assignments": [
+        {
+          "var": "flow_json",
+          "expr": "outcome.text"
+        },
+        {
+          "var": "flow_id",
+          "expr": "\"fine-management-routine\""
+        }
+      ],
+      "position": {
+        "x": 1400.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "fd-out",
+      "kind": "channel",
+      "channelId": "ch-flow-library",
+      "label": "Write draft to library",
+      "outcome": "issued",
+      "description": "Outbound: persist the drafted routine flow.",
+      "position": {
+        "x": 1840.0,
+        "y": 200.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fde-in-mine",
+      "from": "fd-in",
+      "to": "fd-mine"
+    },
+    {
+      "id": "fde-mine-draft",
+      "from": "fd-mine",
+      "to": "fd-draft",
+      "set": [
+        {
+          "var": "process_model",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "fde-draft-assemble",
+      "from": "fd-draft",
+      "to": "fd-assemble"
+    },
+    {
+      "id": "fde-assemble-out",
+      "from": "fd-assemble",
+      "to": "fd-out"
+    }
+  ]
+}
