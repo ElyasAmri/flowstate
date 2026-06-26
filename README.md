@@ -1,8 +1,8 @@
 # Flowstate
 
 > Codify bureaucratic procedures as deterministic workflows, with AI agents
-> only where judgement is needed. Most procedures run automatically; humans
-> stay in the loop for the genuine exceptions.
+> only where judgement is needed. Most procedures run automatically, while
+> humans stay in the loop to handle genuine exceptions and resolve ambiguities.
 
 Flowstate turns a government/institutional procedure into a **flow**, a
 deterministic state machine, so routine applications flow through
