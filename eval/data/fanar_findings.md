@@ -8,12 +8,12 @@ change. Scripts: `eval/run_fanar.py`, `eval/_fanar_sweep.py`,
 
 ## Headline results
 
-| Track | Fanar | Claude | DeepSeek | GPT-5.1 |
+| Track | Fanar | Claude | DeepSeek | GPT-5.5 |
 | --- | --- | --- | --- | --- |
 | Road-traffic conformance (60 blind) | **100%** | 100% | 100% | 100% |
 | Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% | 92% | 92% |
 
-Four models converge. The three frontier models (Claude, DeepSeek, GPT-5.1) all
+Four models converge. The three frontier models (Claude, DeepSeek, GPT-5.5) all
 score 92% by failing on the **byte-identical same 4 case ids**
 (aa4bd44e, e9dacfef, 39f0e05f, 09b65449), all `reject -> accept`: claims the
 court rejected on procedural grounds despite submitted documents. Fanar shares
