@@ -72,9 +72,9 @@ the far side:
 
 | Binding   | Far side                              | Node color |
 | --------- | ------------------------------------- | ---------- |
-| `ui`      | a human-operated app (consumer / clerk) | green    |
+| `ui`      | a human-operated app (consumer / clerk) | yellow   |
 | `flow`    | another flow (composition / nesting)  | purple     |
-| `service` | a core service (`internal`/`external`)| yellow     |
+| `service` | a core service (`internal`/`external`)| green      |
 
 ### 2.2 The four node kinds
 
