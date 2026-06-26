@@ -164,8 +164,8 @@ Maps to the agentic requirement targets:
 
 ### Extra
 
-- **Hotline as a separate workflow**: an Arabic speech / dialect interaction
-  layer, run as its own flow rather than part of the core procedure.
+- **Hotline as a separate flow**: an Arabic speech / dialect interaction
+  layer, run as its own flow and integrated into the main flow as a channel (independent blocks).
 
 ## 5. Evaluation Results
 
