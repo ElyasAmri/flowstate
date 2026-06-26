@@ -83,7 +83,7 @@ flowchart LR
 
     POL[Policy]
     DB[Database]
-    FANAR[[Fanar]]:::fanar
+    FANAR[[Fanar]]
 
     DRAFT --> TOOL
     PM -->|interact / review| TOOL
@@ -103,8 +103,6 @@ flowchart LR
     FANAR -->|backend| HAR
     FANAR -->|backend| HOT
     FANAR -->|backend| MIN
-
-    classDef fanar fill:#fdba74,stroke:#ea580c,color:#000;
 ```
 
 - **Discovery**: dataset (pre-existing + accumulated) -> mining -> draft flow.
@@ -128,9 +126,9 @@ exceptions pause at a human gate.
 
 ```mermaid
 flowchart LR
-    door([Entry channel<br/>door]):::ui --> val[Action<br/>validate inputs]:::plain
-    val --> agent{{"Agent<br/>classify (Fanar)"}}:::agent
-    agent --> dec{Decision<br/>branch on verdict}:::plain
+    door([Entry channel<br/>door]):::ui --> val[Action<br/>validate inputs]
+    val --> agent{{"Agent<br/>classify (Fanar)"}}
+    agent --> dec{Decision<br/>branch on verdict}
     dec -->|clear| issue([Issue and notify]):::service
     dec -->|ambiguous| gate([Human gate<br/>bureaucrat]):::ui
     gate -->|approve| issue
@@ -138,8 +136,6 @@ flowchart LR
 
     classDef ui fill:#fde68a,stroke:#d97706,color:#000;
     classDef service fill:#bbf7d0,stroke:#16a34a,color:#000;
-    classDef agent fill:#e5e7eb,stroke:#6b7280,color:#000;
-    classDef plain fill:#fff,stroke:#9ca3af,color:#000;
 ```
 
 Node colors carry the channel binding: yellow `ui` (a human-operated app),
