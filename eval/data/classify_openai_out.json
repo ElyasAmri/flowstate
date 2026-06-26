@@ -1,0 +1,242 @@
+[
+  {
+    "id": "A1",
+    "decision": "routine"
+  },
+  {
+    "id": "A18302",
+    "decision": "routine"
+  },
+  {
+    "id": "A26623",
+    "decision": "routine"
+  },
+  {
+    "id": "A35320",
+    "decision": "routine"
+  },
+  {
+    "id": "A44262",
+    "decision": "routine"
+  },
+  {
+    "id": "C14098",
+    "decision": "routine"
+  },
+  {
+    "id": "N21406",
+    "decision": "routine"
+  },
+  {
+    "id": "N29651",
+    "decision": "routine"
+  },
+  {
+    "id": "N37789",
+    "decision": "routine"
+  },
+  {
+    "id": "N45589",
+    "decision": "routine"
+  },
+  {
+    "id": "N56802",
+    "decision": "routine"
+  },
+  {
+    "id": "N65727",
+    "decision": "routine"
+  },
+  {
+    "id": "N76611",
+    "decision": "routine"
+  },
+  {
+    "id": "N85483",
+    "decision": "routine"
+  },
+  {
+    "id": "N95161",
+    "decision": "routine"
+  },
+  {
+    "id": "P594",
+    "decision": "routine"
+  },
+  {
+    "id": "S111761",
+    "decision": "routine"
+  },
+  {
+    "id": "S123308",
+    "decision": "routine"
+  },
+  {
+    "id": "S133346",
+    "decision": "routine"
+  },
+  {
+    "id": "S142552",
+    "decision": "routine"
+  },
+  {
+    "id": "S152213",
+    "decision": "routine"
+  },
+  {
+    "id": "S161437",
+    "decision": "routine"
+  },
+  {
+    "id": "S171370",
+    "decision": "routine"
+  },
+  {
+    "id": "S185992",
+    "decision": "routine"
+  },
+  {
+    "id": "S50954",
+    "decision": "routine"
+  },
+  {
+    "id": "S59975",
+    "decision": "routine"
+  },
+  {
+    "id": "S68093",
+    "decision": "routine"
+  },
+  {
+    "id": "S76282",
+    "decision": "routine"
+  },
+  {
+    "id": "S88003",
+    "decision": "routine"
+  },
+  {
+    "id": "V10602",
+    "decision": "routine"
+  },
+  {
+    "id": "A10001",
+    "decision": "non_routine"
+  },
+  {
+    "id": "A1921",
+    "decision": "non_routine"
+  },
+  {
+    "id": "A31151",
+    "decision": "non_routine"
+  },
+  {
+    "id": "A5889",
+    "decision": "non_routine"
+  },
+  {
+    "id": "C18190",
+    "decision": "non_routine"
+  },
+  {
+    "id": "C23412",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N29475",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N50683",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N62111",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N74079",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N85380",
+    "decision": "non_routine"
+  },
+  {
+    "id": "N99025",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S102051",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S110051",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S115098",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S121755",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S129513",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S137407",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S145775",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S158198",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S167208",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S175573",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S183466",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S191670",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S68432",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S82890",
+    "decision": "non_routine"
+  },
+  {
+    "id": "S96882",
+    "decision": "non_routine"
+  },
+  {
+    "id": "V12921",
+    "decision": "non_routine"
+  },
+  {
+    "id": "V18069",
+    "decision": "non_routine"
+  },
+  {
+    "id": "V5603",
+    "decision": "non_routine"
+  }
+]

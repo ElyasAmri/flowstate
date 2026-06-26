@@ -8,16 +8,21 @@ change. Scripts: `eval/run_fanar.py`, `eval/_fanar_sweep.py`,
 
 ## Headline results
 
-| Track | Fanar | Claude | DeepSeek |
-| --- | --- | --- | --- |
-| Road-traffic conformance (60 blind) | **100%** | 100% | 100% |
-| Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% | 92% |
+| Track | Fanar | Claude | DeepSeek | GPT-5.1 |
+| --- | --- | --- | --- | --- |
+| Road-traffic conformance (60 blind) | **100%** | 100% | 100% | 100% |
+| Arabic-LJP verdict (50 blind, full facts) | **90%** | 92% | 92% | 92% |
 
-Three independent models converge: identical conformance and near-identical
-Arabic-LJP (Claude and DeepSeek both 92% with the exact same recall profile,
-accept 20/20, reject 16/20, route 10/10; Fanar 90%). All three share the
-`reject -> accept` residual, so the Arabic tail is task difficulty (procedural
-rejections), not a single model's weakness.
+Four models converge. The three frontier models (Claude, DeepSeek, GPT-5.1) all
+score 92% by failing on the **byte-identical same 4 case ids**
+(aa4bd44e, e9dacfef, 39f0e05f, 09b65449), all `reject -> accept`: claims the
+court rejected on procedural grounds despite submitted documents. Fanar shares
+the same `reject -> accept` tail and loses one extra point to a single unparsed
+verdict (`accept -> abstain`, a format artifact), not a worse ruling. That four
+models, including a frontier reasoning model, fail on exactly the same cases
+means the Arabic tail is task difficulty (the human-gate cases), not a model
+weakness. (gpt-4o, an older model, scored only 52% with route recall 0/10 — the
+latest models are required for this task.)
 
 Road-traffic conformance: Fanar matches Claude exactly (60/60).
 

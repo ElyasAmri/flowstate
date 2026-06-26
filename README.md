@@ -230,20 +230,24 @@ flows alone with `python3 eval/build_flows.py`:
    contests concentrate; article-specific triage for codes with 10–29% appeal
    rates vs. a ~2.3% baseline). See `eval/data/improvements.md`.
 
-| Track | Fanar | Claude | DeepSeek |
-| --- | --- | --- | --- |
-| Road-Traffic Fines: routine vs. non-routine (60 blind) | 100% | 100% | 100% |
-| Arabic-LJP: accept / reject / route (50 blind, full facts) | 90% | 92% | 92% |
+| Track | Fanar | Claude | DeepSeek | GPT-5.1 |
+| --- | --- | --- | --- | --- |
+| Road-Traffic Fines: routine vs. non-routine (60 blind) | 100% | 100% | 100% | 100% |
+| Arabic-LJP: accept / reject / route (50 blind, full facts) | 90% | 92% | 92% | 92% |
 
 Flow artifacts: 3 flows authored in `examples/`, all compile clean to valid
 maestro YAML. Improvement loop: 4,567 exceptions aggregated into 5 data-backed
 flow updates.
 
-Three independent models (Fanar, Claude, DeepSeek) converge: identical 100% on
-conformance and 90-92% on Arabic-LJP with the same `reject -> accept` residual.
-That the routine/exception split is solved across models, and the Arabic tail is
-the same procedural-rejection cases for all three, indicates the boundary is a
-property of the task (what the human gate is for), not of any one model.
+Four models (Fanar, Claude, DeepSeek, GPT-5.1) converge: identical 100% on
+conformance and 90-92% on Arabic-LJP. The three frontier models (Claude,
+DeepSeek, GPT-5.1) score 92% by failing on the **byte-identical same 4 cases**,
+all `reject -> accept` (claims the court rejected on procedural grounds despite
+submitted documents). Fanar matches that residual and loses one extra point to a
+single unparsed verdict, not a worse ruling. That four models, including a
+frontier reasoning model, fail on exactly the same cases shows the Arabic tail
+is a property of the task (precisely what the human gate is for), not of any one
+model.
 
 ### Live Fanar validation
 
