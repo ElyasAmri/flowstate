@@ -26,3 +26,5 @@ node_modules/
 # Flow editor runtime library (written when the app runs against this dir)
 .flowstate/
 .DS_Store
+# Local development notes
+dev.local.md
