@@ -35,47 +35,76 @@ decision leaves an auditable, replayable trace.
 ## 2. Solution Architecture
 
 ```mermaid
-flowchart TB
-    subgraph users[Users]
-        PM[Policy maker<br/>authors]
-        BUR[Bureaucrat<br/>intervenes / signs off]
-        CON[Consumer<br/>is served]
-    end
-
+flowchart LR
     subgraph discovery[Discovery]
-        DS[(Dataset)] --> MIN[Mining] --> DRAFT[Draft flow]
+        direction TB
+        PRE[Pre-existing dataset<br/>event logs / docs]
+        ACC[Accumulated dataset]
+        MIN[Mining]
+        DRAFT[Draft flow]
+        PRE -->|ingest| MIN
+        ACC -->|ingest| MIN
+        MIN -->|discover| DRAFT
     end
 
-    subgraph runtime[Flow runtime]
-        CFG[Flow configuration]
-        HAR[Harness<br/>deterministic execution]
-        IL[Interaction layer<br/>app / hotline]
+    subgraph users[Users]
+        direction TB
+        PM[Policy maker]
+        BUR[Bureaucrat]
+        CON[Consumer]
     end
 
-    subgraph core[Core services]
-        AUD[(Audit / record store)]
-        IDS[(Case / identity store)]
+    TOOL[Flow configuration tooling]
+
+    subgraph system[System]
+        direction TB
+        subgraph runtime[Flow runtime]
+            CFG[Flow configuration]
+            HAR[Harness<br/>deterministic exec]
+            subgraph il[Interaction layer]
+                APP[App]
+                HOT[Hotline]
+            end
+        end
+        subgraph core[Core services - program level]
+            AUD[(Audit / record store<br/>replayable, appealable)]
+            IDS[(Case / identity store)]
+        end
     end
 
-    subgraph ext[External services]
-        REG[Gov registry]
-        EID[eID]
-        PAY[Payment]
-        NOT[Notification / ticketing]
+    subgraph ext[External services - institution level]
+        direction TB
+        REG[Government registry]
+        EID[eID provider]
+        PAY[Payment gateway]
+        NOT[Notification<br/>email / SMS]
+        TIC[Ticketing system]
     end
 
-    FANAR[[Fanar<br/>model backend]]
+    POL[Policy]
+    DB[Database]
+    FANAR[[Fanar]]:::fanar
 
-    PM --> CFG
-    DRAFT --> CFG
-    CFG --> HAR
-    CON <--> IL <--> HAR
-    BUR <--> HAR
-    HAR <--> FANAR
-    HAR --> AUD
-    HAR <--> IDS
-    HAR <--> ext
-    REG -. knowledge source .-> MIN
+    DRAFT --> TOOL
+    PM -->|interact / review| TOOL
+    POL --> TOOL
+    DB --> TOOL
+    TOOL -->|write| CFG
+
+    CON -->|interact| il
+    il -->|intervene / signoff| BUR
+    il -->|run| HAR
+    HAR -.read.-> CFG
+    HAR -->|log| AUD
+    il -->|persist| IDS
+    HAR -->|call| ext
+    MIN -->|extract| ext
+
+    FANAR -->|backend| HAR
+    FANAR -->|backend| HOT
+    FANAR -->|backend| MIN
+
+    classDef fanar fill:#fdba74,stroke:#ea580c,color:#000;
 ```
 
 - **Discovery**: dataset (pre-existing + accumulated) -> mining -> draft flow.
