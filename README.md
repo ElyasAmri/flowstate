@@ -92,7 +92,7 @@ flowchart LR
     TOOL -->|write| CFG
 
     CON -->|interact| il
-    il -->|intervene / signoff| BUR
+    BUR -->|intervene / signoff| il
     il -->|run| HAR
     HAR -.read.-> CFG
     HAR -->|log| AUD
