@@ -11,85 +11,96 @@
         <!-- 1. Title -->
         <section>
           <h1>Flowstate</h1>
-          <p>Codify bureaucratic procedures as deterministic, agent-driven workflows.</p>
-          <p class="subtitle">Smart Government &amp; Citizen Services &middot; powered by Fanar</p>
-          <aside class="notes">One-line pitch. Team: Osama, Elyas.</aside>
+          <p>Codify bureaucratic procedures as deterministic workflows, with AI agents only where judgement is needed.</p>
+          <p class="subtitle">Smart Government &amp; Citizen Services, powered by Fanar</p>
+          <aside class="notes">Most procedures run automatically; humans stay in the loop for genuine exceptions. Team: Osama, Elyas.</aside>
         </section>
 
         <!-- 2. Problem -->
         <section>
           <h2>The Problem</h2>
           <ul>
-            <li>Routine applications are delayed, inconsistent, and expensive when every case waits on a person.</li>
-            <li>Most cases are automatable; only a few are true exceptions.</li>
-            <li>We need accountability: replayable and appealable decisions.</li>
-            <li>Arabic / Gulf government context matters &mdash; dialect, local procedures.</li>
+            <li>Routine applications are slow, inconsistent, and expensive when every case waits on a person.</li>
+            <li>Most cases are unambiguous; only a few are true exceptions.</li>
+            <li>Decisions must stay accountable: replayable and appealable.</li>
+            <li>Built for the Arabic / Gulf government context: dialect, local procedures.</li>
           </ul>
-          <aside class="notes">25% of scoring: importance, impact, value prop.</aside>
+          <aside class="notes">Automate the routine, escalate the exceptions, keep it accountable.</aside>
         </section>
 
-        <!-- 3. Solution Architecture -->
+        <!-- 3. How it works -->
         <section>
-          <h2>Solution Architecture</h2>
+          <h2>How it works</h2>
           <ul>
-            <li><strong>Discovery</strong> &mdash; dataset &rarr; mining &rarr; draft flow.</li>
-            <li><strong>Users</strong> &mdash; policy maker, bureaucrat, consumer.</li>
-            <li><strong>Flow runtime</strong> &mdash; config + deterministic harness + interaction layer.</li>
-            <li><strong>Core services</strong> &mdash; audit / record store, case / identity store.</li>
-            <li><strong>External services</strong> &mdash; registry, eID, payment, notification.</li>
-            <li><strong>Fanar</strong> &mdash; model backend for harness and hotline.</li>
+            <li>A sealed, deterministic engine reaches the world only across typed <strong>channels</strong>.</li>
+            <li>Four node kinds: <strong>channel</strong>, <strong>agent</strong> (Fanar), <strong>action</strong>, <strong>decision</strong>.</li>
+            <li>The routine path runs deterministically with no model discretion.</li>
+            <li>Exactly one non-deterministic node, the agent; genuine exceptions pause at a <strong>human gate</strong>.</li>
           </ul>
-          <aside class="notes">See docs/Diagram.canvas. TODO: architecture diagram export.</aside>
+          <aside class="notes">Every external/non-deterministic interaction is named, typed, visible on the canvas, hence auditable.</aside>
         </section>
 
-        <!-- 4. Agentic Workflow Design -->
+        <!-- 4. The loop: three flows -->
         <section>
-          <h2>Agentic Workflow Design</h2>
+          <h2>The loop</h2>
           <ul>
-            <li><strong>Planning / decomposition</strong> &mdash; the flow: nodes and edges.</li>
-            <li><strong>Tool orchestration</strong> &mdash; per-tool allow / ask / deny gating.</li>
-            <li><strong>Memory &amp; state</strong> &mdash; case / identity store.</li>
-            <li><strong>Retrieval</strong> &mdash; extract policy + database into the config.</li>
-            <li><strong>Autonomous execution</strong> &mdash; harness runs the flow deterministically.</li>
-            <li><strong>Multi-agent</strong> &mdash; subagents per task (own model / prompt / tools).</li>
+            <li><strong>Draft</strong>: mine a routine flow from existing process data.</li>
+            <li><strong>Run</strong>: routine cases auto-process; exceptions go to a human gate.</li>
+            <li><strong>Improve</strong>: accumulated exceptions propose updates back to the flow.</li>
+            <li>All three are authored as real flows that compile to maestro YAML.</li>
           </ul>
-          <aside class="notes">30% of scoring. TODO: walk one concrete flow end-to-end.</aside>
+          <aside class="notes">flow-drafting, fine-management-routine, flow-update in examples/. They close the loop.</aside>
         </section>
 
-        <!-- 5. Use of Fanar + External Tools -->
+        <!-- 5. Use of Fanar -->
         <section>
-          <h2>Use of Fanar &amp; External Tools</h2>
+          <h2>Use of Fanar</h2>
+          <p><strong>Main</strong></p>
           <ul>
-            <li><strong>Fanar as harness backend</strong> &mdash; runs flow-runtime agents and mining.</li>
-            <li><strong>Fanar for the hotline</strong> &mdash; Arabic speech / dialect interaction.</li>
-            <li><strong>Arabic capability</strong> &mdash; dialects and surfaces (TODO).</li>
-            <li><strong>External tools</strong> &mdash; aiXamine safeguards, eID / registry / payment.</li>
+            <li>Powering the harness: the agent nodes that classify and decide.</li>
+            <li>Document parsing: text, images, transcript summaries.</li>
           </ul>
-          <aside class="notes">20% of scoring: meaningful integration, strengths, limitations.</aside>
+          <p><strong>Extra</strong></p>
+          <ul>
+            <li>Hotline as a separate flow: Arabic speech / dialect, integrated as a channel.</li>
+          </ul>
+          <aside class="notes">One config entry; online (Fanar API) or self-hosted, swapped without code changes.</aside>
         </section>
 
-        <!-- 6. Demo -->
+        <!-- 6. Evaluation -->
+        <section>
+          <h2>Evaluation</h2>
+          <ul>
+            <li>Two public datasets: Road-Traffic Fines (150,370 cases) and Arabic-LJP (Saudi court).</li>
+            <li>Routine vs. exception split: <strong>97% / 3%</strong>; classification <strong>100%</strong> on 60 blind cases.</li>
+            <li>Arabic legal judgement: <strong>86%</strong> on 50 blind cases; jurisdiction routing 100% precision.</li>
+            <li>The three loop flows compile clean (0 errors) to valid maestro YAML.</li>
+          </ul>
+          <aside class="notes">Claude stood in for Fanar (config-only swap). Scoring is by script vs. a held-out key. See eval/ and demo/run_demo.sh.</aside>
+        </section>
+
+        <!-- 7. Recommendations & Next steps -->
+        <section>
+          <h2>Recommendations &amp; Next steps</h2>
+          <ul>
+            <li>Calibrated abstention: let the model escalate borderline cases to the gate.</li>
+            <li>First-class structured verdict output (fixed labels + confidence).</li>
+            <li>Stronger Saudi / Gulf legal and administrative grounding.</li>
+            <li>Robust judgement over long Arabic documents.</li>
+            <li>Next: live demo and the recorded walkthrough.</li>
+          </ul>
+          <aside class="notes">The reject-to-accept errors track Saudi-specific procedure; that is the human-gate tail.</aside>
+        </section>
+
+        <!-- 8. Demo -->
         <section>
           <h2>Demo</h2>
           <ul>
-            <li>One bureaucratic procedure, automated end-to-end.</li>
-            <li>Happy path: routine application flows through automatically.</li>
-            <li>Exception path: genuine edge case escalates to a human.</li>
-            <li>Auditable record of every decision.</li>
+            <li>One procedure, end to end: routine application flows through automatically.</li>
+            <li>Exception path: a genuine edge case escalates to a human.</li>
+            <li>Every decision leaves an auditable, replayable trace.</li>
           </ul>
-          <aside class="notes">Demo procedure: TBD (pick from datasets/ triage).</aside>
-        </section>
-
-        <!-- 7. Evaluation & Next Steps -->
-        <section>
-          <h2>Evaluation &amp; Next Steps</h2>
-          <ul>
-            <li>Fanar vs. alternative model on key Arabic tasks (comparison TODO).</li>
-            <li>Where Fanar handled the task well; where we needed external tools.</li>
-            <li>Limitations encountered during development.</li>
-            <li>Recommendations for future Fanar improvements.</li>
-          </ul>
-          <aside class="notes">15% of scoring: assessment, experiments, lessons learned.</aside>
+          <aside class="notes">Residence Certificate example in-app; fine-management flow from the evaluation.</aside>
         </section>
       </div>
     </div>
