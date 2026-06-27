@@ -110,6 +110,20 @@
     };
   }
 
+  /** Read a chosen file into the named payload field as a base64 data URL, so a
+   *  `file`-typed field (e.g. a receipt image) reaches the flow as the base64 an
+   *  agent node's `imageVar` expects. */
+  function readFileField(name: string, e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      values[name] = String(reader.result ?? "");
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function submit() {
     if (!entryNode) return;
     starting = true;
@@ -230,11 +244,25 @@
                 <span class="font-mono text-[11px] text-zinc-500">
                   {f.name}<span class="text-zinc-400"> · {f.type}</span>
                 </span>
-                <input
-                  class="w-full rounded-md border border-black/10 bg-transparent px-2 py-1 text-sm dark:border-white/10"
-                  value={values[f.name]}
-                  oninput={(e) => (values[f.name] = e.currentTarget.value)}
-                />
+                {#if f.type === "file"}
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    class="w-full rounded-md border border-black/10 bg-transparent px-2 py-1 text-sm file:mr-2 file:rounded file:border-0 file:bg-zinc-100 file:px-2 file:py-0.5 file:text-xs dark:border-white/10 dark:file:bg-zinc-700"
+                    onchange={(e) => readFileField(f.name, e)}
+                  />
+                  {#if values[f.name]}
+                    <span class="text-[11px] text-emerald-600 dark:text-emerald-400"
+                      >loaded · {Math.round((values[f.name].length * 3) / 4 / 1024)} KB</span
+                    >
+                  {/if}
+                {:else}
+                  <input
+                    class="w-full rounded-md border border-black/10 bg-transparent px-2 py-1 text-sm dark:border-white/10"
+                    value={values[f.name]}
+                    oninput={(e) => (values[f.name] = e.currentTarget.value)}
+                  />
+                {/if}
               </label>
             {/each}
           {:else}
