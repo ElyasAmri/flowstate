@@ -167,19 +167,17 @@
   // current node and edge so the user can follow the execution visually.
   let activeNodeId = $state<string | null>(null);
   let activeEdgeId = $state<string | null>(null);
-  // A node a completed run just added, for the camera to fly to (loop demo).
-  let focusNodeId = $state<string | null>(null);
+  // Bumped when a completed run adds nodes, to frame the whole flow (loop demo).
+  let fitToken = $state(0);
 
   function handleRunActive(nodeId: string | null, edgeId: string | null) {
     activeNodeId = nodeId;
     activeEdgeId = edgeId;
-    if (nodeId) focusNodeId = null; // an executing run takes over the camera
   }
 
   function handleRunClose() {
     activeNodeId = null;
     activeEdgeId = null;
-    focusNodeId = null;
     submitTarget = null;
   }
 
@@ -189,17 +187,17 @@
   function handleRunComplete(entryId: string) {
     if (editor.flow.id !== "loop-demo") return;
     if (entryId === "svc-mining") {
-      // The init drafting run drafts the routine procedure onto the canvas; fly
-      // the camera there so the new main flow is on screen, not off-canvas.
+      // The init drafting run drafts the routine procedure onto the canvas; fit
+      // the whole flow so the audience sees the new main flow appear in context.
       editor.addSubgraph(loopDemoSpine.nodes, loopDemoSpine.edges);
       editor.select("n-input");
-      focusNodeId = "n-input";
+      fitToken += 1;
     } else if (entryId === "svc-exceptions") {
-      // The periodic-update run adds a step to the routine procedure; fly the
-      // camera to that step so the change is visible, not off screen.
+      // The periodic-update run adds a step to the routine procedure; fit so the
+      // new step is visible appearing within the whole flow.
       editor.addSubgraph(loopDemoUpdate.nodes, loopDemoUpdate.edges);
       editor.select("n-fasttrack");
-      focusNodeId = "n-fasttrack";
+      fitToken += 1;
     }
   }
 
@@ -381,7 +379,7 @@
   <div class="flex min-h-0 flex-1">
     <NodePalette onadd={handleAdd} />
     <div class="min-h-0 flex-1">
-      <FlowCanvas {editor} {activeNodeId} {activeEdgeId} {focusNodeId} onnodeactivate={handleNodeActivate} />
+      <FlowCanvas {editor} {activeNodeId} {activeEdgeId} {fitToken} onnodeactivate={handleNodeActivate} />
     </div>
     <NodeInspector {editor} onsubmit={openSubmit} onopenflow={openNested} />
   </div>

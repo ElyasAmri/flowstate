@@ -30,9 +30,9 @@
     activeNodeId?: string | null;
     /** Live-run highlight: edge currently being traversed. */
     activeEdgeId?: string | null;
-    /** Pan/zoom the camera to this node when set (e.g. a node a run just added),
-     *  even though no run is executing. Takes precedence over `activeNodeId`. */
-    focusNodeId?: string | null;
+    /** Bump this to frame the whole flow (eased) -- e.g. after a run adds nodes,
+     *  so the audience sees the new flow appear in context, not zoomed in. */
+    fitToken?: number;
   }
 
   let {
@@ -40,7 +40,7 @@
     onnodeactivate,
     activeNodeId = null,
     activeEdgeId = null,
-    focusNodeId = null,
+    fitToken = 0,
   }: Props = $props();
 
   const viewport = new Viewport();
@@ -192,19 +192,31 @@
   // it so the diagram (not a modal) tells the story. Idle (no active node)
   // leaves the viewport where the author left it; manual gestures suppress the
   // follow so panning stays crisp.
-  // A node a run just added (focusNodeId) wins over the executing node, so the
-  // camera flies to show the change before the run's last node lingers.
-  const camTarget = $derived(focusNodeId ?? activeNodeId);
   $effect(() => {
-    const id = camTarget;
+    const id = activeNodeId;
     if (!id || interaction.kind !== "idle") return;
     const node = editor.flow.nodes.find((n) => n.id === id);
     if (!node) return;
     const centre = { x: node.position.x + NODE_W / 2, y: node.position.y + NODE_H / 2 };
     viewport.centerOn(centre, viewSize(), Math.max(viewport.zoom, 1));
   });
-  // Ease the transform only while following a run/focus, so manual pan is instant.
-  const cameraEasing = $derived(camTarget != null && interaction.kind === "idle");
+
+  // Fit-to-view on demand (eased): when fitToken changes, frame the whole flow
+  // so a just-added sub-flow is visible appearing in context. The easing flag is
+  // raised first, then the fit runs next frame so the transform animates.
+  let fitting = $state(false);
+  $effect(() => {
+    if (!fitToken || interaction.kind !== "idle") return;
+    fitting = true;
+    requestAnimationFrame(fitView);
+    const t = setTimeout(() => (fitting = false), 1100);
+    return () => clearTimeout(t);
+  });
+
+  // Ease the transform while following a run or fitting, so manual pan is instant.
+  const cameraEasing = $derived(
+    fitting || (activeNodeId != null && interaction.kind === "idle"),
+  );
 
   /** clientX/Y -> screen coords relative to the canvas element. */
   function toScreen(e: PointerEvent): Point {
