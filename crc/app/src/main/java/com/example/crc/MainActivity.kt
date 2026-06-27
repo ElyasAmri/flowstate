@@ -17,9 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -30,6 +34,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -44,9 +49,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crc.ui.theme.CRCTheme
 
-// OBS scene names -- create scenes with these exact names in OBS.
-private const val DECK_SCENE = "Deck"
-private const val DEMO_SCENE = "Demo"
+// Slide titles + their horizontal index in the deck (all top-level, v = 0).
+private val MAIN_SLIDES = listOf(
+    "Title", "Problem", "Root cause", "Architecture", "Demo",
+    "Fanar integrations", "Evaluation", "Improving Fanar", "Close",
+)
+private val APPENDIX_SLIDES = listOf(
+    "Eval design", "Node taxonomy", "Refinement", "Why it matters", "Governance", "Tech stack",
+)
+private const val APPENDIX_OFFSET = 9 // first appendix slide's index in the deck
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,111 +65,120 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CRCTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    App(modifier = Modifier.padding(innerPadding))
-                }
+                App()
             }
         }
     }
 }
 
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App() {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
     val relay = remember { RemoteClient() }
-    val obs = remember { ObsClient() }
-    DisposableEffect(Unit) {
-        onDispose {
-            relay.disconnect()
-            obs.disconnect()
-        }
-    }
+    DisposableEffect(Unit) { onDispose { relay.disconnect() } }
 
     var relayUrl by remember { mutableStateOf(prefs.relayUrl) }
-    var obsUrl by remember { mutableStateOf(prefs.obsUrl) }
-    var obsPassword by remember { mutableStateOf(prefs.obsPassword) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
-    // Auto-connect both legs on launch and whenever their settings change, so
-    // the control surface carries no connection chrome.
+    // Auto-connect on launch and whenever the relay address changes.
     LaunchedEffect(relayUrl) { relay.connect(relayUrl) }
-    LaunchedEffect(obsUrl, obsPassword) { obs.connect(obsUrl, obsPassword) }
 
     if (showSettings) {
         SettingsScreen(
             relay = relay,
-            obs = obs,
             initialRelay = relayUrl,
-            initialObsUrl = obsUrl,
-            initialObsPassword = obsPassword,
-            onSave = { r, u, p ->
+            onSave = { r ->
                 relayUrl = r.trim().also { prefs.relayUrl = it }
-                obsUrl = u.trim().also { prefs.obsUrl = it }
-                obsPassword = p.also { prefs.obsPassword = it }
                 showSettings = false
             },
             onBack = { showSettings = false },
-            modifier = modifier,
         )
     } else {
-        StageScreen(
+        HomeScreen(
             relay = relay,
-            obs = obs,
-            onReconnect = {
-                relay.connect(relayUrl)
-                obs.connect(obsUrl, obsPassword)
-            },
+            onReconnect = { relay.connect(relayUrl) },
             onOpenSettings = { showSettings = true },
-            modifier = modifier,
         )
     }
 }
 
 @Composable
-private fun StageScreen(
+private fun HomeScreen(
     relay: RemoteClient,
-    obs: ObsClient,
     onReconnect: () -> Unit,
     onOpenSettings: () -> Unit,
-    modifier: Modifier = Modifier,
+) {
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = tab == 0,
+                    onClick = { tab = 0 },
+                    icon = { Text("◉", fontSize = 18.sp) },
+                    label = { Text("Controls") },
+                )
+                NavigationBarItem(
+                    selected = tab == 1,
+                    onClick = { tab = 1 },
+                    icon = { Text("▤", fontSize = 18.sp) },
+                    label = { Text("Main") },
+                )
+                NavigationBarItem(
+                    selected = tab == 2,
+                    onClick = { tab = 2 },
+                    icon = { Text("⋯", fontSize = 18.sp) },
+                    label = { Text("Appendix") },
+                )
+            }
+        },
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            when (tab) {
+                0 -> ControlsTab(relay, onReconnect, onOpenSettings)
+                1 -> SlidesTab(relay, MAIN_SLIDES, 0)
+                else -> SlidesTab(relay, APPENDIX_SLIDES, APPENDIX_OFFSET)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ControlsTab(
+    relay: RemoteClient,
+    onReconnect: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val relayState by relay.state.collectAsState()
     val position by relay.position.collectAsState()
-    val obsState by obs.state.collectAsState()
-    val scene by obs.scene.collectAsState()
     val connected = relayState == ConnState.Connected
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp),
+        modifier = Modifier.fillMaxSize().padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Minimal header: two status dots (tap either to reconnect) + settings.
+        // Status dot (tap to reconnect) + settings.
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
             StatusDot(relayState, onReconnect)
-            Spacer(Modifier.width(6.dp))
-            StatusDot(obsState, onReconnect)
             Spacer(Modifier.weight(1f))
             TextButton(onClick = onOpenSettings) { Text("Settings") }
         }
 
         Spacer(Modifier.weight(1f))
 
-        // Where the deck is, echoed back over the relay.
         val where = position?.let { p ->
-            if (p.overview) "overview" else "${p.h + 1}.${p.v + 1} / ${p.total}"
+            if (p.overview) "overview" else "${p.h + 1} / ${p.total}"
         } ?: "--"
         Text(where, style = MaterialTheme.typography.displaySmall)
 
         Spacer(Modifier.height(4.dp))
 
-        // Slide nav -- small prev / next arrows.
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             ArrowButton("‹", connected) { relay.send("prev") }
             ArrowButton("›", connected) { relay.send("next") }
@@ -172,18 +192,41 @@ private fun StageScreen(
         }
 
         Spacer(Modifier.weight(1f))
+    }
+}
 
-        // OBS scene switching -- the seamless cut to the live app. Active scene
-        // stays highlighted (filled), driven by OBS events.
-        Text(
-            "SCENE",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        val obsReady = obsState == ConnState.Connected
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SceneButton("Deck", scene == DECK_SCENE, obsReady) { obs.setScene(DECK_SCENE) }
-            SceneButton("Demo", scene == DEMO_SCENE, obsReady) { obs.setScene(DEMO_SCENE) }
+@Composable
+private fun SlidesTab(relay: RemoteClient, titles: List<String>, offset: Int) {
+    val relayState by relay.state.collectAsState()
+    val position by relay.position.collectAsState()
+    val enabled = relayState == ConnState.Connected
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        itemsIndexed(titles) { i, title ->
+            val h = offset + i
+            val active = position?.h == h
+            SlideButton(
+                label = "${h + 1}.  $title",
+                active = active,
+                enabled = enabled,
+                onClick = { relay.goto(h) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SlideButton(label: String, active: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    if (active) {
+        Button(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+            Text(label, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+        }
+    } else {
+        OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+            Text(label, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
         }
     }
 }
@@ -191,24 +234,15 @@ private fun StageScreen(
 @Composable
 private fun SettingsScreen(
     relay: RemoteClient,
-    obs: ObsClient,
     initialRelay: String,
-    initialObsUrl: String,
-    initialObsPassword: String,
-    onSave: (String, String, String) -> Unit,
+    onSave: (String) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val relayState by relay.state.collectAsState()
-    val obsState by obs.state.collectAsState()
     var relayDraft by rememberSaveable { mutableStateOf(initialRelay) }
-    var obsDraft by rememberSaveable { mutableStateOf(initialObsUrl) }
-    var pwDraft by rememberSaveable { mutableStateOf(initialObsPassword) }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp),
+        modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(
@@ -233,26 +267,10 @@ private fun SettingsScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
-            value = obsDraft,
-            onValueChange = { obsDraft = it },
-            label = { Text("OBS WebSocket") },
-            supportingText = { Text(connLabel("OBS", obsState)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = pwDraft,
-            onValueChange = { pwDraft = it },
-            label = { Text("OBS password") },
-            supportingText = { Text("blank if OBS auth is disabled") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
 
         Button(
-            onClick = { onSave(relayDraft, obsDraft, pwDraft) },
-            enabled = relayDraft.isNotBlank() && obsDraft.isNotBlank(),
+            onClick = { onSave(relayDraft) },
+            enabled = relayDraft.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Save & connect") }
     }
@@ -292,18 +310,5 @@ private fun ArrowButton(glyph: String, enabled: Boolean, onClick: () -> Unit) {
             .height(64.dp),
     ) {
         Text(glyph, fontSize = 30.sp)
-    }
-}
-
-@Composable
-private fun SceneButton(label: String, active: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    if (active) {
-        Button(onClick = onClick, enabled = enabled, modifier = Modifier.width(130.dp)) {
-            Text(label)
-        }
-    } else {
-        OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.width(130.dp)) {
-            Text(label)
-        }
     }
 }

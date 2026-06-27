@@ -1,11 +1,10 @@
 # CRC — Android App
 
-A phone remote for the live presentation. Over the LAN it drives **two** legs:
-slide navigation (via the deck's relay at `ws://<laptop>:5173/remote`) and the
-OBS scene cut between the slides and the live Flowstate app
-(`ws://<laptop>:4455`, obs-websocket v5). The phone and laptop must be on the
-same Wi-Fi. Full wiring, ports, and run-of-show are in
-[`presentation/DEMO.md`](../presentation/DEMO.md).
+A phone remote for the presentation deck. Over the LAN it drives the deck's
+relay (`ws://<laptop>:5173/remote`): the phone and laptop must be on the same
+Wi-Fi. Three bottom tabs: **Controls** (prev / next / first / overview +
+position), **Main** (jump to any main slide by title), and **Appendix** (same
+for the backup slides). Set the relay address on the Settings screen.
 
 Built with Kotlin, Jetpack Compose, and Gradle (Kotlin DSL).
 

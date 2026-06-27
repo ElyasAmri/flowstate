@@ -121,6 +121,11 @@ class RemoteClient {
         socket?.send(JSONObject().put("cmd", cmd).toString())
     }
 
+    /** Jump to a slide: `goto(5)` -> `{"cmd":"goto","h":5,"v":0}`. */
+    fun goto(h: Int, v: Int = 0) {
+        socket?.send(JSONObject().put("cmd", "goto").put("h", h).put("v", v).toString())
+    }
+
     private companion object {
         const val NORMAL_CLOSURE = 1000
         const val RECONNECT_MS = 2000L
