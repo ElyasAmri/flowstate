@@ -52,7 +52,12 @@
             <li><strong>Inconsistent:</strong> same input, two different answers.</li>
             <li><strong>Unaccountable:</strong> no one answerable for the step.</li>
           </ul>
-          <aside class="notes">The reliability framing (script): institutions rely on work being done correctly and someone being held accountable. Agents are not only fallible, they are inconsistent on the same input, so you can't drop one into the middle of a procedure.</aside>
+          <p class="fragment" style="margin-top: 1.1em; font-size: 0.66em; color: var(--muted); max-width: 40ch">
+            So they barely run anything: as of <strong style="color: var(--accent)">2026, over half</strong>
+            of federal agencies were still only <em>planning</em> their first agentic-AI pilots.
+            <span style="color: var(--faint)">(Nextgov / ServiceNow survey, 2026)</span>
+          </p>
+          <aside class="notes">The reliability framing (script): institutions rely on work being done correctly and someone being held accountable. Agents are not only fallible, they are inconsistent on the same input, so you can't drop one into the middle of a procedure. The stat shows the gap: agentic AI in government is still mostly pilots, not production.</aside>
         </section>
 
         <!-- 3. ROOT CAUSE -->
@@ -146,6 +151,59 @@
             submitted → under review at the <strong>human gate</strong> → decision.
           </p>
           <aside class="notes">Talk over the demo: a flow is drafted, run, and improved from its own exceptions. The citizen phone advances in sync with the video.</aside>
+        </section>
+
+        <!-- 5c. FANAR INTEGRATIONS + FAMILY (ported from osamas) -->
+        <section>
+          <span class="numeral">05</span>
+          <p class="eyebrow">Leveraging Fanar</p>
+          <h2>Fanar integrations.</h2>
+          <div class="engine">
+            <div class="uc-row">
+              <div class="uc">
+                <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg> Traffic fines</div>
+                <div class="ucwhat">Routine vs exception conformance over the procedure.</div>
+                <div class="ucdata"><b>Data:</b> Road-Traffic Fines (BPI) · 150,370 cases · 231 variants.</div>
+                <span class="captag">reasoning</span>
+              </div>
+              <div class="uc">
+                <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> Legal judgement</div>
+                <div class="ucwhat">Predicts the ruling: accept / reject / route.</div>
+                <div class="ucdata"><b>Data:</b> Saudi commercial court · 538 cases · Arabic facts → verdict.</div>
+                <span class="captag">reasoning</span>
+              </div>
+              <div class="uc">
+                <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/></svg> Receipt claims</div>
+                <div class="ucwhat">Reads the Arabic receipt: OCR + key-info extraction.</div>
+                <div class="ucdata"><b>Data:</b> CORU / ReceiptSense · ~20k receipts · Arabic + English.</div>
+                <span class="captag">vision</span>
+              </div>
+            </div>
+            <div class="conn-row">
+              <div class="conn"><div class="line"></div><div class="mchip">Fanar 2 instruct</div><div class="line"></div></div>
+              <div class="conn"><div class="line"></div><div class="mchip">Fanar 2 instruct</div><div class="line"></div></div>
+              <div class="conn"><div class="line"></div><div class="mchip">Fanar-Oryx-IVU</div><div class="line"></div></div>
+            </div>
+            <div class="engine-bar">
+              <span class="fwm">FAN<b>AR</b></span>
+              <span class="esub">one OpenAI-compatible config · online ⇄ self-hosted</span>
+            </div>
+          </div>
+          <div class="famrow">
+            <div class="fam">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              <div class="ot"><b>Fanar-Aura</b> <span>speech → hotline</span></div>
+            </div>
+            <div class="fam">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+              <div class="ot"><b>Fanar-Shaheen</b> <span>translation → multilingual</span></div>
+            </div>
+            <div class="fam">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C10.5 3.8 13 5 15 5a1 1 0 0 1 1 1z"/></svg>
+              <div class="ot"><b>Fanar-Guard</b> <span>moderation → safeguards</span></div>
+            </div>
+          </div>
+          <aside class="notes">Each use-case maps to the Fanar model it uses: chat (Fanar 2 instruct) for reasoning over traffic-fine and legal-judgement data; Oryx (Fanar-Oryx-IVU), the Arabic vision model, for OCR on the CORU receipts. All through one OpenAI-compatible config. From the family next, same pattern: Aura (speech/hotline), Shaheen (translation), Guard (moderation).</aside>
         </section>
 
         <!-- 6. EVALUATION -->
@@ -381,6 +439,27 @@
             </div>
           </div>
           <aside class="notes">Legality: if signoff is legally required, every procedure can be signed off after processing. Privacy: running Fanar locally limits the concern. Security: the flexibility lets you put a filter like AiXamine between inputs and agents to screen malicious documents.</aside>
+        </section>
+
+        <!-- A7. TECH STACK -->
+        <section>
+          <p class="eyebrow">Tech stack</p>
+          <h2>What it's built with.</h2>
+          <div class="grid-3" style="margin-top: 0.5em">
+            <div class="card">
+              <h3>Desktop app</h3>
+              <p>Tauri 2 (Rust) · Svelte 5 · Tailwind 4 · TypeScript</p>
+            </div>
+            <div class="card">
+              <h3>Engine &amp; eval</h3>
+              <p>Rust harness · Python eval scripts · Fanar on vLLM / RunPod, one OpenAI-compatible config</p>
+            </div>
+            <div class="card">
+              <h3>Deck &amp; remote</h3>
+              <p>reveal.js · Vite · the crc phone remote in Kotlin / Jetpack Compose</p>
+            </div>
+          </div>
+          <aside class="notes">The desktop editor and the deterministic harness are Tauri 2 + Rust with a Svelte 5 front end. Evaluation is Python; Fanar runs self-hosted on vLLM / RunPod behind one OpenAI-compatible config. The deck is reveal.js + Vite, driven live by the crc phone remote (Kotlin / Compose).</aside>
         </section>
 
       </div>
