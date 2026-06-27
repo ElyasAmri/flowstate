@@ -9,98 +9,130 @@
     <div class="reveal">
       <div class="slides">
         <!-- 1. Title -->
-        <section>
-          <h1>Flowstate</h1>
+        <section data-auto-animate>
+          <h1 data-id="title">Flowstate</h1>
           <p>Codify bureaucratic procedures as deterministic workflows, with AI agents only where judgement is needed.</p>
-          <p class="subtitle">Smart Government &amp; Citizen Services, powered by Fanar</p>
-          <aside class="notes">Most procedures run automatically; humans stay in the loop for genuine exceptions. Team: Osama, Elyas.</aside>
+          <p class="subtitle">Smart Government &amp; Citizen Services, powered by Fanar. Team <strong>return 0</strong>.</p>
+          <aside class="notes">
+            Greetings everyone, my name is Osama, and this is my colleague Elyas.
+            Today we are presenting our work.
+          </aside>
         </section>
 
-        <!-- 2. Problem -->
+        <!-- 2. Why aren't agents in government? -->
         <section>
-          <h2>The Problem</h2>
+          <h2>Why aren't agents in government?</h2>
+          <p>It comes down to <strong>reliability</strong>.</p>
           <ul>
-            <li>Routine applications are slow, inconsistent, and expensive when every case waits on a person.</li>
-            <li>Most cases are unambiguous; only a few are true exceptions.</li>
-            <li>Decisions must stay accountable: replayable and appealable.</li>
-            <li>Built for the Arabic / Gulf government context: dialect, local procedures.</li>
+            <li>We rely on others to do work correctly, and to be accountable when it is wrong.</li>
+            <li>Agents are not only <strong>unreliable</strong> on some tasks,</li>
+            <li>they are also <strong>inconsistent</strong>: different answers to the same input.</li>
           </ul>
-          <aside class="notes">Automate the routine, escalate the exceptions, keep it accountable.</aside>
+          <aside class="notes">
+            Before we started, we asked ourselves one question: why aren't LLM agents
+            integrated into the work of institutions and government. One technical issue
+            is reliability. Us humans tend to rely on others doing work correctly and be
+            held accountable when done incorrectly. Agents are not only unreliable on
+            certain tasks, they are also inconsistent when repeating the task on the same
+            input.
+          </aside>
         </section>
 
-        <!-- 3. How it works -->
+        <!-- 3. The root cause: too many responsibilities -->
         <section>
-          <h2>How it works</h2>
+          <h2>Too many responsibilities</h2>
           <ul>
-            <li>A sealed, deterministic engine reaches the world only across typed <strong>channels</strong>.</li>
-            <li>Four node kinds: <strong>channel</strong>, <strong>agent</strong> (Fanar), <strong>action</strong>, <strong>decision</strong>.</li>
-            <li>The routine path runs deterministically with no model discretion.</li>
-            <li>Exactly one non-deterministic node, the agent; genuine exceptions pause at a <strong>human gate</strong>.</li>
+            <li>We hand one agent too many tools and too many tasks, and expect wonders.</li>
+            <li>But most work follows a fixed <strong>ordering of steps</strong>.</li>
+            <li>So: model <strong>separation of concerns</strong> across agents and coordinate them, for consistent, reliable output.</li>
           </ul>
-          <aside class="notes">Every external/non-deterministic interaction is named, typed, visible on the canvas, hence auditable.</aside>
+          <p class="subtitle">And this is where Flowstate comes in.</p>
+          <aside class="notes">
+            Coming from a software engineering background, this problem is easily
+            attributable to one reason: agents have too many responsibilities. We hand
+            agents too many tools, too many tasks, and expect to do wonders. But the
+            truth is that most work, if not all, follows a certain ordering or steps. So
+            the question is, can we model separation of concerns on the agents and
+            coordinate them to achieve more consistent and potentially reliable output?
+            And this is where Flowstate comes into the picture.
+          </aside>
         </section>
 
-        <!-- 4. The loop: three flows -->
-        <section>
-          <h2>The loop</h2>
-          <ul>
-            <li><strong>Draft</strong>: mine a routine flow from existing process data.</li>
-            <li><strong>Run</strong>: routine cases auto-process; exceptions go to a human gate.</li>
-            <li><strong>Improve</strong>: accumulated exceptions propose updates back to the flow.</li>
-            <li>All three are authored as real flows that compile to maestro YAML.</li>
-          </ul>
-          <aside class="notes">flow-drafting, fine-management-routine, flow-update in examples/. They close the loop.</aside>
+        <!-- 4. Flowstate, the demo plays while we describe it -->
+        <section data-background-color="#0b0e14">
+          <h2 data-id="title" style="margin-bottom: 0.3em;">Flowstate</h2>
+          <video
+            data-autoplay
+            muted
+            loop
+            playsinline
+            src="/flowstate-demo.mp4"
+            style="width: 100%; max-height: 72vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);"
+          ></video>
+          <p class="caption">
+            An editor for workflows: input arrives over <strong>channels</strong>, runs
+            through <strong>code, agents, services, and nested flows</strong>, pauses at
+            <strong>human gates</strong>, all in one sealed harness.
+          </p>
+          <aside class="notes">
+            Flowstate is an agent-driven program, inspired by claude code and n8n. It has
+            an editor which allows users to create a workflow to handle input through
+            outside sources (channels), funnel input through multiple steps which of
+            code, agents, external service, and nested flows, and at certain steps asks
+            for intervention from a human worker or send messages to other channels. All
+            of this is run in a single harness, which allows for maximum control over
+            each step. [Talk over the demo: the init flow drafts the routine procedure;
+            the procedure runs and escalates an ambiguous case to a human gate; the
+            update flow proposes a change back to it. UI channels on the left, shared
+            services on the right.]
+          </aside>
         </section>
 
         <!-- 5. Use of Fanar -->
         <section>
-          <h2>Use of Fanar</h2>
-          <p><strong>Main</strong></p>
+          <h2>Where Fanar fits</h2>
           <ul>
-            <li>Powering the harness: the agent nodes that classify and decide.</li>
-            <li>Document parsing: text, images, transcript summaries.</li>
+            <li><strong>Agentic LLM</strong>: the agent nodes that reason, classify, and call tools.</li>
+            <li><strong>Document parsing</strong>: text, images, audio (transcripts).</li>
+            <li>Strong at extracting meaning from <strong>Arabic</strong> context, a perfect fit for the Gulf government setting.</li>
           </ul>
-          <p><strong>Extra</strong></p>
-          <ul>
-            <li>Hotline as a separate flow: Arabic speech / dialect, integrated as a channel.</li>
-          </ul>
-          <aside class="notes">One config entry; online (Fanar API) or self-hosted, swapped without code changes.</aside>
+          <aside class="notes">
+            Fanar serves two main roles in this program: agentic LLM for tool calling, and
+            document parsing (image, text, audio etc.) Its capability to better extract
+            info from Arabic context is a perfect suit for this. One config entry; online
+            (Fanar API) or self-hosted on RunPod, swapped without code changes.
+          </aside>
         </section>
 
         <!-- 6. Evaluation -->
         <section>
-          <h2>Evaluation</h2>
-          <ul>
-            <li>Two public datasets: Road-Traffic Fines (150,370 cases) and Arabic-LJP (Saudi court).</li>
-            <li>Routine vs. exception split: <strong>97% / 3%</strong>; classification <strong>100%</strong> on 60 blind cases.</li>
-            <li>Arabic legal judgement: <strong>86%</strong> on 50 blind cases; jurisdiction routing 100% precision.</li>
-            <li>The three loop flows compile clean (0 errors) to valid maestro YAML.</li>
-          </ul>
-          <aside class="notes">Claude stood in for Fanar (config-only swap). Scoring is by script vs. a held-out key. See eval/ and demo/run_demo.sh.</aside>
+          <h2>Does it work?</h2>
+          <p>Two procedure datasets: <strong>Road-Traffic Fines</strong> and an <strong>Arabic Legal Judgement</strong> dataset.</p>
+          <table class="results">
+            <thead>
+              <tr><th>Track</th><th>Fanar</th><th>GPT-5.5</th><th>Claude</th><th>DeepSeek</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Routine vs exception (conformance)</td><td>100%</td><td>100%</td><td>100%</td><td>100%</td></tr>
+              <tr><td>Arabic verdict extraction</td><td>98%</td><td>100%</td><td>100%</td><td>100%</td></tr>
+              <tr><td>Judgement, reasoning stripped</td><td>56%</td><td>84%</td><td>74%</td><td>60%</td></tr>
+            </tbody>
+          </table>
+          <p class="caption">Fanar on a single RunPod instance: slightly under the frontier models, on par for Arabic extraction.</p>
+          <aside class="notes">
+            Now this is good and all, but we wanted to show its effectiveness. We pulled a
+            bunch of datasets that deal with procedures and routines. For this demo, we
+            present results from a road traffic dataset and an Arabic Legal Judgement
+            Dataset. Results are presented on screen. As you can see, Fanar running on a
+            single RunPod instance is slightly under frontier models from silicon valley.
+          </aside>
         </section>
 
-        <!-- 7. Recommendations & Next steps -->
-        <section>
-          <h2>Recommendations &amp; Next steps</h2>
-          <ul>
-            <li>Calibrated abstention: let the model escalate borderline cases to the gate.</li>
-            <li>First-class structured verdict output (fixed labels + confidence).</li>
-            <li>Stronger Saudi / Gulf legal and administrative grounding.</li>
-            <li>Robust judgement over long Arabic documents.</li>
-            <li>Next: live demo and the recorded walkthrough.</li>
-          </ul>
-          <aside class="notes">The reject-to-accept errors track Saudi-specific procedure; that is the human-gate tail.</aside>
-        </section>
-
-        <!-- 8. Demo -->
-        <section>
-          <h2>Demo</h2>
-          <ul>
-            <li>One procedure, end to end: routine application flows through automatically.</li>
-            <li>Exception path: a genuine edge case escalates to a human.</li>
-            <li>Every decision leaves an auditable, replayable trace.</li>
-          </ul>
-          <aside class="notes">Residence Certificate example in-app; fine-management flow from the evaluation.</aside>
+        <!-- 7. Thank you -->
+        <section data-auto-animate data-background-color="#0b0e14">
+          <h1 data-id="title">Thank you</h1>
+          <p class="subtitle">team <strong>return 0</strong>. Osama and Elyas.</p>
+          <aside class="notes">This has been a presentation by team return 0; thank you.</aside>
         </section>
       </div>
     </div>

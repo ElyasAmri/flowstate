@@ -1,5 +1,13 @@
 /* Flowstate deck overrides. The reveal.js "black" theme provides the base. */
 
+/* The black theme uppercases headings; keep them as written (brand is
+   title-case "Flowstate", and we avoid all-caps labels). */
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  text-transform: none;
+}
+
 .reveal h1 {
   font-size: 3.2em;
   letter-spacing: -0.02em;
@@ -16,5 +24,42 @@
 
 .reveal .slides section h1,
 .reveal .slides section h2 {
+  text-align: center;
+}
+
+/* Short caption under a figure / the demo video. */
+.reveal .caption {
+  text-align: center;
+  opacity: 0.75;
+  font-size: 0.6em;
+  margin-top: 0.5em;
+}
+
+/* Evaluation results table. */
+.reveal table.results {
+  margin: 0.4em auto;
+  font-size: 0.62em;
+  border-collapse: collapse;
+}
+
+.reveal table.results th,
+.reveal table.results td {
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35em 0.8em;
+}
+
+.reveal table.results thead th {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* First column (the track) reads left; the model scores read centred. */
+.reveal table.results td:first-child,
+.reveal table.results th:first-child {
+  text-align: left;
+}
+
+.reveal table.results td:not(:first-child),
+.reveal table.results th:not(:first-child) {
   text-align: center;
 }
