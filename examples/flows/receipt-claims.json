@@ -1,0 +1,218 @@
+{
+  "id": "receipt-claims",
+  "title": "Expense receipt reimbursement",
+  "description": "A citizen uploads a receipt; Fanar Oryx extracts its fields; a deterministic policy script (eval/policy_infer.py) computes the verdict; the flow routes on that verdict to an auto-terminal or escalates to a human operator.",
+  "nodes": [
+    {
+      "id": "rc-door",
+      "kind": "channel",
+      "channelId": "ch-receipt-intake",
+      "label": "Receipt intake",
+      "description": "Inbound door: citizen submits a receipt image and their claimant ID.",
+      "position": {
+        "x": 80.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "rc-extract",
+      "kind": "agent",
+      "agentRef": "fanar-oryx",
+      "backend": "fanar-oryx",
+      "imageVar": "receipt_image",
+      "label": "Extract receipt fields",
+      "description": "Fanar Oryx performs Arabic/English OCR and key-info extraction. Outputs only a fenced JSON block; the runtime parses it into vars + fields_b64.",
+      "prompt": "You are Fanar Oryx, an Arabic-English receipt understanding model.\n\nExtract the receipt fields from the provided image and reply with ONLY a fenced JSON code block in this exact shape:\n\n```json\n{\"merchant\": \"...\", \"date\": \"YYYY-MM-DD\", \"receipt_no\": \"...\", \"items\": [{\"name\": \"...\", \"price\": 0.00, \"qty\": 1, \"category\": \"...\"}], \"total\": 0.00, \"currency\": \"QAR\", \"confidence\": 0.00, \"unrecognized\": false}\n```\n\nFields:\n- merchant: vendor / business name\n- date: transaction date in ISO 8601 format (YYYY-MM-DD)\n- receipt_no: receipt or invoice number\n- items: array of line items, each with name, price (number), qty (number), and category (one of: pharmacy, medical, clinic, optical, tobacco, alcohol, electronics, gift_card, luxury, other)\n- total: claimed total (number)\n- currency: detected currency code (e.g. QAR)\n- confidence: your minimum per-field confidence score across all required fields, 0.0–1.0\n- unrecognized: true if the receipt layout is entirely unparseable; if true, other fields may be omitted\n\nArabic category mapping:\n  دواء / أدوية / صيدلية   → pharmacy\n  مستشفى / عيادة / طبي    → medical or clinic\n  نظارات                  → optical\n  تبغ / سجائر             → tobacco\n  كحول                    → alcohol\n  إلكترونيات / أجهزة      → electronics\n  بطاقة هدية              → gift_card\n  فاخر / ساعات / مجوهرات  → luxury\n  All else                 → other\n\nOutput ONLY the fenced ```json block. No other text.",
+      "position": {
+        "x": 420.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "rc-compute",
+      "kind": "action",
+      "op": "shell",
+      "label": "Run policy inference",
+      "description": "Deterministic policy script reads the base64-encoded extracted fields and writes the verdict string to stdout (outcome.text).",
+      "command": "python eval/policy_infer.py {{fields_b64}}",
+      "position": {
+        "x": 760.0,
+        "y": 320.0
+      }
+    },
+    {
+      "id": "rc-approved",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Approved",
+      "description": "All policy checks passed — claim is automatically approved.",
+      "outcome": "approved",
+      "position": {
+        "x": 1100.0,
+        "y": 60.0
+      }
+    },
+    {
+      "id": "rc-rejected-missing",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected: missing fields",
+      "outcome": "rejected",
+      "position": {
+        "x": 1100.0,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "rc-rejected-window",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected: out of window",
+      "outcome": "rejected",
+      "position": {
+        "x": 1100.0,
+        "y": 340.0
+      }
+    },
+    {
+      "id": "rc-rejected-duplicate",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected: duplicate",
+      "outcome": "rejected",
+      "position": {
+        "x": 1100.0,
+        "y": 480.0
+      }
+    },
+    {
+      "id": "rc-rejected-ineligible",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected: ineligible category",
+      "outcome": "rejected",
+      "position": {
+        "x": 1100.0,
+        "y": 620.0
+      }
+    },
+    {
+      "id": "rc-rejected-over-cap",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected: over cap",
+      "outcome": "rejected",
+      "position": {
+        "x": 1100.0,
+        "y": 760.0
+      }
+    },
+    {
+      "id": "rc-escalate-gate",
+      "kind": "channel",
+      "channelId": "ch-receipt-operator-desk",
+      "label": "Operator review (human gate)",
+      "description": "All ESCALATE_* paths land here. An operator reviews the claim and makes the binding ruling: approve or reject.",
+      "position": {
+        "x": 1440.0,
+        "y": 420.0
+      }
+    },
+    {
+      "id": "rc-approved-operator",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Approved by operator",
+      "outcome": "approved",
+      "position": {
+        "x": 1780.0,
+        "y": 300.0
+      }
+    },
+    {
+      "id": "rc-rejected-operator",
+      "kind": "channel",
+      "channelId": "ch-receipt-result",
+      "label": "Rejected by operator",
+      "outcome": "rejected",
+      "position": {
+        "x": 1780.0,
+        "y": 540.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "rce-door-extract",
+      "from": "rc-door",
+      "to": "rc-extract"
+    },
+    {
+      "id": "rce-extract-compute",
+      "from": "rc-extract",
+      "to": "rc-compute"
+    },
+    {
+      "id": "rce-compute-approved",
+      "from": "rc-compute",
+      "to": "rc-approved",
+      "label": "approved",
+      "guard": "outcome.text == \"APPROVED\""
+    },
+    {
+      "id": "rce-compute-missing",
+      "from": "rc-compute",
+      "to": "rc-rejected-missing",
+      "label": "missing fields",
+      "guard": "outcome.text == \"REJECTED_MISSING_FIELDS\""
+    },
+    {
+      "id": "rce-compute-window",
+      "from": "rc-compute",
+      "to": "rc-rejected-window",
+      "label": "out of window",
+      "guard": "outcome.text == \"REJECTED_OUT_OF_WINDOW\""
+    },
+    {
+      "id": "rce-compute-duplicate",
+      "from": "rc-compute",
+      "to": "rc-rejected-duplicate",
+      "label": "exact duplicate",
+      "guard": "outcome.text == \"REJECTED_DUPLICATE\""
+    },
+    {
+      "id": "rce-compute-ineligible",
+      "from": "rc-compute",
+      "to": "rc-rejected-ineligible",
+      "label": "ineligible category",
+      "guard": "outcome.text == \"REJECTED_INELIGIBLE_CATEGORY\""
+    },
+    {
+      "id": "rce-compute-over-cap",
+      "from": "rc-compute",
+      "to": "rc-rejected-over-cap",
+      "label": "over cap",
+      "guard": "outcome.text == \"REJECTED_OVER_CAP\""
+    },
+    {
+      "id": "rce-compute-escalate",
+      "from": "rc-compute",
+      "to": "rc-escalate-gate",
+      "label": "escalate to operator",
+      "guard": "outcome.text == \"ESCALATE_UNRECOGNIZED_FORMAT\" || outcome.text == \"ESCALATE_LOW_CONFIDENCE\" || outcome.text == \"ESCALATE_DUPLICATE_SUSPECT\" || outcome.text == \"ESCALATE_MIXED_BASKET\" || outcome.text == \"ESCALATE_BORDERLINE\" || outcome.text == \"ESCALATE_UNKNOWN_MERCHANT\""
+    },
+    {
+      "id": "rce-gate-approved",
+      "from": "rc-escalate-gate",
+      "to": "rc-approved-operator",
+      "label": "operator approves",
+      "guard": "verdict == \"approve\""
+    },
+    {
+      "id": "rce-gate-rejected",
+      "from": "rc-escalate-gate",
+      "to": "rc-rejected-operator",
+      "label": "operator rejects"
+    }
+  ]
+}

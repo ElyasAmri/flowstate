@@ -1,0 +1,27 @@
+{
+  "id": "ch-receipt-result",
+  "title": "Receipt claim outcome",
+  "description": "Outbound: the terminal verdict returned to the citizen or case-management system.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "deliver",
+      "description": "Final verdict delivery.",
+      "fields": [
+        {
+          "name": "verdict",
+          "type": "string",
+          "description": "One of the policy verdicts: APPROVED, REJECTED_*, APPROVED_BY_OPERATOR, REJECTED_BY_OPERATOR."
+        },
+        {
+          "name": "claimant_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

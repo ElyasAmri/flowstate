@@ -1,0 +1,60 @@
+{
+  "id": "ch-receipt-operator-desk",
+  "title": "Operator review desk",
+  "description": "Human gate: an operator reviews an escalated receipt claim and makes the binding ruling.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "escalate_claim",
+      "description": "Claim routed to the operator desk for manual review.",
+      "fields": [
+        {
+          "name": "claimant_id",
+          "type": "string"
+        },
+        {
+          "name": "verdict",
+          "type": "string",
+          "description": "The ESCALATE_* verdict that triggered the escalation."
+        },
+        {
+          "name": "merchant",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "required": false
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "confidence",
+          "type": "number",
+          "required": false,
+          "description": "Minimum per-field extraction confidence (0–1)."
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "operator_ruling",
+      "description": "The operator's binary decision on the escalated claim.",
+      "fields": [
+        {
+          "name": "operator_approved",
+          "type": "boolean",
+          "description": "true → APPROVED_BY_OPERATOR; false → REJECTED_BY_OPERATOR."
+        }
+      ]
+    }
+  ]
+}

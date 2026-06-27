@@ -1,0 +1,34 @@
+{
+  "id": "ch-receipt-intake",
+  "title": "Receipt intake",
+  "description": "Inbound door: a citizen submits an expense receipt for reimbursement.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "submit_claim",
+      "description": "A new expense reimbursement claim carrying a receipt image and claimant identity.",
+      "fields": [
+        {
+          "name": "claimant_id",
+          "type": "string",
+          "description": "Unique identifier of the citizen submitting the claim."
+        },
+        {
+          "name": "receipt_image",
+          "type": "file",
+          "description": "Receipt scan or photo (JPEG / PNG / PDF)."
+        },
+        {
+          "name": "lang",
+          "type": "string",
+          "required": false,
+          "description": "Declared language of the receipt (ar / en / mixed). Optional — Fanar detects it."
+        }
+      ]
+    }
+  ]
+}
