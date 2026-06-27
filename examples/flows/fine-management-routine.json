@@ -122,15 +122,6 @@
       }
     },
     {
-      "id": "fm-ruling-q",
-      "kind": "decision",
-      "label": "Ruling?",
-      "position": {
-        "x": 2120.0,
-        "y": 460.0
-      }
-    },
-    {
       "id": "fm-upheld",
       "kind": "channel",
       "channelId": "ch-fine-result",
@@ -240,22 +231,11 @@
       ]
     },
     {
-      "id": "fme-gate-ruling",
+      "id": "fme-gate-upheld",
       "from": "fm-gate",
-      "to": "fm-ruling-q",
-      "set": [
-        {
-          "var": "ruling_upheld",
-          "expr": "outcome.upheld"
-        }
-      ]
-    },
-    {
-      "id": "fme-ruling-upheld",
-      "from": "fm-ruling-q",
       "to": "fm-upheld",
       "label": "upheld",
-      "guard": "ruling_upheld == true",
+      "guard": "outcome.verdict == \"approve\"",
       "set": [
         {
           "var": "outcome",
@@ -264,8 +244,8 @@
       ]
     },
     {
-      "id": "fme-ruling-rejected",
-      "from": "fm-ruling-q",
+      "id": "fme-gate-rejected",
+      "from": "fm-gate",
       "to": "fm-judge",
       "label": "rejected"
     },

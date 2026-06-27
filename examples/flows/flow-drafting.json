@@ -43,12 +43,8 @@
       "kind": "action",
       "op": "set",
       "label": "Assemble draft",
-      "description": "Capture the drafted flow JSON into a flow variable.",
+      "description": "Name the drafted flow (the JSON itself is captured on the incoming edge, where the agent outcome is in scope).",
       "assignments": [
-        {
-          "var": "flow_json",
-          "expr": "outcome.text"
-        },
         {
           "var": "flow_id",
           "expr": "\"fine-management-routine\""
@@ -92,7 +88,13 @@
     {
       "id": "fde-draft-assemble",
       "from": "fd-draft",
-      "to": "fd-assemble"
+      "to": "fd-assemble",
+      "set": [
+        {
+          "var": "flow_json",
+          "expr": "outcome.text"
+        }
+      ]
     },
     {
       "id": "fde-assemble-out",

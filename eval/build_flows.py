@@ -134,9 +134,9 @@ flow_drafting = {
          "position": pos(960, 200)},
         {"id": "fd-assemble", "kind": "action", "op": "set",
          "label": "Assemble draft",
-         "description": "Capture the drafted flow JSON into a flow variable.",
-         "assignments": [{"var": "flow_json", "expr": "outcome.text"},
-                         {"var": "flow_id", "expr": '"fine-management-routine"'}],
+         "description": "Name the drafted flow (the JSON itself is captured on "
+                        "the incoming edge, where the agent outcome is in scope).",
+         "assignments": [{"var": "flow_id", "expr": '"fine-management-routine"'}],
          "position": pos(1400, 200)},
         {"id": "fd-out", "kind": "channel", "channelId": "ch-flow-library",
          "label": "Write draft to library", "outcome": "issued",
@@ -147,7 +147,8 @@ flow_drafting = {
         {"id": "fde-in-mine", "from": "fd-in", "to": "fd-mine"},
         {"id": "fde-mine-draft", "from": "fd-mine", "to": "fd-draft",
          "set": [{"var": "process_model", "expr": "outcome.text"}]},
-        {"id": "fde-draft-assemble", "from": "fd-draft", "to": "fd-assemble"},
+        {"id": "fde-draft-assemble", "from": "fd-draft", "to": "fd-assemble",
+         "set": [{"var": "flow_json", "expr": "outcome.text"}]},
         {"id": "fde-assemble-out", "from": "fd-assemble", "to": "fd-out"},
     ],
 }
@@ -206,8 +207,6 @@ fine_management = {
          "label": "Prefecture review (human gate)",
          "description": "Bureaucrat makes the binding ruling on the appeal.",
          "position": pos(1780, 460)},
-        {"id": "fm-ruling-q", "kind": "decision", "label": "Ruling?",
-         "position": pos(2120, 460)},
         {"id": "fm-upheld", "kind": "channel", "channelId": "ch-fine-result",
          "label": "Appeal upheld", "outcome": "approved",
          "position": pos(2460, 400)},
@@ -238,12 +237,12 @@ fine_management = {
         # appeal branch
         {"id": "fme-assess-gate", "from": "fm-assess", "to": "fm-gate",
          "set": [{"var": "recommendation", "expr": "outcome.verdict"}]},
-        {"id": "fme-gate-ruling", "from": "fm-gate", "to": "fm-ruling-q",
-         "set": [{"var": "ruling_upheld", "expr": "outcome.upheld"}]},
-        {"id": "fme-ruling-upheld", "from": "fm-ruling-q", "to": "fm-upheld",
-         "label": "upheld", "guard": "ruling_upheld == true",
+        # fm-gate is the human gate: the channel node itself owns the guarded
+        # split, so the interpreter suspends here for the bureaucrat's ruling.
+        {"id": "fme-gate-upheld", "from": "fm-gate", "to": "fm-upheld",
+         "label": "upheld", "guard": 'outcome.verdict == "approve"',
          "set": [{"var": "outcome", "expr": '"appeal_upheld"'}]},
-        {"id": "fme-ruling-rejected", "from": "fm-ruling-q", "to": "fm-judge",
+        {"id": "fme-gate-rejected", "from": "fm-gate", "to": "fm-judge",
          "label": "rejected"},
         {"id": "fme-judge-closed", "from": "fm-judge", "to": "fm-rejected",
          "set": [{"var": "outcome", "expr": '"appeal_rejected"'}]},
@@ -277,7 +276,8 @@ flow_update = {
                    "concrete updates to the routine flow (new decision guards, a "
                    "pre-appeal check, threshold tweaks). For each, cite the "
                    "pattern and the expected effect. End with one line:\n"
-                   "  VERDICT: <score 0-1 how material the change is>",
+                   "  VERDICT: material   -- the change is worth a policy review\n"
+                   "  VERDICT: minor      -- leave the routine flow as-is",
          "position": pos(760, 240)},
         {"id": "fu-material-q", "kind": "decision", "label": "Material change?",
          "position": pos(1100, 240)},
@@ -285,12 +285,10 @@ flow_update = {
          "label": "Policy-maker approval (human gate)",
          "description": "The policy maker approves or rejects the proposed update.",
          "position": pos(1440, 160)},
-        {"id": "fu-approve-q", "kind": "decision", "label": "Approved?",
-         "position": pos(1780, 160)},
         {"id": "fu-write", "kind": "channel", "channelId": "ch-flow-library",
          "label": "Write updated flow", "outcome": "issued",
          "description": "Outbound: persist the approved flow update.",
-         "position": pos(2120, 160)},
+         "position": pos(1780, 160)},
         {"id": "fu-nochange", "kind": "channel", "channelId": "ch-update-result",
          "label": "No change", "outcome": "rejected",
          "description": "Outbound: the routine flow is left as-is.",
@@ -300,17 +298,17 @@ flow_update = {
         {"id": "fue-in-agg", "from": "fu-in", "to": "fu-agg"},
         {"id": "fue-agg-analyze", "from": "fu-agg", "to": "fu-analyze"},
         {"id": "fue-analyze-material", "from": "fu-analyze", "to": "fu-material-q",
-         "set": [{"var": "change_score", "expr": "outcome.verdict"}]},
+         "set": [{"var": "materiality", "expr": "outcome.verdict"}]},
         {"id": "fue-material-yes", "from": "fu-material-q", "to": "fu-gate",
-         "label": "material", "guard": "change_score >= 0.5"},
+         "label": "material", "guard": 'materiality == "material"'},
         {"id": "fue-material-no", "from": "fu-material-q", "to": "fu-nochange",
          "label": "minor", "set": [{"var": "outcome", "expr": '"no_change"'}]},
-        {"id": "fue-gate-approve", "from": "fu-gate", "to": "fu-approve-q",
-         "set": [{"var": "approved", "expr": "outcome.approved"}]},
-        {"id": "fue-approve-yes", "from": "fu-approve-q", "to": "fu-write",
-         "label": "approved", "guard": "approved == true",
+        # fu-gate is the human gate: the channel node itself owns the guarded
+        # split, so the interpreter suspends here for the policy maker's verdict.
+        {"id": "fue-gate-approve", "from": "fu-gate", "to": "fu-write",
+         "label": "approved", "guard": 'outcome.verdict == "approve"',
          "set": [{"var": "outcome", "expr": '"updated"'}]},
-        {"id": "fue-approve-no", "from": "fu-approve-q", "to": "fu-nochange",
+        {"id": "fue-gate-reject", "from": "fu-gate", "to": "fu-nochange",
          "label": "rejected", "set": [{"var": "outcome", "expr": '"no_change"'}]},
     ],
 }
