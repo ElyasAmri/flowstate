@@ -1,0 +1,486 @@
+{
+  "id": "loop-demo",
+  "title": "Government services loop",
+  "description": "The whole self-improving loop on one canvas: UI channels on the left, a shared services collection on the right, flow logic in the middle. Running the init flow drafts the routine procedure onto the canvas; running the update flow adds a step to it.",
+  "nodes": [
+    {
+      "id": "g-services",
+      "kind": "group",
+      "label": "Services (shared)",
+      "color": "green",
+      "position": {
+        "x": 2308,
+        "y": -80
+      }
+    },
+    {
+      "id": "svc-mining",
+      "kind": "channel",
+      "groupId": "g-services",
+      "channelId": "ch-mining-feed",
+      "label": "Process-mining feed",
+      "description": "External feed: a procedure's event log + variant stats.",
+      "position": {
+        "x": 2320,
+        "y": -28
+      }
+    },
+    {
+      "id": "svc-exceptions",
+      "kind": "channel",
+      "groupId": "g-services",
+      "channelId": "ch-exception-queue",
+      "label": "Exception queue",
+      "description": "Accumulated non-routine cases to learn from.",
+      "position": {
+        "x": 2320,
+        "y": 78
+      }
+    },
+    {
+      "id": "svc-policy",
+      "kind": "channel",
+      "groupId": "g-services",
+      "channelId": "ch-policy-registry",
+      "label": "Policy registry",
+      "description": "External authority consulted before a change.",
+      "position": {
+        "x": 2320,
+        "y": 184
+      }
+    },
+    {
+      "id": "svc-library",
+      "kind": "channel",
+      "groupId": "g-services",
+      "channelId": "ch-flow-library",
+      "label": "Flow library",
+      "outcome": "issued",
+      "description": "Shared store: both meta-flows write the drafted / updated flow here.",
+      "position": {
+        "x": 2320,
+        "y": 290
+      }
+    },
+    {
+      "id": "svc-changelog",
+      "kind": "channel",
+      "groupId": "g-services",
+      "channelId": "ch-change-log",
+      "label": "Change log",
+      "outcome": "rejected",
+      "description": "Record when an update is left as-is.",
+      "position": {
+        "x": 2320,
+        "y": 396
+      }
+    },
+    {
+      "id": "fu-gate",
+      "kind": "channel",
+      "channelId": "ch-policy-authority",
+      "label": "Policy maker",
+      "description": "The policy maker reviews the proposed update.\n\nApprove to write it back, or reject to leave the flow as-is.",
+      "position": {
+        "x": 40,
+        "y": 360
+      }
+    },
+    {
+      "id": "fd-mine",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Mine process model",
+      "description": "Identify the routine spine and the exception forks from the event log.",
+      "prompt": "Mine the dominant routine path and exception forks from this event log.\n\nActivities: {{activities}}\nVariants: {{variant_stats}}\n\nEnd with one line:\n  VERDICT: mined",
+      "position": {
+        "x": 760,
+        "y": 40
+      }
+    },
+    {
+      "id": "fd-draft",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Draft routine flow",
+      "description": "Emit a deterministic spine + an agent node on exceptions + a human gate.",
+      "prompt": "Using the mined model, draft a Flowstate routine flow (deterministic spine, agent on exceptions, a human gate). Return the flow JSON.",
+      "position": {
+        "x": 1340,
+        "y": 40
+      }
+    },
+    {
+      "id": "fu-agg",
+      "kind": "action",
+      "op": "shell",
+      "label": "Aggregate exceptions",
+      "description": "Compute appeal rates by article / amount band.",
+      "command": "python3 aggregate_exceptions.py '{{cases}}' || echo aggregated",
+      "position": {
+        "x": 760,
+        "y": 360
+      }
+    },
+    {
+      "id": "fu-analyze",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Propose flow update",
+      "description": "Turn the aggregates into a concrete, cited flow change.",
+      "prompt": "Given the aggregates, propose a concrete flow update (new guard / pre-check). End with one line:\n  VERDICT: material   -- worth a policy review\n  VERDICT: minor      -- leave the flow as-is",
+      "position": {
+        "x": 1340,
+        "y": 360
+      }
+    },
+    {
+      "id": "fu-material",
+      "kind": "decision",
+      "label": "Material change?",
+      "position": {
+        "x": 1760,
+        "y": 360
+      }
+    },
+    {
+      "id": "n-input",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Application intake",
+      "description": "Inbound door: the citizen submits their application across the consumer app to trigger the flow.",
+      "position": {
+        "x": 40,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-approved",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Certificate issued",
+      "outcome": "issued",
+      "position": {
+        "x": 40,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-rejected",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Application rejected",
+      "outcome": "rejected",
+      "position": {
+        "x": 40,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-escalate",
+      "kind": "channel",
+      "channelId": "ch-bureaucrat",
+      "label": "Reviewer reviews address",
+      "description": "Review {{applicant_name}} (ID {{national_id}}). Proof: {{address_proof}}\n\nNotes: {{decision_reason}}\n\nApprove to issue the certificate, or reject to deny.",
+      "position": {
+        "x": 40,
+        "y": 1140
+      }
+    },
+    {
+      "id": "n-issue",
+      "kind": "channel",
+      "channelId": "ch-notify",
+      "label": "Issue certificate",
+      "description": "Generate the certificate document.",
+      "position": {
+        "x": 2320,
+        "y": 502
+      },
+      "groupId": "g-services"
+    },
+    {
+      "id": "n-draft",
+      "kind": "channel",
+      "channelId": "ch-draft-letter",
+      "label": "Draft decision letter",
+      "description": "Nested flow: hands the decided case to the 'Draft decision letter' sub-flow, which returns a citizen-facing letter (double-click to open).",
+      "position": {
+        "x": 1340,
+        "y": 1140
+      }
+    },
+    {
+      "id": "n-check-id",
+      "kind": "action",
+      "op": "shell",
+      "label": "Validate ID against registry",
+      "description": "Deterministic registry check: a valid ID is 8 digits, not leading zero.",
+      "command": "id=\"{{national_id}}\"\nif echo \"$id\" | grep -Eq '^[1-9][0-9]{7}$'; then echo MATCH; exit 0; fi\necho \"national id not found in registry\" >&2; exit 1",
+      "position": {
+        "x": 760,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-score-address",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Assess address proof",
+      "description": "Fanar reads the proof and returns a verdict.",
+      "prompt": "Assess whether the proof of address confirms the applicant resides at the stated address.\n\nApplicant: {{applicant_name}}\nNational ID: {{national_id}}\nProof: {{address_proof}}\n\nExplain briefly, then end with EXACTLY one line:\n  VERDICT: sufficient    -- clearly proves residence; auto-issue\n  VERDICT: ambiguous     -- unclear; a reviewer must review\n  VERDICT: insufficient  -- does not prove residence; reject",
+      "position": {
+        "x": 1340,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-decision",
+      "kind": "decision",
+      "label": "Address proof sufficient?",
+      "position": {
+        "x": 1760,
+        "y": 900
+      }
+    },
+    {
+      "id": "n-fasttrack",
+      "kind": "decision",
+      "label": "Pre-appeal fast-track (added by update)",
+      "position": {
+        "x": 1760,
+        "y": 1140
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fde-door-mine",
+      "from": "svc-mining",
+      "to": "fd-mine"
+    },
+    {
+      "id": "fde-mine-draft",
+      "from": "fd-mine",
+      "to": "fd-draft",
+      "set": [
+        {
+          "var": "process_model",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "fde-draft-out",
+      "from": "fd-draft",
+      "to": "svc-library",
+      "set": [
+        {
+          "var": "flow_json",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "fue-door-agg",
+      "from": "svc-exceptions",
+      "to": "fu-agg"
+    },
+    {
+      "id": "fue-agg-policy",
+      "from": "fu-agg",
+      "to": "svc-policy"
+    },
+    {
+      "id": "fue-policy-analyze",
+      "from": "svc-policy",
+      "to": "fu-analyze"
+    },
+    {
+      "id": "fue-analyze-material",
+      "from": "fu-analyze",
+      "to": "fu-material",
+      "set": [
+        {
+          "var": "materiality",
+          "expr": "outcome.verdict"
+        }
+      ]
+    },
+    {
+      "id": "fue-material-yes",
+      "from": "fu-material",
+      "to": "fu-gate",
+      "label": "material",
+      "guard": "materiality == \"material\""
+    },
+    {
+      "id": "fue-material-no",
+      "from": "fu-material",
+      "to": "svc-changelog",
+      "label": "minor",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-approve",
+      "from": "fu-gate",
+      "to": "svc-library",
+      "label": "approved",
+      "guard": "outcome.verdict == \"approve\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"updated\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-reject",
+      "from": "fu-gate",
+      "to": "svc-changelog",
+      "label": "rejected",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    },
+    {
+      "id": "e-input-check",
+      "from": "n-input",
+      "to": "n-check-id"
+    },
+    {
+      "id": "e-check-score",
+      "from": "n-check-id",
+      "to": "n-score-address",
+      "label": "ID valid",
+      "guard": "outcome.exit == 0"
+    },
+    {
+      "id": "e-check-reject",
+      "from": "n-check-id",
+      "to": "n-rejected",
+      "label": "ID invalid",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"National ID failed registry validation.\""
+        }
+      ]
+    },
+    {
+      "id": "e-score-decision",
+      "from": "n-score-address",
+      "to": "n-decision",
+      "set": [
+        {
+          "var": "addr_verdict",
+          "expr": "outcome.verdict"
+        },
+        {
+          "var": "decision_reason",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "e-decision-issue",
+      "from": "n-decision",
+      "to": "n-issue",
+      "label": "sufficient",
+      "guard": "addr_verdict == \"sufficient\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"issued\""
+        }
+      ]
+    },
+    {
+      "id": "e-decision-escalate",
+      "from": "n-decision",
+      "to": "n-escalate",
+      "label": "ambiguous",
+      "guard": "addr_verdict == \"ambiguous\""
+    },
+    {
+      "id": "e-decision-reject",
+      "from": "n-decision",
+      "to": "n-rejected",
+      "label": "insufficient",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        }
+      ]
+    },
+    {
+      "id": "e-escalate-issue",
+      "from": "n-escalate",
+      "to": "n-issue",
+      "label": "approved",
+      "guard": "outcome.verdict == \"approve\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"issued\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"Approved by the reviewer after review.\""
+        }
+      ]
+    },
+    {
+      "id": "e-escalate-reject",
+      "from": "n-escalate",
+      "to": "n-rejected",
+      "label": "denied",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"Denied by the reviewer after review.\""
+        }
+      ]
+    },
+    {
+      "id": "e-issue-draft",
+      "from": "n-issue",
+      "to": "n-draft",
+      "set": [
+        {
+          "var": "certificate_url",
+          "expr": "\"cert://residence/issued\""
+        }
+      ]
+    },
+    {
+      "id": "e-draft-approved",
+      "from": "n-draft",
+      "to": "n-approved"
+    },
+    {
+      "id": "e-decision-fasttrack",
+      "from": "n-decision",
+      "to": "n-fasttrack",
+      "label": "fast-track (new)",
+      "guard": "addr_verdict == \"expedite\""
+    }
+  ]
+}

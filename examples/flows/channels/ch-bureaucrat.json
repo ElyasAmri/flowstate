@@ -1,0 +1,35 @@
+{
+  "id": "ch-bureaucrat",
+  "title": "Reviewer desk",
+  "description": "Human caseworker desktop for ambiguous address proofs.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "assign_case",
+      "fields": [
+        {
+          "name": "case_id",
+          "type": "string"
+        },
+        {
+          "name": "address_confidence",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "decision",
+      "fields": [
+        {
+          "name": "approved",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

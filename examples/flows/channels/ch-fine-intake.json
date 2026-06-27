@@ -1,0 +1,42 @@
+{
+  "id": "ch-fine-intake",
+  "title": "Fine intake",
+  "description": "Inbound door: a new road-traffic fine enters the flow.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "new_fine",
+      "description": "A newly issued fine.",
+      "fields": [
+        {
+          "name": "amount",
+          "type": "number"
+        },
+        {
+          "name": "points",
+          "type": "number"
+        },
+        {
+          "name": "article",
+          "type": "string"
+        },
+        {
+          "name": "offender_id",
+          "type": "string"
+        },
+        {
+          "name": "appeal_filed",
+          "type": "boolean"
+        },
+        {
+          "name": "paid",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

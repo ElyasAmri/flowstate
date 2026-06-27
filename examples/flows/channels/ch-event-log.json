@@ -1,0 +1,26 @@
+{
+  "id": "ch-event-log",
+  "title": "Event-log intake",
+  "description": "Inbound door: mined variant statistics from an existing log.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "event_log",
+      "fields": [
+        {
+          "name": "activities",
+          "type": "string"
+        },
+        {
+          "name": "variant_stats",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

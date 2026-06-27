@@ -2,7 +2,24 @@
 
 The desktop frontend (`app/`) is a Svelte 5 + Tailwind 4 Tauri app. Its main
 content area uses manual, state-driven routing: a typed `Route` union held in
-`$state` in `app/src/App.svelte`, flipped by the native menubar.
+`$state` in `app/src/App.svelte`. The **flow selector is the default view**;
+top-level navigation is an in-app **sidebar** (`Sidebar.svelte`), and
+opening/closing a specific flow is handled by the selector and the editor's back
+button. There is no native window menubar.
+
+## Layout & navigation
+
+`App.svelte` is a horizontal flex of a left **sidebar** and a content `<main>`.
+`Sidebar.svelte` (`app/src/lib/components/Sidebar.svelte`) holds the
+**Flowstate** wordmark in its header and a single nav item — Flows
+(`data-nav="…"`, active item highlighted, `data-testid="sidebar"`).
+Clicking an item sets the route directly via an `onnavigate` callback (no Tauri
+event). There is no top header/brand bar; the wordmark lives only in the sidebar.
+
+The **flow editor is a focused, full-screen mode**: when `route.name === "flow"`
+the sidebar is hidden so the canvas gets maximum width (the editor already has
+its own palette/canvas/inspector 3-pane layout and a **← Flows** back button).
+The sidebar shows for `flows`; the editor route highlights the "Flows" section.
 
 ## View components
 
@@ -11,31 +28,115 @@ Each route renders a dedicated view component under `app/src/lib/views/`.
 
 | Route name  | Component            | File                                  |
 | ----------- | -------------------- | ------------------------------------- |
-| `home`      | `Home.svelte`        | `app/src/lib/views/Home.svelte`       |
-| `workflows` | `Workflows.svelte`   | `app/src/lib/views/Workflows.svelte`  |
-| `documents` | `Documents.svelte`   | `app/src/lib/views/Documents.svelte`  |
+| `flows`     | `FlowsList.svelte`   | `app/src/lib/views/FlowsList.svelte`  |
+| `flow`      | `FlowEditor.svelte`  | `app/src/lib/views/FlowEditor.svelte` |
 
-Previously the markup for all three routes lived inline in `App.svelte`. It has
-been extracted into these separate components; `App.svelte` now only handles
-routing and delegates rendering to the views.
+The `Route` union is `{ name: "flows" } | { name: "flow"; id }` — the `flow`
+route carries the **id of
+the flow to open**, threaded from the selector. `App.svelte` wraps the editor in
+`{#key route.id}` so opening a different flow remounts a fresh editor.
 
-### Home
+### Flow selector
 
-`Home.svelte` shows the app title, a short description, and a **Check Rust
-bridge** button. The button calls the `greet` Tauri command (defined in
-`src-tauri/src/lib.rs`) via `invoke` and displays the returned greeting,
-demonstrating the frontend ↔ Rust bridge. The `invoke` import and the `ping`
-handler moved out of `App.svelte` and now live in this component.
+`FlowsList.svelte` is the **default landing view**. It lists the saved flows from
+the backend `list_flows` command (`FlowMeta[]`: `id`, `title`, `node_count`) as a
+grid of cards; clicking a card opens that flow in the editor
+(`onopen(id)` → `route = { name: "flow", id }`). A **New flow** action
+(`data-testid="new-flow"`) creates a fresh blank flow (`blankFlow(id)` from
+`fixtures.ts`), persists it via `write_flow`, and opens the editor on it. Outside
+Tauri (`list_flows` returns `null`) it gracefully shows the bundled
+**Residence Certificate Request** fixture as a single seed card, so there is
+always a way into the editor. Cards carry `data-testid="flow-card"` +
+`data-flow-id={id}`; the container is `data-testid="flows-list"`.
 
-### Workflows
+### Flow editor
 
-`Workflows.svelte` is a placeholder: a "Workflows" header with an empty-state
-message ("Nothing here yet.").
+`FlowEditor.svelte` is the **Policy Maker's flow authoring tool**: an n8n-style
+visual editor for the deterministic state machine the harness later executes. It
+takes a `flowId` prop (the flow to open) and an `onback` callback (a **← Flows**
+header button, `data-testid="back"`, returns to the selector). It seeds from the
+fixture when `flowId` is the fixture id, else from a blank template, then
+`editor.load(flowId)` replaces that with the saved copy if one exists. It uses a
+three-pane layout — a **palette** (`NodePalette.svelte`) for adding typed
+nodes, an interactive **canvas** (`FlowCanvas.svelte`), and an **inspector**
+(`NodeInspector.svelte`) for editing the selected node and its outgoing
+transitions (label + guard condition).
 
-### Documents
+The canvas supports n8n-style direct manipulation:
 
-`Documents.svelte` is a placeholder: a "Documents" header with an empty-state
-message ("Nothing here yet.").
+- **Drag nodes** to move them; edges re-route live. Nodes lift on hover and
+  show a ring when selected; ports highlight on node hover.
+- **Drag-to-connect**: drag from a node's right **output** port to another
+  node's left **input** port to create an edge (output→input only). A dashed
+  "rubber-band" curve previews the connection mid-drag.
+- **Delete a connection** by clicking its line, or the × badge that appears at
+  the edge midpoint on hover (the edge highlights rose).
+- **Pan** by dragging the empty canvas; **zoom** with the wheel (zooms toward
+  the cursor). A single CSS transform on a "world" layer keeps nodes and edges
+  aligned at any zoom; a dotted grid background scrolls/scales with it.
+- **Canvas controls** (`CanvasControls.svelte`, floating bottom-left):
+  zoom out / zoom % (click to reset to 100%) / zoom in / **fit to view**. The
+  canvas also **fits-on-open** (one `requestAnimationFrame` after mount) so the
+  fixture flow frames nicely.
+- **Undo / redo** — every mutation records a whole-flow snapshot. Header buttons
+  (`data-testid="undo"`/`"redo"`) and keys **Ctrl/Cmd+Z** (undo),
+  **Ctrl/Cmd+Shift+Z** and **Ctrl/Cmd+Y** (redo); the key handler ignores events
+  while typing in an input/textarea/select/contentEditable. A whole node **drag
+  coalesces** into one undo step (committed on drag end), as does a typing burst
+  into one inspector field (keyed `node:<id>:<field>` / `edge:<id>:<field>`).
+  Undo/redo revalidates the selection so the inspector never points at a deleted
+  node, and autosave persists the result like any other edit.
+
+The flow model lives under `app/src/lib/flow/` and is built on the **channel
+model** (see `docs/channel-model.md`): the harness reaches the outside world only
+across registered, typed **channels**, and node color encodes what is across the
+boundary.
+
+- `types.ts` — `FlowDefinition`, `FlowNode` (kinds: `channel`, `agent`, `action`,
+  `decision`), `FlowEdge` (with optional `guard`), the channel types
+  (`ChannelDefinition`, `ChannelBinding` = `ui | flow | service`,
+  `ChannelMessage`/`ChannelField`, `ChannelRegistry`), and `NODE_KINDS` display
+  metadata. A `channel` node references a channel by `channelId`; its color is
+  derived from that channel's binding (ui = green, flow = purple, service =
+  yellow). `agent` is gray-dark (AI, non-deterministic); `action`/`decision` are
+  gray-static. A flow starts at an inbound channel node and ends at an outbound
+  channel node (which may carry an `outcome`).
+- `node-color.ts` — pure derivation: `nodeColor(node, registry)` →
+  `green | purple | yellow | gray-static | gray-agent`, `iconKeyForNode` (picks a
+  binding-specific channel icon), and the muted `COLOR_CLASSES` palette (accent +
+  icon tint, not a full fill). Unit-tested in `tests/unit/node-color.test.ts`.
+- `channels.ts` — channel-registry persistence seam over the backend
+  `list_channels`/`read_channel`/`write_channel`/`delete_channel` commands
+  (`loadRegistry`, `seedChannelsIfEmpty`, `toRegistry`); returns empty off-Tauri.
+- `editor.svelte.ts` — the `FlowEditor` class: `$state`-backed flow + selection +
+  channel registry (`setChannels`) with pure mutation helpers (`addNode`,
+  `updateNode`, `moveNode`, `deleteNode`, `addEdge`, `updateEdge`, `deleteEdge`),
+  `undo()`/`redo()` with reactive `canUndo`/`canRedo`, a `serialize()` persistence
+  seam, and `save()`/`load()`.
+- `history.ts` — pure `FlowHistory<T>`: a snapshot list + cursor with
+  `commit(state, coalesceKey?)`, `undo`/`redo`, `breakCoalescing`, `reset`, and a
+  `MAX_HISTORY` (100) bound. Unit-tested in `tests/unit/history.test.ts`.
+- `viewport.svelte.ts` — the `Viewport` class: `$state` pan + zoom with pure
+  `screenToWorld` / `worldToScreen` transforms, zoom-toward-cursor math, and
+  `fitTo(box, viewSize)` / `reset()` / `zoomStep()` for the controls.
+- `geometry.ts` — pure node/edge geometry (`portPosition`, `edgePath`,
+  `nodesBounds`) shared by the edge layer (`components/FlowEdges.svelte`) and the
+  live connection preview so finished and in-progress edges look identical.
+- `fixtures.ts` — a worked **Residence Certificate Request** flow the editor
+  opens on plus the `exampleChannels` it references (structured-cloned so edits
+  don't touch the fixture). The channel registry is seeded into the library on a
+  fresh project's first run.
+
+The inspector shows a **channel picker** and an **outcome** field for `channel`
+nodes; the palette adds the four node kinds.
+
+Pointer interaction lives in `FlowCanvas.svelte` as a small `$state`
+interaction union (`idle` / `panning` / `draggingNode` / `connecting`); window
+`pointermove` / `pointerup` listeners are attached only while a gesture is
+active. No canvas/graph libraries — hand-rolled SVG + CSS transform.
+
+Unlike the other views this route is full-bleed: `App.svelte` drops the default
+`p-6` padding for `route.name === "flow"`.
 
 ## Style
 

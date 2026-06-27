@@ -1,0 +1,153 @@
+{
+  "id": "flow-update",
+  "title": "Flow update (improve from exceptions)",
+  "description": "Meta-flow: aggregates accumulated non-routine cases, has an agent propose flow updates, and routes a material change to the policy maker for approval before writing it back.",
+  "nodes": [
+    {
+      "id": "fu-in",
+      "kind": "channel",
+      "channelId": "ch-exceptions",
+      "label": "Receive exception batch",
+      "description": "Inbound door: accumulated non-routine cases.",
+      "position": {
+        "x": 80.0,
+        "y": 240.0
+      }
+    },
+    {
+      "id": "fu-agg",
+      "kind": "action",
+      "op": "shell",
+      "label": "Aggregate exception stats",
+      "description": "Compute appeal rates by article / amount / points.",
+      "command": "python3 eval/aggregate_exceptions.py \"{{cases}}\" || echo 'aggregated'",
+      "position": {
+        "x": 420.0,
+        "y": 240.0
+      }
+    },
+    {
+      "id": "fu-analyze",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Propose flow updates",
+      "description": "Turn the aggregates into concrete flow changes.",
+      "prompt": "Given aggregate statistics over contested fines, propose concrete updates to the routine flow (new decision guards, a pre-appeal check, threshold tweaks). For each, cite the pattern and the expected effect. End with one line:\n  VERDICT: material   -- the change is worth a policy review\n  VERDICT: minor      -- leave the routine flow as-is",
+      "position": {
+        "x": 760.0,
+        "y": 240.0
+      }
+    },
+    {
+      "id": "fu-material-q",
+      "kind": "decision",
+      "label": "Material change?",
+      "position": {
+        "x": 1100.0,
+        "y": 240.0
+      }
+    },
+    {
+      "id": "fu-gate",
+      "kind": "channel",
+      "channelId": "ch-policy-maker",
+      "label": "Policy-maker approval (human gate)",
+      "description": "The policy maker approves or rejects the proposed update.",
+      "position": {
+        "x": 1440.0,
+        "y": 160.0
+      }
+    },
+    {
+      "id": "fu-write",
+      "kind": "channel",
+      "channelId": "ch-flow-library",
+      "label": "Write updated flow",
+      "outcome": "issued",
+      "description": "Outbound: persist the approved flow update.",
+      "position": {
+        "x": 1780.0,
+        "y": 160.0
+      }
+    },
+    {
+      "id": "fu-nochange",
+      "kind": "channel",
+      "channelId": "ch-update-result",
+      "label": "No change",
+      "outcome": "rejected",
+      "description": "Outbound: the routine flow is left as-is.",
+      "position": {
+        "x": 1440.0,
+        "y": 360.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "fue-in-agg",
+      "from": "fu-in",
+      "to": "fu-agg"
+    },
+    {
+      "id": "fue-agg-analyze",
+      "from": "fu-agg",
+      "to": "fu-analyze"
+    },
+    {
+      "id": "fue-analyze-material",
+      "from": "fu-analyze",
+      "to": "fu-material-q",
+      "set": [
+        {
+          "var": "materiality",
+          "expr": "outcome.verdict"
+        }
+      ]
+    },
+    {
+      "id": "fue-material-yes",
+      "from": "fu-material-q",
+      "to": "fu-gate",
+      "label": "material",
+      "guard": "materiality == \"material\""
+    },
+    {
+      "id": "fue-material-no",
+      "from": "fu-material-q",
+      "to": "fu-nochange",
+      "label": "minor",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-approve",
+      "from": "fu-gate",
+      "to": "fu-write",
+      "label": "approved",
+      "guard": "outcome.verdict == \"approve\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"updated\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-reject",
+      "from": "fu-gate",
+      "to": "fu-nochange",
+      "label": "rejected",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    }
+  ]
+}

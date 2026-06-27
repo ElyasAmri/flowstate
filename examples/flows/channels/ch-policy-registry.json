@@ -1,0 +1,32 @@
+{
+  "id": "ch-policy-registry",
+  "title": "Policy registry",
+  "description": "External authority consulted before proposing a flow change.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "external"
+  },
+  "accepts": [
+    {
+      "name": "lookup",
+      "fields": [
+        {
+          "name": "article",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "ref",
+      "fields": [
+        {
+          "name": "citation",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

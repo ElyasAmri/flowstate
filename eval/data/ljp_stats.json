@@ -1,0 +1,16 @@
+{
+  "dataset": "Arabic-LJP (Saudi commercial court, judgement prediction)",
+  "test_rows": 538,
+  "label_distribution_full": {
+    "reject": 151,
+    "accept": 232,
+    "route": 47,
+    "other": 108
+  },
+  "sample_size": 50,
+  "sample_distribution": {
+    "accept": 20,
+    "reject": 20,
+    "route": 10
+  }
+}

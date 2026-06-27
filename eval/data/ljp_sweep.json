@@ -1,0 +1,71 @@
+{
+  "baseline (brief reasoning)": {
+    "accuracy": 0.74,
+    "recall": {
+      "accept": "18/20",
+      "reject": "12/20",
+      "route": "7/10"
+    },
+    "errors": {
+      "accept->reject": 1,
+      "accept->abstain": 1,
+      "reject->accept": 7,
+      "reject->abstain": 1,
+      "route->accept": 2,
+      "route->reject": 1
+    }
+  },
+  "few-shot": {
+    "accuracy": 0.66,
+    "recall": {
+      "accept": "20/20",
+      "reject": "8/20",
+      "route": "5/10"
+    },
+    "errors": {
+      "reject->accept": 8,
+      "reject->route": 1,
+      "reject->abstain": 3,
+      "route->abstain": 1,
+      "route->accept": 3,
+      "route->reject": 1
+    }
+  },
+  "full untruncated facts": {
+    "accuracy": 0.9,
+    "recall": {
+      "accept": "19/20",
+      "reject": "16/20",
+      "route": "10/10"
+    },
+    "errors": {
+      "accept->abstain": 1,
+      "reject->accept": 4
+    }
+  },
+  "self-consistency (n=5, t=0.6)": {
+    "accuracy": 0.74,
+    "recall": {
+      "accept": "20/20",
+      "reject": "10/20",
+      "route": "7/10"
+    },
+    "errors": {
+      "reject->accept": 10,
+      "route->accept": 2,
+      "route->reject": 1
+    }
+  },
+  "combo: few-shot+full+self-consist": {
+    "accuracy": 0.9,
+    "recall": {
+      "accept": "20/20",
+      "reject": "16/20",
+      "route": "9/10"
+    },
+    "errors": {
+      "reject->accept": 4,
+      "route->accept": 1
+    }
+  }
+}

@@ -1,0 +1,302 @@
+[
+  {
+    "id": "A1",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A18302",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A26623",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A35320",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A44262",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "C14098",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N21406",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N29651",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N37789",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N45589",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N56802",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N65727",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N76611",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N85483",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N95161",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "P594",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S111761",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S123308",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S133346",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S142552",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S152213",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S161437",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S171370",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S185992",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S50954",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S59975",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S68093",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S76282",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S88003",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "V10602",
+    "decision": "routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A10001",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A1921",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A31151",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "A5889",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "C18190",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is a routine one or an exception. The problem says that a routine case is fully automatable, which in"
+  },
+  {
+    "id": "C23412",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes.  First, the problem says that t"
+  },
+  {
+    "id": "N29475",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N50683",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N62111",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes.  First, the routine process is "
+  },
+  {
+    "id": "N74079",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N85380",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "N99025",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S102051",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S110051",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that the routi"
+  },
+  {
+    "id": "S115098",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that the routi"
+  },
+  {
+    "id": "S121755",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S129513",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S137407",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S145775",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S158198",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S167208",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S175573",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S183466",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S191670",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S68432",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "S82890",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes.  First, the problem says that t"
+  },
+  {
+    "id": "S96882",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "V12921",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes.  First, the routine process is "
+  },
+  {
+    "id": "V18069",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes. The problem says that routine c"
+  },
+  {
+    "id": "V5603",
+    "decision": "non_routine",
+    "reason": "<think> Okay, let's see. I need to figure out if this case is routine or an exception based on the given history and attributes.  First, the problem says that t"
+  }
+]

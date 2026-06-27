@@ -1,0 +1,32 @@
+{
+  "id": "ch-notify",
+  "title": "Certificate & notification service",
+  "description": "Internal service that generates the certificate document.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [
+    {
+      "name": "issue_certificate",
+      "fields": [
+        {
+          "name": "national_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "issued",
+      "fields": [
+        {
+          "name": "certificate_url",
+          "type": "file"
+        }
+      ]
+    }
+  ]
+}

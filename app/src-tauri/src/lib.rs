@@ -1,8 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tauri::{
-    menu::{MenuBuilder, SubmenuBuilder},
-    Emitter,
-};
+mod commands;
+use commands::{channels, flows, run};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -12,33 +10,43 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Restore each window's last size and position on launch, and save them
+        // on exit. Registered first so it applies as windows are created.
+        // Deliberately NOT restoring MAXIMIZED/FULLSCREEN: on macOS a fullscreen
+        // window is its own Space, so restoring that flag onto a second monitor
+        // switches that monitor's desktop. Size + position alone is what we want.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(
+                    tauri_plugin_window_state::StateFlags::SIZE
+                        | tauri_plugin_window_state::StateFlags::POSITION,
+                )
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // Native menubar. The "View" submenu drives the frontend's
-            // state-driven routing by emitting a `navigate` event whose payload
-            // is the route name. App.svelte listens for it.
-            let view = SubmenuBuilder::new(app, "View")
-                .text("nav-home", "Home")
-                .text("nav-workflows", "Workflows")
-                .text("nav-documents", "Documents")
-                .build()?;
-
-            let menu = MenuBuilder::new(app).item(&view).build()?;
-            app.set_menu(menu)?;
-
-            app.on_menu_event(|app, event| {
-                let route = match event.id().as_ref() {
-                    "nav-home" => "home",
-                    "nav-workflows" => "workflows",
-                    "nav-documents" => "documents",
-                    _ => return,
-                };
-                let _ = app.emit("navigate", route);
-            });
-
+            // Let a running maestro drive this app through its `desktop` tool.
+            // The connector dials maestro's /ext bridge in the background and is
+            // a no-op until one is running, so this is always safe to call.
+            maestro_tauri_connect::attach(app.handle().clone());
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            flows::project_dir,
+            flows::list_flows,
+            flows::read_flow,
+            flows::write_flow,
+            flows::write_maestro_flow,
+            flows::delete_flow,
+            flows::delete_maestro_flow,
+            channels::list_channels,
+            channels::read_channel,
+            channels::write_channel,
+            channels::delete_channel,
+            run::run_shell,
+            run::run_agent
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

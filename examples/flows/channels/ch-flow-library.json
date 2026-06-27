@@ -1,0 +1,26 @@
+{
+  "id": "ch-flow-library",
+  "title": "Flow library",
+  "description": "Internal service: stores authored/updated flow definitions.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [
+    {
+      "name": "write_flow",
+      "fields": [
+        {
+          "name": "flow_id",
+          "type": "string"
+        },
+        {
+          "name": "flow_json",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

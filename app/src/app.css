@@ -4,6 +4,15 @@
   color-scheme: light dark;
 }
 
+/* Make native controls (the <select> dropdown popup, scrollbars, etc.) follow
+   the dark theme. With only `light dark` the UA renders the select popup as a
+   stark white box in dark mode; forcing `dark` here matches the app's chrome. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
 html,
 body,
 #app {
@@ -20,4 +29,33 @@ body {
     Roboto,
     Arial,
     sans-serif;
+}
+
+/** Animated edge (stroke-dasharray marching dashes) for active-edge highlight. */
+.animated-edge {
+  stroke-dasharray: 8 4;
+  animation: edge-dash-march 0.5s linear infinite;
+}
+
+@keyframes edge-dash-march {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/** Pulsing ring for the currently-active flow node. */
+@utility animate-pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(16 185 129 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgb(16 185 129 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(16 185 129 / 0);
+  }
 }

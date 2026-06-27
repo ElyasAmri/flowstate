@@ -1,0 +1,56 @@
+{
+  "id": "ch-intake",
+  "title": "Consumer application app",
+  "description": "The citizen-facing app that submits the request and shows the result.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "request_more_info",
+      "description": "Ask the applicant to supply or correct a document.",
+      "fields": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deliver_result",
+      "description": "Return the final decision to the applicant.",
+      "fields": [
+        {
+          "name": "outcome",
+          "type": "string"
+        },
+        {
+          "name": "certificate_url",
+          "type": "file",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "submit_application",
+      "description": "Initial submission that starts the flow.",
+      "fields": [
+        {
+          "name": "national_id",
+          "type": "string"
+        },
+        {
+          "name": "applicant_name",
+          "type": "string"
+        },
+        {
+          "name": "address_proof",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

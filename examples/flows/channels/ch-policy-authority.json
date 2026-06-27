@@ -1,0 +1,31 @@
+{
+  "id": "ch-policy-authority",
+  "title": "Policy maker",
+  "description": "Human authority who approves or rejects a proposed flow update.",
+  "direction": "both",
+  "binding": {
+    "kind": "ui"
+  },
+  "accepts": [
+    {
+      "name": "review",
+      "fields": [
+        {
+          "name": "proposal",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "name": "decision",
+      "fields": [
+        {
+          "name": "approved",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

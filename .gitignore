@@ -16,3 +16,18 @@ docs/.obsidian/
 
 # Node workspaces -- hoisted dependencies (root node_modules)
 node_modules/
+
+# E2E test sandbox (fresh flow library per run; never committed)
+.local/
+
+# Machine-local scratch files (never shared)
+*.local*
+
+# Flow editor runtime library (written when the app runs against this dir)
+.flowstate/
+.DS_Store
+# Local development notes
+dev.local.md
+
+# Large derived eval data
+eval/data/cases.jsonl
