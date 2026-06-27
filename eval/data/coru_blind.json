@@ -1,0 +1,414 @@
+[
+  {
+    "id": "SYN-001",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R001",
+    "items": [
+      {
+        "name": "Paracetamol",
+        "price": 25.0,
+        "qty": 2,
+        "category": "pharmacy",
+        "brand": "Panadol"
+      },
+      {
+        "name": "Vitamins",
+        "price": 45.0,
+        "qty": 1,
+        "category": "medical",
+        "brand": ""
+      }
+    ],
+    "total": 95.0,
+    "confidence": 0.96,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-002",
+    "merchant": "known_vendor",
+    "date": "2026-06-22",
+    "receipt_no": "R002",
+    "items": [
+      {
+        "name": "Eye drops",
+        "price": 80.0,
+        "qty": 1,
+        "category": "optical",
+        "brand": ""
+      }
+    ],
+    "total": 80.0,
+    "confidence": 0.92,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-003",
+    "merchant": "known_vendor",
+    "date": "2026-05-13",
+    "receipt_no": "R003",
+    "items": [
+      {
+        "name": "دواء",
+        "price": 200.0,
+        "qty": 1,
+        "category": "pharmacy",
+        "brand": ""
+      },
+      {
+        "name": "كريم طبي",
+        "price": 100.0,
+        "qty": 2,
+        "category": "medical",
+        "brand": ""
+      }
+    ],
+    "total": 400.0,
+    "confidence": 0.91,
+    "lang": "ar",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-016",
+    "merchant": "al-dawaa pharmacy",
+    "date": "2026-05-28",
+    "receipt_no": "R016",
+    "items": [
+      {
+        "name": "بنزين طبي",
+        "price": 50.0,
+        "qty": 3,
+        "category": "pharmacy",
+        "brand": ""
+      },
+      {
+        "name": "مرهم",
+        "price": 120.0,
+        "qty": 1,
+        "category": "medical",
+        "brand": ""
+      }
+    ],
+    "total": 270.0,
+    "confidence": 0.89,
+    "lang": "ar",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-020",
+    "merchant": "known_vendor",
+    "date": "2026-03-29",
+    "receipt_no": "R020",
+    "items": [
+      {
+        "name": "Optical lenses",
+        "price": 500.0,
+        "qty": 1,
+        "category": "optical",
+        "brand": ""
+      }
+    ],
+    "total": 500.0,
+    "confidence": 0.93,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-004",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R004",
+    "items": [
+      {
+        "name": "Cigarettes",
+        "price": 50.0,
+        "qty": 4,
+        "category": "tobacco",
+        "brand": ""
+      }
+    ],
+    "total": 200.0,
+    "confidence": 0.94,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-018",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R018",
+    "items": [
+      {
+        "name": "Laptop",
+        "price": 800.0,
+        "qty": 1,
+        "category": "electronics",
+        "brand": ""
+      }
+    ],
+    "total": 800.0,
+    "confidence": 0.97,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-005",
+    "merchant": "known_vendor",
+    "date": "2026-03-19",
+    "receipt_no": "R005",
+    "items": [
+      {
+        "name": "Antibiotics",
+        "price": 150.0,
+        "qty": 1,
+        "category": "pharmacy",
+        "brand": ""
+      }
+    ],
+    "total": 150.0,
+    "confidence": 0.93,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-006",
+    "merchant": "known_vendor",
+    "date": "2026-06-29",
+    "receipt_no": "R006",
+    "items": [
+      {
+        "name": "Clinic visit",
+        "price": 200.0,
+        "qty": 1,
+        "category": "clinic",
+        "brand": ""
+      }
+    ],
+    "total": 200.0,
+    "confidence": 0.95,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-007",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R007",
+    "items": [
+      {
+        "name": "Medical equipment",
+        "price": 1200.0,
+        "qty": 1,
+        "category": "medical",
+        "brand": ""
+      }
+    ],
+    "total": 1200.0,
+    "confidence": 0.94,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-008",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R008",
+    "items": [],
+    "total": null,
+    "confidence": 0.9,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-009",
+    "merchant": "known_vendor",
+    "date": "2026-06-12",
+    "receipt_no": "R001",
+    "items": [
+      {
+        "name": "Paracetamol",
+        "price": 25.0,
+        "qty": 2,
+        "category": "pharmacy",
+        "brand": ""
+      }
+    ],
+    "total": 95.0,
+    "confidence": 0.95,
+    "lang": "en",
+    "dup": "exact",
+    "unparseable": false
+  },
+  {
+    "id": "SYN-010",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R010",
+    "items": [
+      {
+        "name": "Medicine",
+        "price": 100.0,
+        "qty": 1,
+        "category": "pharmacy",
+        "brand": ""
+      },
+      {
+        "name": "Alcohol",
+        "price": 50.0,
+        "qty": 1,
+        "category": "alcohol",
+        "brand": ""
+      }
+    ],
+    "total": 150.0,
+    "confidence": 0.93,
+    "lang": "mixed",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-011",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R011",
+    "items": [
+      {
+        "name": "Medical consultation",
+        "price": 975.0,
+        "qty": 1,
+        "category": "clinic",
+        "brand": ""
+      }
+    ],
+    "total": 975.0,
+    "confidence": 0.95,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-017",
+    "merchant": "known_vendor",
+    "date": "2026-06-07",
+    "receipt_no": "R017",
+    "items": [
+      {
+        "name": "Medical treatment",
+        "price": 1020.0,
+        "qty": 1,
+        "category": "medical",
+        "brand": ""
+      }
+    ],
+    "total": 1020.0,
+    "confidence": 0.95,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-012",
+    "merchant": "known_vendor",
+    "date": "2026-06-12",
+    "receipt_no": "R012",
+    "items": [
+      {
+        "name": "Paracetamol",
+        "price": 25.0,
+        "qty": 2,
+        "category": "pharmacy",
+        "brand": ""
+      }
+    ],
+    "total": 95.0,
+    "confidence": 0.94,
+    "lang": "en",
+    "dup": "fuzzy",
+    "unparseable": false
+  },
+  {
+    "id": "SYN-013",
+    "merchant": "novamed clinic",
+    "date": "2026-06-17",
+    "receipt_no": "R013",
+    "items": [
+      {
+        "name": "Consultation",
+        "price": 300.0,
+        "qty": 1,
+        "category": "clinic",
+        "brand": ""
+      }
+    ],
+    "total": 300.0,
+    "confidence": 0.96,
+    "lang": "en",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-019",
+    "merchant": "صيدلية الحياة",
+    "date": "2026-06-22",
+    "receipt_no": "R019",
+    "items": [
+      {
+        "name": "دواء",
+        "price": 180.0,
+        "qty": 1,
+        "category": "pharmacy",
+        "brand": ""
+      }
+    ],
+    "total": 180.0,
+    "confidence": 0.88,
+    "lang": "ar",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-014",
+    "merchant": "known_vendor",
+    "date": "2026-06-17",
+    "receipt_no": "R014",
+    "items": [
+      {
+        "name": "Medicine",
+        "price": 200.0,
+        "qty": 1,
+        "category": "pharmacy",
+        "brand": ""
+      }
+    ],
+    "total": 200.0,
+    "confidence": 0.6,
+    "lang": "mixed",
+    "dup": null,
+    "unparseable": false
+  },
+  {
+    "id": "SYN-015",
+    "merchant": null,
+    "date": null,
+    "receipt_no": null,
+    "items": [],
+    "total": null,
+    "confidence": 0.15,
+    "lang": "unknown",
+    "dup": null,
+    "unparseable": true
+  }
+]

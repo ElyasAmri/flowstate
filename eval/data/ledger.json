@@ -1,0 +1,6 @@
+[
+  {"receipt_no": "ALM-88231", "merchant": "Al Meera",       "date": "2026-05-02", "total": 420.0, "currency": "QAR"},
+  {"receipt_no": "ASTR-10044", "merchant": "Aster Pharmacy", "date": "2026-06-10", "total": 150.0, "currency": "QAR"},
+  {"receipt_no": "HMC-77120",  "merchant": "Hamad Medical",  "date": "2026-04-18", "total": 880.0, "currency": "QAR"},
+  {"receipt_no": "RAY-2031",   "merchant": "صيدلية الرعاية",  "date": "2026-06-15", "total": 95.0,  "currency": "QAR"}
+]
