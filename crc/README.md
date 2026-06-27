@@ -1,6 +1,13 @@
 # CRC — Android App
 
-A modern Android app scaffolded with Kotlin, Jetpack Compose, and Gradle (Kotlin DSL).
+A phone remote for the live presentation. Over the LAN it drives **two** legs:
+slide navigation (via the deck's relay at `ws://<laptop>:5173/remote`) and the
+OBS scene cut between the slides and the live Flowstate app
+(`ws://<laptop>:4455`, obs-websocket v5). The phone and laptop must be on the
+same Wi-Fi. Full wiring, ports, and run-of-show are in
+[`presentation/DEMO.md`](../presentation/DEMO.md).
+
+Built with Kotlin, Jetpack Compose, and Gradle (Kotlin DSL).
 
 ## Stack
 
