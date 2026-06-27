@@ -329,6 +329,13 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--muted);
+  line-height: 1.15;
+  /* Reserve two lines on every node so the white name always starts at the same
+     y, even when the kind wraps (e.g. "AGENT · FANAR", "CHANNEL · UI"). */
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .reveal .fnode .nm {
   font-size: 0.62em;
