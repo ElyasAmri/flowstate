@@ -112,14 +112,40 @@
 
   /** Read a chosen file into the named payload field as a base64 data URL, so a
    *  `file`-typed field (e.g. a receipt image) reaches the flow as the base64 an
-   *  agent node's `imageVar` expects. */
+   *  agent node's `imageVar` expects. Images are downscaled to <=1280px first: a
+   *  full-res phone photo (~1MB) pushes the Fanar vision model past its gateway
+   *  timeout (~34s -> 504), while a 1280px copy returns in a few seconds with the
+   *  same extraction quality. Non-images (e.g. PDF) pass through unchanged. */
   function readFileField(name: string, e: Event): void {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      values[name] = String(reader.result ?? "");
+      const dataUrl = String(reader.result ?? "");
+      if (!file.type.startsWith("image/")) {
+        values[name] = dataUrl; // PDFs etc.: no canvas downscale
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          values[name] = dataUrl;
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        values[name] = canvas.toDataURL("image/jpeg", 0.85);
+      };
+      img.onerror = () => (values[name] = dataUrl); // fall back to the raw file
+      img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   }
