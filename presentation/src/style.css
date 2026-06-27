@@ -314,15 +314,31 @@
 .reveal .flowrow {
   display: flex;
   align-items: stretch;
-  margin: 0.45em 0;
+  margin: 0.85em 0 0.45em;
 }
 .reveal .fnode {
+  position: relative;
   flex: 1;
   text-align: center;
   border: 1px solid var(--line);
   border-radius: 0.6em;
   background: var(--panel);
   padding: 0.5em 0.25em;
+}
+.reveal .fnode .fanar-badge {
+  position: absolute;
+  top: -0.6em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.44em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--azure);
+  background: #0b1a40;
+  border: 1px solid rgba(43, 169, 224, 0.55);
+  border-radius: 20px;
+  padding: 0.12em 0.75em;
+  white-space: nowrap;
 }
 .reveal .fnode .kind {
   font-size: 0.42em;
