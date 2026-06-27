@@ -167,6 +167,20 @@ Maps to the agentic requirement targets:
 - **Hotline as a separate flow**: an Arabic speech / dialect interaction
   layer, run as its own flow and integrated into the main flow as a channel (independent blocks).
 
+### Where Fanar is in the code
+
+- Runtime call site: [`app/src-tauri/src/commands/run.rs`](app/src-tauri/src/commands/run.rs)
+  (`run_agent` — the only place the app calls Fanar; POSTs to the `fanar`
+  backend's `/chat/completions`).
+- Agent node that invokes it: [`app/src/lib/flow/run/run.svelte.ts`](app/src/lib/flow/run/run.svelte.ts)
+  via the `runAgent` executor in [`app/src/lib/flow/components/RunPanel.svelte`](app/src/lib/flow/components/RunPanel.svelte).
+- Backend config (the one-line model swap): the `fanar` backend file under the
+  project's `.flowstate/`, loaded by `load_backend(dir, "fanar")`.
+- Live Fanar evaluation: [`eval/run_fanar.py`](eval/run_fanar.py), driven by
+  [`eval/run_meta_flows.mjs`](eval/run_meta_flows.mjs) and
+  [`eval/run_through_flowstate.mjs`](eval/run_through_flowstate.mjs); results in
+  [`eval/data/fanar_findings.md`](eval/data/fanar_findings.md).
+
 ## 5. Evaluation Results
 
 We evaluated the full Flowstate loop on two real public-sector datasets, run
