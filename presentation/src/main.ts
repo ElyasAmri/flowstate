@@ -34,7 +34,21 @@ void deck.initialize().then(() => {
   (window as unknown as { deck: DeckApi }).deck = deck;
   connectRemote(deck);
   syncCitizenView();
+  playVideosAtRate(1.5);
 });
+
+// Play deck videos at a fixed rate (the demo runs faster). reveal restarts
+// autoplay videos on slide entry, so re-assert the rate on every `play`.
+// The citizen-phone sync keys off absolute media time, so it stays aligned.
+function playVideosAtRate(rate: number): void {
+  document.querySelectorAll("video").forEach((v) => {
+    v.playbackRate = rate;
+    v.addEventListener("play", () => (v.playbackRate = rate));
+    v.addEventListener("ratechange", () => {
+      if (v.playbackRate !== rate) v.playbackRate = rate;
+    });
+  });
+}
 
 // Advance the citizen phone view on the demo slide in step with the video. Each
 // `.cstep` carries `data-t` -- the video time (seconds, normal speed) the state
