@@ -33,7 +33,44 @@ void deck.initialize().then(() => {
   // Expose the deck for ad-hoc control from the devtools console.
   (window as unknown as { deck: DeckApi }).deck = deck;
   connectRemote(deck);
+  syncCitizenView();
 });
+
+// Advance the citizen phone view on the demo slide in step with the video. Each
+// `.cstep` carries `data-t` -- the video time (seconds, normal speed) the state
+// begins -- and `data-dots`, how many stepper nodes are then filled. Sync is by
+// absolute media time so the loop re-syncs each wrap. Edit timings in the markup.
+function syncCitizenView(): void {
+  const phone = document.querySelector("[data-citizen]");
+  const video = document.querySelector<HTMLVideoElement>(".demo-split video");
+  if (!phone || !video) return;
+  const steps = Array.from(phone.querySelectorAll<HTMLElement>(".cstep"));
+  const dots = Array.from(phone.querySelectorAll<HTMLElement>(".stepper li"));
+  const cues = steps
+    .map((el, i) => ({ i, t: Number(el.dataset.t ?? 0), dots: Number(el.dataset.dots ?? 0) }))
+    .sort((a, b) => a.t - b.t);
+
+  const apply = (active: number, filled: number): void => {
+    steps.forEach((s, k) => s.classList.toggle("active", k === active));
+    dots.forEach((d, k) => {
+      d.classList.toggle("done", k < filled);
+      d.classList.toggle("cur", k === filled - 1);
+    });
+  };
+
+  let last = -1;
+  const tick = (): void => {
+    const t = video.currentTime;
+    let cur = cues[0];
+    for (const c of cues) if (t >= c.t) cur = c;
+    if (cur.i !== last) {
+      last = cur.i;
+      apply(cur.i, cur.dots);
+    }
+  };
+  apply(cues[0].i, cues[0].dots);
+  video.addEventListener("timeupdate", tick);
+}
 
 // ---------------------------------------------------------------------------
 // Remote control: connect to the relay mounted on the dev server at `/remote`

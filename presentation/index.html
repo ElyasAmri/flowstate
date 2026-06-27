@@ -75,10 +75,77 @@
           <aside class="notes">An agent-driven program, inspired by Claude Code and n8n. Discovery mines a draft flow from datasets + policy. Three user roles: policy maker authors, bureaucrat signs off, consumer is served. The sealed harness runs the flow; external and core services are reached only across channels. Fanar is the model backend, in two roles: agentic tool-calling and document parsing (text / images / audio), and it reads Arabic best.</aside>
         </section>
 
-        <!-- 5b. DEMO VIDEO -->
-        <section class="center" data-background-color="#0a0d13">
-          <video class="demovid" src="/flowstate-demo.mp4" data-autoplay muted playsinline controls preload="auto"></video>
-          <aside class="notes">A case flowing through the editor: intake at the channel door, validate, the Fanar agent classifies, then either an automatic issue or an escalation to the human gate.</aside>
+        <!-- 5b. DEMO (video + synced citizen phone, ported from osamas) -->
+        <section class="center" data-background-color="#070b18">
+          <div class="demo-split">
+            <div class="browser">
+              <div class="bar">
+                <i></i><i></i><i></i>
+                <span class="url">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  flowstate.gov.qa · government services loop
+                </span>
+              </div>
+              <video data-autoplay muted loop playsinline src="/flowstate-demo.mp4"></video>
+            </div>
+            <div class="phone" data-citizen>
+              <div class="frame">
+                <div class="screen rtl">
+                  <div class="notch"></div>
+                  <div class="appbar"><span class="dot"></span><span>الخدمات الحكومية</span></div>
+                  <div class="case">
+                    <div class="h">اعتراض على مخالفة</div>
+                    <div class="id">رقم ٢٠٢٦-٤٤٨١ · إثبات العنوان</div>
+                  </div>
+                  <ol class="stepper">
+                    <li>تقديم</li>
+                    <li>تحقّق</li>
+                    <li>مراجعة</li>
+                    <li>القرار</li>
+                  </ol>
+                  <div class="cstep" data-t="0" data-dots="0">
+                    <div class="big">جاهز للتقديم</div>
+                    <div class="sub">أرفق إثبات العنوان ثم أرسل اعتراضك.</div>
+                    <div class="cbtns">
+                      <div class="cbtn primary">إرسال الاعتراض</div>
+                      <div class="cbtn ghost">إلغاء</div>
+                    </div>
+                  </div>
+                  <div class="cstep" data-t="22" data-dots="1">
+                    <div class="big">تم تقديم الاعتراض</div>
+                    <div class="sub">استلمنا اعتراضك مع إثبات العنوان.</div>
+                    <span class="status review">قيد المعالجة</span>
+                  </div>
+                  <div class="cstep" data-t="25" data-dots="2">
+                    <div class="big">التحقق من الهوية والعنوان</div>
+                    <div class="sub">يتحقق النظام آليًا من هويتك وعنوانك.</div>
+                    <span class="status review">تحقق آلي</span>
+                  </div>
+                  <div class="cstep" data-t="30" data-dots="3">
+                    <div class="clock">⏳</div>
+                    <div class="big">مراجعة حكومية للعنوان</div>
+                    <div class="sub">حالة تتطلب مراجعة موظف مختص للعنوان.</div>
+                    <span class="status review">مراجعة بشرية</span>
+                  </div>
+                  <div class="cstep" data-t="39" data-dots="3">
+                    <div class="big">صياغة خطاب القرار</div>
+                    <div class="sub">يُعدّ القرار بناءً على المراجعة.</div>
+                    <span class="status review">قيد الإصدار</span>
+                  </div>
+                  <div class="cstep" data-t="43" data-dots="4">
+                    <div class="big">القرار: غير محسوم</div>
+                    <div class="sub">الإثبات يحمل تاريخًا غير واضح وعنوان صندوق بريد، مطلوب توضيح.</div>
+                    <span class="status review">بحاجة إلى توضيح</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="caption">
+            Left: the flow runs. Right: the <strong>citizen tracks their case live</strong>,
+            submitted → under review at the <strong>human gate</strong> → decision.
+          </p>
+          <aside class="notes">Talk over the demo: a flow is drafted, run, and improved from its own exceptions. The citizen phone advances in sync with the video.</aside>
         </section>
 
         <!-- 6. EVALUATION -->
