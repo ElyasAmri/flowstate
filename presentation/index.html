@@ -67,18 +67,63 @@
           </aside>
         </section>
 
-        <!-- 3. Demo (video) -->
+        <!-- 3. Demo (video) + synced citizen phone -->
         <section data-background-color="#070b18">
           <span class="numeral">02</span>
           <div class="stack" style="justify-content: center">
-            <div class="eyebrow" style="justify-content: center">Live demo</div>
-            <div class="browser" style="max-width: 80%; margin: 0 auto">
-              <div class="bar"><i></i><i></i><i></i></div>
-              <video data-autoplay muted loop playsinline src="/flowstate-demo.mp4"></video>
+            <div class="eyebrow" style="justify-content: center">Live demo · government services loop</div>
+            <div class="demo-split">
+              <div class="browser">
+                <div class="bar"><i></i><i></i><i></i></div>
+                <video data-autoplay muted loop playsinline src="/flowstate-demo.mp4"></video>
+              </div>
+              <!-- Citizen view (Arabic), advances in sync with the video -->
+              <div class="phone" data-citizen>
+                <div class="frame">
+                  <div class="screen rtl">
+                    <div class="notch"></div>
+                    <div class="appbar"><span class="dot"></span><span>خدمات المرور</span></div>
+                    <div class="case">
+                      <div class="h">مخالفة مرورية</div>
+                      <div class="id">رقم ٢٠٢٢-٤٤٨١ · ٤٠٠ ر.ق</div>
+                    </div>
+                    <ol class="stepper">
+                      <li>مخالفة</li>
+                      <li>اعتراض</li>
+                      <li>مراجعة</li>
+                      <li>القرار</li>
+                    </ol>
+                    <div class="cstep" data-step="0">
+                      <div class="big">لديك مخالفة جديدة</div>
+                      <div class="sub">يمكنك دفع المخالفة أو تقديم اعتراض خلال ٣٠ يومًا.</div>
+                      <div class="cbtns">
+                        <div class="cbtn primary">اعتراض</div>
+                        <div class="cbtn ghost">دفع</div>
+                      </div>
+                    </div>
+                    <div class="cstep" data-step="1">
+                      <div class="big">تم تقديم الاعتراض</div>
+                      <div class="sub">استلمنا اعتراضك وأُرسل إلى الجهة المختصة.</div>
+                      <span class="status review">قيد المعالجة</span>
+                    </div>
+                    <div class="cstep" data-step="2">
+                      <div class="clock">⏳</div>
+                      <div class="big">قيد المراجعة لدى الموظف</div>
+                      <div class="sub">حالة استثنائية — يراجعها موظف مختص.</div>
+                      <span class="status review">مراجعة بشرية</span>
+                    </div>
+                    <div class="cstep" data-step="3">
+                      <div class="big">تم قبول الاعتراض ✓</div>
+                      <div class="sub">أُلغيت المخالفة. سيصلك إشعار بالقرار.</div>
+                      <span class="status ok">مقبول</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <p class="caption">
-              Input over <strong>channels</strong> → <strong>code · agents · services · nested flows</strong>
-              → pauses at <strong>human gates</strong>. One sealed harness.
+              Left: the flow runs. Right: the <strong>citizen tracks their case live</strong> —
+              submitted → under review at the <strong>human gate</strong> → decision.
             </p>
           </div>
           <aside class="notes">

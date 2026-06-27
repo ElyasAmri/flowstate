@@ -33,7 +33,34 @@ void deck.initialize().then(() => {
   (window as unknown as { deck: DeckApi }).deck = deck;
   connectRemote(deck);
   playVideosAtDouble();
+  syncCitizenView();
 });
+
+// Advance the citizen phone view on the demo slide in step with the video: split
+// the timeline into N equal phases (submitted -> under review -> decided), so it
+// loops together with the looping video. Approximate by design — robust to the
+// exact recording, and re-tunable to timestamps later if needed.
+function syncCitizenView(): void {
+  const phone = document.querySelector("[data-citizen]");
+  const video = document.querySelector<HTMLVideoElement>(".demo-split video");
+  if (!phone || !video) return;
+  const steps = Array.from(phone.querySelectorAll<HTMLElement>(".cstep"));
+  const dots = Array.from(phone.querySelectorAll<HTMLElement>(".stepper li"));
+  const n = steps.length;
+  const set = (i: number): void => {
+    steps.forEach((s, k) => s.classList.toggle("active", k === i));
+    dots.forEach((d, k) => {
+      d.classList.toggle("done", k <= i);
+      d.classList.toggle("cur", k === i);
+    });
+  };
+  set(0);
+  video.addEventListener("timeupdate", () => {
+    if (!video.duration || !isFinite(video.duration)) return;
+    const p = video.currentTime / video.duration;
+    set(Math.max(0, Math.min(n - 1, Math.floor(p * n))));
+  });
+}
 
 // Play deck videos at 2x so the ~1-min demo fits the ~30s slot. reveal restarts
 // autoplay videos on slide entry, so re-assert the rate on every `play`.
