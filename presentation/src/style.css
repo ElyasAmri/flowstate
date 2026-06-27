@@ -1,65 +1,275 @@
-/* Flowstate deck overrides. The reveal.js "black" theme provides the base. */
+/* Flowstate deck — Fanar-branded theme over the reveal.js "black" base.
+   Navy gradient ground, azure accent, white type, Inter + IBM Plex Sans Arabic,
+   hairline brand header + azure progress, faint calligraphy watermark. */
 
-/* The black theme uppercases headings; keep them as written (brand is
-   title-case "Flowstate", and we avoid all-caps labels). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap");
+
+:root {
+  --ink: #0a1640; /* deep Fanar navy */
+  --ink-2: #0e2a5e; /* gradient end */
+  --azure: #2ba9e0; /* Fanar accent */
+  --cyan: #5bc5f2; /* highlight */
+  --paper: #ffffff;
+  --muted: #aeb9d6;
+  --ok: #34d399; /* approved */
+  --warn: #fbbf24; /* escalate */
+  --bad: #fb7185; /* reject */
+}
+
+/* --- Base theme variable overrides (reveal "black" reads these) --- */
+.reveal {
+  --r-main-font: "Inter", system-ui, sans-serif;
+  --r-heading-font: "Inter", system-ui, sans-serif;
+  --r-main-color: var(--paper);
+  --r-heading-color: var(--paper);
+  --r-link-color: var(--azure);
+  --r-link-color-hover: var(--cyan);
+  --r-selection-background-color: var(--azure);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navy gradient ground. */
+.reveal-viewport {
+  background: linear-gradient(150deg, var(--ink) 0%, var(--ink-2) 100%) !important;
+}
+
+/* Faint Fanar calligraphy watermark, bottom-right. */
+.reveal-viewport::after {
+  content: "فنار";
+  position: fixed;
+  right: 0.3em;
+  bottom: 0.05em;
+  font-family: "IBM Plex Sans Arabic", serif;
+  font-size: 9rem;
+  font-weight: 700;
+  color: var(--paper);
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Headings --- */
 .reveal h1,
 .reveal h2,
 .reveal h3 {
-  text-transform: none;
+  text-transform: none; /* keep title-case "Flowstate" */
 }
 
 .reveal h1 {
   font-size: 3.2em;
+  font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.reveal h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Azure underline under centered section titles. */
+.reveal .slides section > h2::after {
+  content: "";
+  display: block;
+  width: 2.4em;
+  height: 3px;
+  margin: 0.35em auto 0.1em;
+  background: var(--azure);
+  border-radius: 2px;
+}
+
+/* --- Body --- */
+.reveal .slides section {
+  text-align: left;
+}
+.reveal .slides section h1,
+.reveal .slides section h2 {
+  text-align: center;
+}
+.reveal p,
+.reveal li {
+  line-height: 1.5;
+}
+.reveal strong {
+  color: var(--paper);
+  font-weight: 600;
+}
+.reveal .azure {
+  color: var(--azure);
+  font-weight: 600;
 }
 
 .reveal .subtitle {
   opacity: 0.7;
   font-size: 0.7em;
 }
-
-.reveal .slides section {
-  text-align: left;
+.reveal .lead {
+  font-size: 0.95em;
+  color: var(--muted);
 }
 
-.reveal .slides section h1,
-.reveal .slides section h2 {
-  text-align: center;
-}
-
-/* Short caption under a figure / the demo video. */
+/* Caption under a figure / video. */
 .reveal .caption {
   text-align: center;
-  opacity: 0.75;
+  color: var(--muted);
   font-size: 0.6em;
   margin-top: 0.5em;
 }
 
-/* Evaluation results table. */
-.reveal table.results {
-  margin: 0.4em auto;
-  font-size: 0.62em;
-  border-collapse: collapse;
+/* --- Brand chrome (fixed header + footer) --- */
+.deck-chrome {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6em 1.2em;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  z-index: 30;
+  pointer-events: none;
+}
+.deck-chrome .brand {
+  font-weight: 600;
+  color: var(--paper);
+}
+.deck-chrome .brand b {
+  color: var(--azure);
 }
 
+/* Recolour reveal's built-in progress bar + slide number to brand. */
+.reveal .progress {
+  color: var(--azure);
+  height: 4px;
+}
+.reveal .slide-number {
+  background: transparent;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* --- Three-procedures breadth strip --- */
+.reveal .strip {
+  display: flex;
+  gap: 0.7em;
+  margin-top: 0.6em;
+}
+.reveal .strip .card {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.55em;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.55em 0.75em;
+}
+.reveal .strip .card .k {
+  display: block;
+  font-size: 0.5em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--azure);
+  margin-bottom: 0.15em;
+}
+.reveal .strip .card .v {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+.reveal .strip-note {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.6em;
+  margin-top: 0.4em;
+}
+
+/* --- Verdict / extraction panel (bonus slide) --- */
+.reveal .panel {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.6em;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.7em 0.9em;
+  font-size: 0.7em;
+}
+.reveal .panel .row {
+  color: var(--muted);
+}
+.reveal .panel .row b {
+  color: var(--paper);
+}
+.reveal .rtl {
+  direction: rtl;
+  font-family: "IBM Plex Sans Arabic", "Inter", sans-serif;
+}
+
+.reveal .chip {
+  display: inline-block;
+  padding: 0.18em 0.7em;
+  border-radius: 0.4em;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+.reveal .chip.ok {
+  color: var(--ok);
+  background: rgba(52, 211, 153, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+.reveal .chip.warn {
+  color: var(--warn);
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+.reveal .chip.bad {
+  color: var(--bad);
+  background: rgba(251, 113, 133, 0.14);
+  border: 1px solid rgba(251, 113, 133, 0.4);
+}
+
+/* Two-column content (bonus slide). */
+.reveal .cols {
+  display: flex;
+  gap: 1.1em;
+  align-items: flex-start;
+}
+.reveal .cols > * {
+  flex: 1;
+}
+
+/* --- Evaluation results table --- */
+.reveal table.results {
+  margin: 0.4em auto;
+  font-size: 0.6em;
+  border-collapse: collapse;
+}
 .reveal table.results th,
 .reveal table.results td {
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 0.35em 0.8em;
+  padding: 0.35em 0.85em;
 }
-
 .reveal table.results thead th {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 2px solid var(--azure);
+  color: var(--paper);
+  font-weight: 600;
 }
-
-/* First column (the track) reads left; the model scores read centred. */
 .reveal table.results td:first-child,
 .reveal table.results th:first-child {
   text-align: left;
 }
-
 .reveal table.results td:not(:first-child),
 .reveal table.results th:not(:first-child) {
   text-align: center;
+}
+/* Highlight the Fanar column. */
+.reveal table.results td.fanar,
+.reveal table.results th.fanar {
+  color: var(--azure);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .slides section {
+    transition: none !important;
+  }
 }

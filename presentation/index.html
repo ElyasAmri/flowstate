@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flowstate</title>
+    <title>Flowstate — Fanar Hackathon 2026</title>
   </head>
   <body>
     <div class="reveal">
@@ -11,131 +11,199 @@
         <!-- 1. Title -->
         <section data-auto-animate>
           <h1 data-id="title">Flowstate</h1>
-          <p>Codify bureaucratic procedures as deterministic workflows, with AI agents only where judgement is needed.</p>
-          <p class="subtitle">Smart Government &amp; Citizen Services, powered by Fanar. Team <strong>return 0</strong>.</p>
+          <p class="lead">
+            Codify bureaucratic procedures as <strong>deterministic workflows</strong>,
+            with AI agents only where judgement is needed.
+          </p>
+          <p class="subtitle">
+            Track 1 · Smart Government &amp; Citizen Services · team <strong>return 0</strong>
+          </p>
           <aside class="notes">
-            Greetings everyone, my name is Osama, and this is my colleague Elyas.
-            Today we are presenting our work.
+            Hi everyone — I'm Osama, this is Elyas, team return 0. We built Flowstate
+            for Track 1, Smart Government and Citizen Services.
           </aside>
         </section>
 
-        <!-- 2. Why aren't agents in government? -->
+        <!-- 2. Problem + Track 1 -->
         <section>
           <h2>Why aren't agents in government?</h2>
           <p>It comes down to <strong>reliability</strong>.</p>
           <ul>
-            <li>We rely on others to do work correctly, and to be accountable when it is wrong.</li>
-            <li>Agents are not only <strong>unreliable</strong> on some tasks,</li>
-            <li>they are also <strong>inconsistent</strong>: different answers to the same input.</li>
+            <li>We rely on others to do work <strong>correctly</strong>, and to be <strong>accountable</strong> when it is wrong.</li>
+            <li>Agents are <strong>unreliable</strong> on some tasks —</li>
+            <li>and <strong>inconsistent</strong>: different answers to the same input.</li>
           </ul>
+          <p class="lead">
+            So: <span class="azure">automate the routine, escalate the exceptions, stay accountable.</span>
+          </p>
           <aside class="notes">
-            Before we started, we asked ourselves one question: why aren't LLM agents
-            integrated into the work of institutions and government. One technical issue
-            is reliability. Us humans tend to rely on others doing work correctly and be
-            held accountable when done incorrectly. Agents are not only unreliable on
-            certain tasks, they are also inconsistent when repeating the task on the same
-            input.
+            Why aren't LLM agents inside government work? Reliability. We rely on people
+            to do work correctly and be accountable when it's wrong. Agents are both
+            unreliable on some tasks and inconsistent — different answers to the same
+            input. Flowstate's answer: automate the routine deterministically, escalate
+            only the real exceptions to a human, and keep the whole thing accountable.
           </aside>
         </section>
 
-        <!-- 3. The root cause: too many responsibilities -->
-        <section>
-          <h2>Too many responsibilities</h2>
-          <ul>
-            <li>We hand one agent too many tools and too many tasks, and expect wonders.</li>
-            <li>But most work follows a fixed <strong>ordering of steps</strong>.</li>
-            <li>So: model <strong>separation of concerns</strong> across agents and coordinate them, for consistent, reliable output.</li>
-          </ul>
-          <p class="subtitle">And this is where Flowstate comes in.</p>
-          <aside class="notes">
-            Coming from a software engineering background, this problem is easily
-            attributable to one reason: agents have too many responsibilities. We hand
-            agents too many tools, too many tasks, and expect to do wonders. But the
-            truth is that most work, if not all, follows a certain ordering or steps. So
-            the question is, can we model separation of concerns on the agents and
-            coordinate them to achieve more consistent and potentially reliable output?
-            And this is where Flowstate comes into the picture.
-          </aside>
-        </section>
-
-        <!-- 4. Flowstate, the demo plays while we describe it -->
-        <section data-background-color="#0b0e14">
-          <h2 data-id="title" style="margin-bottom: 0.3em;">Flowstate</h2>
+        <!-- 3. Demo (video) -->
+        <section data-background-color="#070b18">
+          <h2 data-id="title" style="margin-bottom: 0.25em">Flowstate</h2>
           <video
             data-autoplay
             muted
             loop
             playsinline
             src="/flowstate-demo.mp4"
-            style="width: 100%; max-height: 72vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);"
+            style="width: 100%; max-height: 70vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5)"
           ></video>
           <p class="caption">
-            An editor for workflows: input arrives over <strong>channels</strong>, runs
-            through <strong>code, agents, services, and nested flows</strong>, pauses at
-            <strong>human gates</strong>, all in one sealed harness.
+            Input arrives over <strong>channels</strong> → runs through
+            <strong>code, agents, services, and nested flows</strong> → pauses at
+            <strong>human gates</strong> — all in one sealed harness.
           </p>
           <aside class="notes">
-            Flowstate is an agent-driven program, inspired by claude code and n8n. It has
-            an editor which allows users to create a workflow to handle input through
-            outside sources (channels), funnel input through multiple steps which of
-            code, agents, external service, and nested flows, and at certain steps asks
-            for intervention from a human worker or send messages to other channels. All
-            of this is run in a single harness, which allows for maximum control over
-            each step. [Talk over the demo: the init flow drafts the routine procedure;
-            the procedure runs and escalates an ambiguous case to a human gate; the
-            update flow proposes a change back to it. UI channels on the left, shared
-            services on the right.]
+            Flowstate is an agent-driven workflow editor, inspired by Claude Code and
+            n8n. You author a workflow: input arrives over channels, flows through code,
+            agents, external services, and nested flows, and at key steps it pauses for a
+            human or messages another channel — all in a single deterministic harness.
+            [Talk over the demo: the draft flow mines the routine procedure; the
+            procedure runs and escalates an ambiguous case to a human gate; the update
+            flow proposes a change back.]
           </aside>
         </section>
 
-        <!-- 5. Use of Fanar -->
+        <!-- 4. Agentic design + breadth strip -->
+        <section>
+          <h2>Separation of concerns</h2>
+          <ul>
+            <li>A flow is a <strong>deterministic state machine</strong> — not one over-loaded agent.</li>
+            <li>A self-improving loop: <span class="azure">draft → run → update</span> — mine the procedure, run it, improve it from its own exceptions.</li>
+          </ul>
+          <div class="strip">
+            <div class="card"><span class="k">Process</span><span class="v">Traffic fines</span></div>
+            <div class="card"><span class="k">Reasoning</span><span class="v">Arabic legal judgement</span></div>
+            <div class="card"><span class="k">Vision</span><span class="v">Receipt claims</span></div>
+          </div>
+          <p class="strip-note">Three procedures, one engine.</p>
+          <aside class="notes">
+            Instead of handing one agent every tool and task, Flowstate models separation
+            of concerns: the control flow is a deterministic state machine; agents handle
+            only the judgement steps. It's a closed loop of three flows — one drafts the
+            procedure from historical data, one runs it, one turns accumulated exceptions
+            back into proposed updates. This maps onto the agentic requirements: planning
+            and decomposition, tool orchestration, memory/state, autonomous execution,
+            and human-in-the-loop. We validated it on three different procedures.
+          </aside>
+        </section>
+
+        <!-- 5. Leveraging Fanar -->
         <section>
           <h2>Where Fanar fits</h2>
           <ul>
-            <li><strong>Agentic LLM</strong>: the agent nodes that reason, classify, and call tools.</li>
-            <li><strong>Document parsing</strong>: text, images, audio (transcripts).</li>
-            <li>Strong at extracting meaning from <strong>Arabic</strong> context, a perfect fit for the Gulf government setting.</li>
+            <li><strong>Agent backend</strong> — the nodes that reason, classify, and call tools.</li>
+            <li><strong>Document parsing</strong> — text, images, and audio transcripts.</li>
+            <li>Strong at extracting meaning from <strong>Arabic</strong> context — a fit for the Gulf-government setting.</li>
           </ul>
+          <p class="lead">
+            One OpenAI-compatible config entry — <span class="azure">online (Fanar API) ↔ self-hosted</span>, swapped without code changes.
+          </p>
           <aside class="notes">
-            Fanar serves two main roles in this program: agentic LLM for tool calling, and
-            document parsing (image, text, audio etc.) Its capability to better extract
-            info from Arabic context is a perfect suit for this. One config entry; online
-            (Fanar API) or self-hosted on RunPod, swapped without code changes.
+            Fanar plays two roles: the agentic LLM behind tool-calling nodes, and a
+            document parser across text, images, and audio. Its Arabic strength is a
+            perfect fit for a Gulf-government setting. And it's reached through one
+            OpenAI-compatible config entry — online via the Fanar API or self-hosted on
+            our own instance — swapped without touching code.
           </aside>
         </section>
 
-        <!-- 6. Evaluation -->
+        <!-- 6. Evaluation & Insights -->
         <section>
           <h2>Does it work?</h2>
-          <p>Two procedure datasets: <strong>Road-Traffic Fines</strong> and an <strong>Arabic Legal Judgement</strong> dataset.</p>
+          <p class="lead">
+            Two procedure datasets — <strong>Road-Traffic Fines</strong> and an
+            <strong>Arabic Legal Judgement</strong> set. Scored by script against a
+            held-out key, never by the model.
+          </p>
           <table class="results">
             <thead>
-              <tr><th>Track</th><th>Fanar</th><th>GPT-5.5</th><th>Claude</th><th>DeepSeek</th></tr>
+              <tr>
+                <th>Task</th>
+                <th class="fanar">Fanar</th>
+                <th>GPT-5.5</th>
+                <th>Claude</th>
+                <th>DeepSeek</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>Routine vs exception (conformance)</td><td>100%</td><td>100%</td><td>100%</td><td>100%</td></tr>
-              <tr><td>Arabic verdict extraction</td><td>98%</td><td>100%</td><td>100%</td><td>100%</td></tr>
-              <tr><td>Judgement, reasoning stripped</td><td>56%</td><td>84%</td><td>74%</td><td>60%</td></tr>
+              <tr><td>Routine vs exception (conformance)</td><td class="fanar">100%</td><td>100%</td><td>100%</td><td>100%</td></tr>
+              <tr><td>Arabic verdict extraction</td><td class="fanar">98%</td><td>100%</td><td>100%</td><td>100%</td></tr>
+              <tr><td>Judgement, reasoning stripped</td><td class="fanar">56%</td><td>84%</td><td>74%</td><td>60%</td></tr>
             </tbody>
           </table>
-          <p class="caption">Fanar on a single RunPod instance: slightly under the frontier models, on par for Arabic extraction.</p>
+          <p class="caption">
+            Fanar on a single self-hosted instance — on par for Arabic extraction, just under the frontier on hard reasoning. The loop also <strong>mined 5 data-backed flow improvements</strong> from the 3% appeal cases.
+          </p>
           <aside class="notes">
-            Now this is good and all, but we wanted to show its effectiveness. We pulled a
-            bunch of datasets that deal with procedures and routines. For this demo, we
-            present results from a road traffic dataset and an Arabic Legal Judgement
-            Dataset. Results are presented on screen. As you can see, Fanar running on a
-            single RunPod instance is slightly under frontier models from silicon valley.
+            We pulled procedure datasets to test effectiveness: a road-traffic fine event
+            log and an Arabic legal-judgement set. Scoring is done by script against a
+            held-out key — the model never grades itself. Fanar on a single self-hosted
+            instance is on par with frontier models for Arabic extraction and conformance,
+            and slightly under on the hardest reasoning task. Beyond accuracy, the update
+            flow mined five concrete, data-backed improvements to the procedure from the
+            3% of cases that were appealed.
           </aside>
         </section>
 
-        <!-- 7. Thank you -->
-        <section data-auto-animate data-background-color="#0b0e14">
+        <!-- 7. Bonus — Fanar specialized (vision) agents -->
+        <section>
+          <h2>Bonus: plugging in Fanar's vision model</h2>
+          <div class="cols">
+            <div>
+              <p class="lead">A receipt-claims procedure, driven by a <strong>specialized</strong> Fanar agent:</p>
+              <ul>
+                <li><strong>Fanar-Oryx-IVU</strong> reads the Arabic receipt (OCR + key-info).</li>
+                <li>A <strong>deterministic policy</strong> turns the fields into a verdict.</li>
+                <li>Routine claims auto-resolve; the rest hit a <strong>human gate</strong>.</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <div class="row rtl"><b>المتجر</b> صيدلية ارز رفيع</div>
+              <div class="row"><b>date</b> 2022-09-22 · <b>total</b> 29.90</div>
+              <div style="margin-top: 0.5em">
+                <span class="chip ok">APPROVED</span>
+                <span class="chip warn">ESCALATE_UNKNOWN_MERCHANT</span>
+              </div>
+            </div>
+          </div>
+          <p class="lead">
+            Validates that Flowstate plugs into Fanar's <span class="azure">specialized agents</span>, not just chat.
+          </p>
+          <aside class="notes">
+            As a bonus we wired a third procedure — expense-receipt reimbursement — to a
+            specialized Fanar model, Oryx, the vision-language model. Oryx reads the
+            Arabic receipt and extracts the fields; a deterministic policy turns those
+            fields into a verdict — approve, reject, or escalate an unknown merchant to a
+            human. AI extracts what's visible; code makes the decision. This proves
+            Flowstate composes with Fanar's whole model family, not just the chat model.
+          </aside>
+        </section>
+
+        <!-- 8. Close -->
+        <section data-auto-animate data-background-color="#070b18">
           <h1 data-id="title">Thank you</h1>
-          <p class="subtitle">team <strong>return 0</strong>. Osama and Elyas.</p>
-          <aside class="notes">This has been a presentation by team return 0; thank you.</aside>
+          <p class="subtitle">team <strong>return 0</strong> · Osama &amp; Elyas</p>
+          <p class="caption">github.com/ElyasAmri/flowstate</p>
+          <aside class="notes">That's Flowstate, from team return 0. Thank you.</aside>
         </section>
       </div>
     </div>
+
+    <!-- Fixed brand footer (page number is reveal's built-in, bottom-right). -->
+    <div class="deck-chrome">
+      <span class="brand">flow<b>state</b></span>
+      <span class="meta">Track 1 · Smart Government · Fanar Hackathon 2026</span>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -14,6 +14,13 @@ import "./style.css";
 const deck = new Reveal({
   hash: true,
   slideNumber: true,
+  // Smooth, elegant motion: cross-fade between slides, a fading background, and
+  // a slick auto-animate morph for the "Flowstate" title (slides 1 -> 3 -> 8).
+  transition: "fade",
+  transitionSpeed: "default",
+  backgroundTransition: "fade",
+  autoAnimateDuration: 0.7,
+  autoAnimateEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
   plugins: [Highlight, Notes],
 });
 
