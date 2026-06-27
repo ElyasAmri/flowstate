@@ -11,7 +11,21 @@
       <div class="slides">
         <!-- 1. TITLE -->
         <section data-background-gradient="radial-gradient(60% 60% at 50% 40%, #11161f 0%, #0a0d13 70%)" class="center">
-          <h1 class="grad">Flowstate</h1>
+          <h1>
+            <svg class="title-svg" viewBox="0 0 620 140" role="img" aria-label="Flowstate">
+              <defs>
+                <linearGradient id="fsg" x1="0" y1="0" x2="1" y2="0.18">
+                  <stop offset="0%" stop-color="#34d399" />
+                  <stop offset="52%" stop-color="#a78bfa" />
+                  <stop offset="100%" stop-color="#f5c451" />
+                </linearGradient>
+              </defs>
+              <text x="310" y="76" text-anchor="middle" dominant-baseline="middle"
+                fill="none" stroke="url(#fsg)" stroke-width="1.1"
+                font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700"
+                font-size="104" letter-spacing="-3">Flowstate</text>
+            </svg>
+          </h1>
           <p class="lead" style="font-size: 1.05em; max-width: 30ch">
             Routine procedures, <strong>codified.</strong>
           </p>
@@ -269,24 +283,43 @@ nodes:
         <section>
           <p class="eyebrow">Evaluation &amp; lessons</p>
           <h2>Tested live, on real Fanar.</h2>
-          <div class="stats" style="margin-top: 0.6em">
-            <div class="card stat fragment">
-              <div class="num">100%</div>
-              <div class="lbl">routine vs exception — a deterministic guard, all four models</div>
-            </div>
-            <div class="card stat fragment">
-              <div class="num">98%</div>
-              <div class="lbl">Arabic structured verdict on Fanar (100% Claude / DeepSeek / GPT-5.5)</div>
-            </div>
-            <div class="card stat fragment">
-              <div class="num">56–84%</div>
-              <div class="lbl">blind judgement, court reasoning stripped — the hard tail every model fails</div>
+          <div class="chart fragment">
+            <div class="yaxis"><span>100</span><span>50</span><span>0</span></div>
+            <div class="plot">
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 84"><span class="v">84</span></div>
+                </div>
+                <div class="xlabel">GPT-5.5</div>
+              </div>
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 74"><span class="v">74</span></div>
+                </div>
+                <div class="xlabel">Claude</div>
+              </div>
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 60"><span class="v">60</span></div>
+                </div>
+                <div class="xlabel">DeepSeek</div>
+              </div>
+              <div class="bargroup ours">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 98"><span class="v">98</span></div>
+                  <div class="bar judge" style="--v: 56"><span class="v">56</span></div>
+                </div>
+                <div class="xlabel">Fanar</div>
+              </div>
             </div>
           </div>
-          <p class="fragment lead" style="margin-top: 0.8em; max-width: 60ch; margin-inline: auto; text-align: center">
-            Real judgement is hard, so the model never decides alone: the ambiguous tail is exactly
-            what the human gate catches. Self-hosted on RunPod; swapping models is one config line.
-          </p>
+          <div class="chart-legend fragment">
+            <span><i class="eval"></i> Arabic verdict — reads &amp; extracts</span>
+            <span><i class="judge"></i> Blind judgement — court reasoning stripped</span>
+          </div>
           <aside class="notes">15% of scoring. Numbers are live: conformance is the deterministic split; Arabic is reading + structured output (Fanar's strength); the facts-only judgement track strips the court's reasoning so the model decides blind, and everyone drops. Recommendation for Fanar: native tool-calling and calibrated confidence to drive the gate.</aside>
         </section>
 

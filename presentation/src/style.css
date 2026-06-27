@@ -492,3 +492,87 @@ body::after {
   color: var(--text);
   font-weight: 600;
 }
+
+/* --- evaluation bar chart (slide 11): models x {extraction, judgement} --- */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.1em;
+  margin-top: 2.6em;
+}
+.chart .yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 200px;
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  color: var(--faint);
+  text-align: right;
+}
+.chart .plot {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 200px;
+  border-bottom: 1px solid var(--border);
+}
+.bargroup { display: flex; flex-direction: column; align-items: center; }
+.bargroup .pair { display: flex; align-items: flex-end; gap: 0.45em; }
+.bar {
+  width: 1.5em;
+  height: calc(var(--v) * 2px);
+  border-radius: 5px 5px 0 0;
+  position: relative;
+}
+.bar.eval { background: var(--agent); opacity: 0.4; }
+.bar.judge { background: var(--accent); }
+.bar .v {
+  position: absolute;
+  top: -1.7em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  color: var(--text);
+}
+.bargroup .xlabel {
+  margin-top: 0.6em;
+  font-family: var(--font-mono);
+  font-size: 0.58em;
+  color: var(--muted);
+}
+.bargroup.ours .xlabel { color: var(--accent); }
+.chart-legend {
+  display: flex;
+  gap: 1.8em;
+  justify-content: center;
+  margin-top: 1.1em;
+  font-size: 0.58em;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.chart-legend i {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 3px;
+  margin-right: 0.45em;
+  vertical-align: -1px;
+}
+.chart-legend i.eval { background: var(--agent); opacity: 0.4; }
+.chart-legend i.judge { background: var(--accent); }
+
+/* Hollow gradient-outline title (slide 1 hero), drawn as SVG so the stroke
+   carries the brand gradient at any thinness. */
+.title-svg {
+  display: block;
+  width: 560px;
+  max-width: 82%;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 0 24px rgba(52, 211, 153, 0.16))
+    drop-shadow(0 0 56px rgba(167, 139, 250, 0.12));
+}
