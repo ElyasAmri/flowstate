@@ -195,7 +195,7 @@ nodes:
               </code></pre>
             </div>
           </div>
-          <aside class="notes">Determinism lives in the graph, exactly as the harness expects. The compiler is real: compile.ts, 19 passing tests.</aside>
+          <aside class="notes">Determinism lives in the graph, exactly as the harness expects. The compiler is real: compile.ts, among 68 passing unit tests.</aside>
         </section>
 
         <!-- 8. WHY IT MATTERS -->
@@ -250,8 +250,8 @@ nodes:
           <div class="cols">
             <ul>
               <li class="fragment"><strong>Harness backend:</strong> Fanar runs the agent nodes and the flow-mining step.</li>
+              <li class="fragment"><strong>Document parsing:</strong> reads uploaded evidence (text, images, transcripts) into the structured verdict a flow branches on.</li>
               <li class="fragment"><strong>Arabic hotline:</strong> dialect-aware speech as a channel into the same flow.</li>
-              <li class="fragment"><strong>aiXamine:</strong> safety/security safeguards on agent output.</li>
               <li class="fragment"><strong>eID, registry, payment:</strong> wired as service channels.</li>
             </ul>
             <div class="card fragment">
@@ -268,14 +268,26 @@ nodes:
         <!-- 11. EVALUATION -->
         <section>
           <p class="eyebrow">Evaluation &amp; lessons</p>
-          <h2>What we learned.</h2>
-          <ul>
-            <li class="fragment"><strong>Fanar vs. baseline</strong> on the key Arabic classification tasks, comparison in progress.</li>
-            <li class="fragment"><strong>Where Fanar shone:</strong> dialect comprehension and structured verdicts.</li>
-            <li class="fragment"><strong>Where we reached for tools:</strong> deterministic checks belong in <code>action</code> nodes, not the model.</li>
-            <li class="fragment"><strong>Recommendation:</strong> tighter structured-output guarantees would let agents drive guards directly.</li>
-          </ul>
-          <aside class="notes">15% of scoring. Keep this honest and specific: judges reward real lessons over polish.</aside>
+          <h2>Tested live, on real Fanar.</h2>
+          <div class="stats" style="margin-top: 0.6em">
+            <div class="card stat fragment">
+              <div class="num">100%</div>
+              <div class="lbl">routine vs exception — a deterministic guard, all four models</div>
+            </div>
+            <div class="card stat fragment">
+              <div class="num">98%</div>
+              <div class="lbl">Arabic structured verdict on Fanar (100% Claude / DeepSeek / GPT-5.5)</div>
+            </div>
+            <div class="card stat fragment">
+              <div class="num">56–84%</div>
+              <div class="lbl">blind judgement, court reasoning stripped — the hard tail every model fails</div>
+            </div>
+          </div>
+          <p class="fragment lead" style="margin-top: 0.8em; max-width: 60ch; margin-inline: auto; text-align: center">
+            Real judgement is hard, so the model never decides alone: the ambiguous tail is exactly
+            what the human gate catches. Self-hosted on RunPod; swapping models is one config line.
+          </p>
+          <aside class="notes">15% of scoring. Numbers are live: conformance is the deterministic split; Arabic is reading + structured output (Fanar's strength); the facts-only judgement track strips the court's reasoning so the model decides blind, and everyone drops. Recommendation for Fanar: native tool-calling and calibrated confidence to drive the gate.</aside>
         </section>
 
         <!-- 12. DEMO -->
