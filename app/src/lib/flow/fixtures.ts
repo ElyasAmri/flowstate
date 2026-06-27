@@ -9,7 +9,7 @@
 // outbound UI channel (issued or rejected). Channels are first-class and live in
 // their own registry; nodes reference them by id.
 
-import type { ChannelDefinition, FlowDefinition, FlowNode } from "./types";
+import type { ChannelDefinition, FlowDefinition, FlowNode, Position } from "./types";
 
 /**
  * The channels the worked example references. Seeded into the channel library on
@@ -165,21 +165,23 @@ export const exampleChannels: ChannelDefinition[] = [
     ],
   },
   {
-    id: "ch-draft-out",
+    // Shared store both meta-flows write to (init: the drafted flow; update: the
+    // approved revision). Kept identical to eval/build_flows.py's definition so
+    // the two sources don't fight over examples/flows/channels/ch-flow-library.json.
+    id: "ch-flow-library",
     title: "Flow library",
-    description: "Internal store the meta-flows write drafted / updated flows to.",
+    description: "Internal service: stores authored/updated flow definitions.",
     direction: "outbound",
     binding: { kind: "service", scope: "internal" },
-    accepts: [{ name: "write_flow", fields: [{ name: "flow_id", type: "string" }] }],
-    returns: [],
-  },
-  {
-    id: "ch-update-out",
-    title: "Flow library",
-    description: "Internal store the update meta-flow writes the approved flow to.",
-    direction: "outbound",
-    binding: { kind: "service", scope: "internal" },
-    accepts: [{ name: "write_flow", fields: [{ name: "flow_id", type: "string" }] }],
+    accepts: [
+      {
+        name: "write_flow",
+        fields: [
+          { name: "flow_id", type: "string" },
+          { name: "flow_json", type: "string" },
+        ],
+      },
+    ],
     returns: [],
   },
   {
@@ -498,224 +500,165 @@ export const residenceCertificateRunnable: FlowDefinition = {
 // Group geometry, mirrored from geometry.ts (NODE_W/HEADER/PAD). The group frame
 // wraps its members' bounding box, so we can arrange them in a compact grid
 // rather than one tall column.
-const G_PAD = 12, G_HEADER = 40, NODE_W = 300, ROW_H = 96, COL_GAP = 28, ROW_GAP = 16;
+// --------------------------------------------------------------------------- //
+// Loop-demo layout, organised by channel ROLE (not by flow):
+//   - UI (yellow) channels on the LEFT  -- the human/citizen touch-points.
+//   - service channels collected on the RIGHT, SHARED across flows (one Flow
+//     library that both meta-flows write to; one services group).
+//   - flow logic (agents/actions/decisions) in the MIDDLE, in lanes.
+// Columns are wide so edge labels read between nodes.
+// --------------------------------------------------------------------------- //
+const G_PAD = 12, G_HEADER = 40, CH_H = 88;
+const COL_UI = 40, COL_A = 760, COL_B = 1340, COL_C = 1760, COL_SVC = 2320;
 
-/** Lay `members` out in a `cols`-wide grid inside `group` (assigning groupId +
- *  positions). The group node's position is the frame's top-left; the canvas
- *  sizes the frame from the members. Returns [group, ...positioned members]. */
-function grid(group: FlowNode, members: FlowNode[], cols = 2): FlowNode[] {
-  const x0 = group.position.x + G_PAD;
-  const y0 = group.position.y + G_HEADER + G_PAD;
-  members.forEach((m, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    m.position = { x: x0 + col * (NODE_W + COL_GAP), y: y0 + row * (ROW_H + ROW_GAP) };
-    m.groupId = group.id;
-  });
-  return [group, ...members];
-}
+// Shared services collection (right). Each service is ONE node; flows connect to
+// it from the middle. Stacked vertically inside a labelled group; the loop's
+// drafted spine adds its own services (e.g. Notification) into the same group.
+const servicesGroup: FlowNode = {
+  id: "g-services",
+  kind: "group",
+  label: "Services (shared)",
+  color: "green",
+  position: { x: COL_SVC - G_PAD, y: -80 },
+};
+const SVC_Y0 = servicesGroup.position.y + G_HEADER + G_PAD;
+const svcSlot = (i: number) => ({ x: COL_SVC, y: SVC_Y0 + i * (CH_H + 18) });
+const services: FlowNode[] = [
+  servicesGroup,
+  { id: "svc-mining", kind: "channel", groupId: "g-services", channelId: "ch-mining-feed",
+    label: "Process-mining feed", description: "External feed: a procedure's event log + variant stats.",
+    position: svcSlot(0) },
+  { id: "svc-exceptions", kind: "channel", groupId: "g-services", channelId: "ch-exception-queue",
+    label: "Exception queue", description: "Accumulated non-routine cases to learn from.",
+    position: svcSlot(1) },
+  { id: "svc-policy", kind: "channel", groupId: "g-services", channelId: "ch-policy-registry",
+    label: "Policy registry", description: "External authority consulted before a change.",
+    position: svcSlot(2) },
+  { id: "svc-library", kind: "channel", groupId: "g-services", channelId: "ch-flow-library",
+    label: "Flow library", outcome: "issued",
+    description: "Shared store: both meta-flows write the drafted / updated flow here.",
+    position: svcSlot(3) },
+  { id: "svc-changelog", kind: "channel", groupId: "g-services", channelId: "ch-change-log",
+    label: "Change log", outcome: "rejected", description: "Record when an update is left as-is.",
+    position: svcSlot(4) },
+];
 
-const draftingRegion = grid(
-  {
-    id: "g-drafting",
-    kind: "group",
-    label: "Initial flow drafting (meta-flow)",
-    color: "purple",
-    position: { x: 80, y: -360 },
-  },
-  [
-    {
-      id: "fd-door",
-      kind: "channel",
-      channelId: "ch-mining-feed",
-      label: "Receive event log",
-      description: "Inbound: an existing procedure's mined activities + variant stats.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fd-mine",
-      kind: "agent",
-      agentRef: "arabic-reasoner",
-      label: "Mine process model",
-      description: "Identify the routine spine and the exception forks from the event log.",
-      prompt:
-        "Mine the dominant routine path and exception forks from this event log.\n\n" +
-        "Activities: {{activities}}\nVariants: {{variant_stats}}\n\nEnd with one line:\n  VERDICT: mined",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fd-draft",
-      kind: "agent",
-      agentRef: "arabic-reasoner",
-      label: "Draft routine flow",
-      description: "Emit a deterministic spine + an agent node on exceptions + a human gate.",
-      prompt:
-        "Using the mined model, draft a Flowstate routine flow (deterministic spine, " +
-        "agent on exceptions, a human gate). Return the flow JSON.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fd-out",
-      kind: "channel",
-      channelId: "ch-draft-out",
-      label: "Write draft to library",
-      outcome: "issued",
-      description: "Outbound service: persist the drafted routine flow.",
-      position: { x: 0, y: 0 },
-    },
-  ],
-);
+// UI (yellow) channels, on the left. The update flow's human gate lives here.
+const metaUi: FlowNode[] = [
+  { id: "fu-gate", kind: "channel", channelId: "ch-policy-authority", label: "Policy maker",
+    description: "The policy maker reviews the proposed update.\n\nApprove to write it back, or reject to leave the flow as-is.",
+    position: { x: COL_UI, y: 360 } },
+];
 
-const updateRegion = grid(
-  {
-    id: "g-update",
-    kind: "group",
-    label: "Periodic flow update (meta-flow)",
-    color: "yellow",
-    position: { x: 820, y: -560 },
-  },
-  [
+// Flow logic in the middle: init lane (y 40) and update lane (y 360).
+const metaLogic: FlowNode[] = [
+  { id: "fd-mine", kind: "agent", agentRef: "arabic-reasoner", label: "Mine process model",
+    description: "Identify the routine spine and the exception forks from the event log.",
+    prompt: "Mine the dominant routine path and exception forks from this event log.\n\n" +
+      "Activities: {{activities}}\nVariants: {{variant_stats}}\n\nEnd with one line:\n  VERDICT: mined",
+    position: { x: COL_A, y: 40 } },
+  { id: "fd-draft", kind: "agent", agentRef: "arabic-reasoner", label: "Draft routine flow",
+    description: "Emit a deterministic spine + an agent node on exceptions + a human gate.",
+    prompt: "Using the mined model, draft a Flowstate routine flow (deterministic spine, " +
+      "agent on exceptions, a human gate). Return the flow JSON.",
+    position: { x: COL_B, y: 40 } },
+  { id: "fu-agg", kind: "action", op: "shell", label: "Aggregate exceptions",
+    description: "Compute appeal rates by article / amount band.",
+    command: "python3 aggregate_exceptions.py '{{cases}}' || echo aggregated",
+    position: { x: COL_A, y: 360 } },
+  { id: "fu-analyze", kind: "agent", agentRef: "arabic-reasoner", label: "Propose flow update",
+    description: "Turn the aggregates into a concrete, cited flow change.",
+    prompt: "Given the aggregates, propose a concrete flow update (new guard / pre-check). " +
+      "End with one line:\n  VERDICT: material   -- worth a policy review\n" +
+      "  VERDICT: minor      -- leave the flow as-is",
+    position: { x: COL_B, y: 360 } },
+  { id: "fu-material", kind: "decision", label: "Material change?", position: { x: COL_C, y: 360 } },
+];
+
+// The main routine procedure (the residence spine), re-laid-out to the same
+// convention (UI left, service right, logic middle). NOT part of loopDemo's
+// initial nodes: the demo starts with only the two meta-flows, and the init
+// drafting run "drafts" this onto the canvas (see FlowEditor's loop-demo hook).
+const SPINE_POS: Record<string, Position> = {
+  "n-input": { x: COL_UI, y: 900 },
+  // n-approved / n-rejected share ch-intake, so they render consolidated into
+  // the intake card. Give them that card's position (not an off-screen sentinel)
+  // so the live-run camera rests on the card, not on empty space, at the end.
+  "n-approved": { x: COL_UI, y: 900 },
+  "n-rejected": { x: COL_UI, y: 900 },
+  "n-check-id": { x: COL_A, y: 900 },
+  "n-score-address": { x: COL_B, y: 900 },
+  "n-decision": { x: COL_C, y: 900 },
+  "n-escalate": { x: COL_UI, y: 1140 },
+  "n-issue": svcSlot(5),
+  "n-draft": { x: COL_B, y: 1140 },
+};
+const SPINE_GROUP: Record<string, string> = { "n-issue": "g-services" };
+export const loopDemoSpine: { nodes: FlowNode[]; edges: typeof residenceCertificateRunnable.edges } = {
+  nodes: residenceCertificateRunnable.nodes.map((n) => ({
+    ...n,
+    position: SPINE_POS[n.id] ?? n.position,
+    ...(SPINE_GROUP[n.id] ? { groupId: SPINE_GROUP[n.id] } : {}),
+  })),
+  edges: residenceCertificateRunnable.edges,
+};
+
+// The change the periodic-update run makes to the main flow: a new pre-appeal
+// fast-track step, tapped off the address-proof decision with a guard that never
+// fires in the demo (so it's a visible, structurally-real addition that can't
+// alter the already-run procedure).
+export const loopDemoUpdate: { nodes: FlowNode[]; edges: typeof residenceCertificateRunnable.edges } = {
+  nodes: [
     {
-      id: "fu-door",
-      kind: "channel",
-      channelId: "ch-exception-queue",
-      label: "Receive exception batch",
-      description: "Inbound: accumulated non-routine cases to learn from.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-agg",
-      kind: "action",
-      op: "shell",
-      label: "Aggregate exceptions",
-      description: "Compute appeal rates by article / amount band.",
-      command: "python3 aggregate_exceptions.py '{{cases}}' || echo aggregated",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-policy",
-      kind: "channel",
-      channelId: "ch-policy-registry",
-      label: "Query policy registry",
-      description: "External authority: pull the governing citation before proposing a change.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-analyze",
-      kind: "agent",
-      agentRef: "arabic-reasoner",
-      label: "Propose flow update",
-      description: "Turn the aggregates into a concrete, cited flow change.",
-      prompt:
-        "Given the aggregates, propose a concrete flow update (new guard / pre-check). " +
-        "End with one line:\n  VERDICT: material   -- worth a policy review\n" +
-        "  VERDICT: minor      -- leave the flow as-is",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-material",
+      id: "n-fasttrack",
       kind: "decision",
-      label: "Material change?",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-gate",
-      kind: "channel",
-      channelId: "ch-policy-authority",
-      label: "Policy-maker approval",
-      description:
-        "The policy maker reviews the proposed update.\n\nApprove to write it back, or reject to leave the flow as-is.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-out",
-      kind: "channel",
-      channelId: "ch-update-out",
-      label: "Write updated flow",
-      outcome: "issued",
-      description: "Outbound service: persist the approved flow update.",
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "fu-nochange",
-      kind: "channel",
-      channelId: "ch-change-log",
-      label: "No change",
-      outcome: "rejected",
-      description: "Outbound: leave the routine flow as-is.",
-      position: { x: 0, y: 0 },
+      label: "Pre-appeal fast-track (added by update)",
+      position: { x: COL_C, y: 1140 },
     },
   ],
-);
+  edges: [
+    {
+      id: "e-decision-fasttrack",
+      from: "n-decision",
+      to: "n-fasttrack",
+      label: "fast-track (new)",
+      guard: 'addr_verdict == "expedite"',
+    },
+  ],
+};
 
 export const loopDemo: FlowDefinition = {
   id: "loop-demo",
   title: "Government services loop",
   description:
-    "The whole self-improving loop on one canvas: a routine procedure (bottom) " +
-    "bracketed by two meta-flows shown expanded -- initial drafting (top-left) " +
-    "and periodic update (middle-top) -- crossing external services. Run any " +
-    "region to watch the camera follow it.",
-  nodes: [
-    ...residenceCertificateRunnable.nodes,
-    ...draftingRegion,
-    ...updateRegion,
-  ],
+    "The whole self-improving loop on one canvas: UI channels on the left, a " +
+    "shared services collection on the right, flow logic in the middle. Running " +
+    "the init flow drafts the routine procedure onto the canvas; running the " +
+    "update flow adds a step to it.",
+  nodes: [...services, ...metaUi, ...metaLogic],
   edges: [
-    ...residenceCertificateRunnable.edges,
-    // drafting region (linear)
-    { id: "fde-door-mine", from: "fd-door", to: "fd-mine" },
-    {
-      id: "fde-mine-draft",
-      from: "fd-mine",
-      to: "fd-draft",
-      set: [{ var: "process_model", expr: "outcome.text" }],
-    },
-    {
-      id: "fde-draft-out",
-      from: "fd-draft",
-      to: "fd-out",
-      set: [{ var: "flow_json", expr: "outcome.text" }],
-    },
-    // update region (aggregate -> external policy lookup -> propose -> gate)
-    { id: "fue-door-agg", from: "fu-door", to: "fu-agg" },
-    { id: "fue-agg-policy", from: "fu-agg", to: "fu-policy" },
-    { id: "fue-policy-analyze", from: "fu-policy", to: "fu-analyze" },
-    {
-      id: "fue-analyze-material",
-      from: "fu-analyze",
-      to: "fu-material",
-      set: [{ var: "materiality", expr: "outcome.verdict" }],
-    },
-    {
-      id: "fue-material-yes",
-      from: "fu-material",
-      to: "fu-gate",
-      label: "material",
-      guard: 'materiality == "material"',
-    },
-    {
-      id: "fue-material-no",
-      from: "fu-material",
-      to: "fu-nochange",
-      label: "minor",
-      set: [{ var: "outcome", expr: '"no_change"' }],
-    },
-    {
-      id: "fue-gate-approve",
-      from: "fu-gate",
-      to: "fu-out",
-      label: "approved",
-      guard: 'outcome.verdict == "approve"',
-      set: [{ var: "outcome", expr: '"updated"' }],
-    },
-    {
-      id: "fue-gate-reject",
-      from: "fu-gate",
-      to: "fu-nochange",
-      label: "rejected",
-      set: [{ var: "outcome", expr: '"no_change"' }],
-    },
+    // init: mining feed (svc) -> mine -> draft -> flow library (svc, shared)
+    { id: "fde-door-mine", from: "svc-mining", to: "fd-mine" },
+    { id: "fde-mine-draft", from: "fd-mine", to: "fd-draft",
+      set: [{ var: "process_model", expr: "outcome.text" }] },
+    { id: "fde-draft-out", from: "fd-draft", to: "svc-library",
+      set: [{ var: "flow_json", expr: "outcome.text" }] },
+    // update: exception queue (svc) -> aggregate -> policy registry (svc) ->
+    // propose -> material? -> policy maker (UI gate) -> library / change log
+    { id: "fue-door-agg", from: "svc-exceptions", to: "fu-agg" },
+    { id: "fue-agg-policy", from: "fu-agg", to: "svc-policy" },
+    { id: "fue-policy-analyze", from: "svc-policy", to: "fu-analyze" },
+    { id: "fue-analyze-material", from: "fu-analyze", to: "fu-material",
+      set: [{ var: "materiality", expr: "outcome.verdict" }] },
+    { id: "fue-material-yes", from: "fu-material", to: "fu-gate",
+      label: "material", guard: 'materiality == "material"' },
+    { id: "fue-material-no", from: "fu-material", to: "svc-changelog",
+      label: "minor", set: [{ var: "outcome", expr: '"no_change"' }] },
+    { id: "fue-gate-approve", from: "fu-gate", to: "svc-library",
+      label: "approved", guard: 'outcome.verdict == "approve"',
+      set: [{ var: "outcome", expr: '"updated"' }] },
+    { id: "fue-gate-reject", from: "fu-gate", to: "svc-changelog",
+      label: "rejected", set: [{ var: "outcome", expr: '"no_change"' }] },
   ],
 };
 

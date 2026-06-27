@@ -19,10 +19,13 @@
     entryNodeId: string;
     /** Reports active node/edge ids for diagram highlights during a live run. */
     onactive?: (nodeId: string | null, edgeId: string | null) => void;
+    /** Fires once when a run reaches a successful terminal state, with the entry
+     *  door id (the loop demo uses it to grow the main flow on completion). */
+    oncomplete?: (entryNodeId: string) => void;
     onclose: () => void;
   }
 
-  let { flow, channels, entryNodeId, onactive, onclose }: Props = $props();
+  let { flow, channels, entryNodeId, onactive, oncomplete, onclose }: Props = $props();
 
   // The entry node and its channel. A flow is triggered by submitting a payload
   // across an inbound channel node -- there is no global Run button. The panel is
@@ -51,6 +54,15 @@
   // them on the diagram.
   $effect(() => {
     onactive?.(run?.currentId ?? null, run?.activeEdgeId ?? null);
+  });
+
+  // Fire oncomplete exactly once when this run finishes successfully.
+  let completed = false;
+  $effect(() => {
+    if (run?.status === "done" && !completed) {
+      completed = true;
+      oncomplete?.(entryNodeId);
+    }
   });
 
   /** Wire the runner's side effects to the Tauri backend (stubbed off-Tauri). */

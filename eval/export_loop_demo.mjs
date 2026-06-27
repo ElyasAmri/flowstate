@@ -3,7 +3,12 @@
 // under examples/flows/, the same shape the app loads from <project>/.flowstate.
 // Run via esbuild (see the npm/demo wiring); keeps the committed examples in
 // sync with the fixture that the editor and the recorder use.
-import { loopDemo, exampleChannels } from "../app/src/lib/flow/fixtures.ts";
+import {
+  loopDemo,
+  loopDemoSpine,
+  loopDemoUpdate,
+  exampleChannels,
+} from "../app/src/lib/flow/fixtures.ts";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -13,9 +18,18 @@ fs.mkdirSync(CH, { recursive: true });
 
 const write = (p, obj) => fs.writeFileSync(p, JSON.stringify(obj, null, 2) + "\n");
 
-write(path.join(OUT, "loop-demo.json"), loopDemo);
+// In-app, loopDemo starts as just the two meta-flows and the spine/update are
+// grown on the canvas as the meta-flows run. The committed example is the
+// COMPLETE flow (meta-flows + drafted spine + the update step) so it stands on
+// its own and compiles.
+const complete = {
+  ...loopDemo,
+  nodes: [...loopDemo.nodes, ...loopDemoSpine.nodes, ...loopDemoUpdate.nodes],
+  edges: [...loopDemo.edges, ...loopDemoSpine.edges, ...loopDemoUpdate.edges],
+};
+write(path.join(OUT, "loop-demo.json"), complete);
 
-const used = new Set(loopDemo.nodes.filter((n) => n.channelId).map((n) => n.channelId));
+const used = new Set(complete.nodes.filter((n) => n.channelId).map((n) => n.channelId));
 let n = 0;
 for (const ch of exampleChannels) {
   if (!used.has(ch.id)) continue;

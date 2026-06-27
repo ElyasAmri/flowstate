@@ -227,6 +227,17 @@ export class FlowEditor {
     this.commit();
   }
 
+  /** Add a batch of pre-built nodes + edges in one history step (skipping any
+   *  node/edge whose id already exists). Used by the loop demo to grow the main
+   *  flow on the canvas when a meta-flow run completes. */
+  addSubgraph(nodes: FlowNode[], edges: FlowEdge[]): void {
+    const haveNode = new Set(this.flow.nodes.map((n) => n.id));
+    const haveEdge = new Set(this.flow.edges.map((e) => e.id));
+    for (const n of nodes) if (!haveNode.has(n.id)) this.flow.nodes.push(structuredClone(n));
+    for (const e of edges) if (!haveEdge.has(e.id)) this.flow.edges.push(structuredClone(e));
+    this.commit();
+  }
+
   /** Connect two nodes; ignores self-loops and exact duplicates. */
   addEdge(from: string, to: string): string | null {
     if (from === to) return null;

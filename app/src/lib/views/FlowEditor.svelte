@@ -6,6 +6,8 @@
     draftDecisionLetter,
     exampleChannels,
     loopDemo,
+    loopDemoSpine,
+    loopDemoUpdate,
     residenceCertificateRunnable,
   } from "../flow/fixtures";
   import { loadRegistry, toRegistry } from "../flow/channels";
@@ -175,6 +177,22 @@
     activeNodeId = null;
     activeEdgeId = null;
     submitTarget = null;
+  }
+
+  // Loop-demo only: a completed meta-flow run grows the main flow on the canvas,
+  // so the causal loop is visible -- the init flow drafts the routine procedure
+  // into existence, and the periodic-update flow adds a step to it.
+  function handleRunComplete(entryId: string) {
+    if (editor.flow.id !== "loop-demo") return;
+    if (entryId === "svc-mining") {
+      // The init drafting run drafts the routine procedure onto the canvas.
+      editor.addSubgraph(loopDemoSpine.nodes, loopDemoSpine.edges);
+      editor.select("n-input");
+    } else if (entryId === "svc-exceptions") {
+      // The periodic-update run adds a step to the routine procedure.
+      editor.addSubgraph(loopDemoUpdate.nodes, loopDemoUpdate.edges);
+      editor.select("n-fasttrack");
+    }
   }
 
   function openSubmit(nodeId: string) {
@@ -368,6 +386,7 @@
       channels={editor.channels}
       entryNodeId={submitTarget}
       onactive={handleRunActive}
+      oncomplete={handleRunComplete}
       onclose={handleRunClose}
     />
   {/key}

@@ -71,8 +71,10 @@ export class FlowRun {
   result = $state<string>("");
   error = $state<string>("");
 
-  /** Per-step delay (ms) so the visual flow on the diagram is visible. */
-  stepDelay = $state(400);
+  /** Per-step delay (ms) so the visual flow on the diagram is visible. Tuned so
+   *  each step outlasts the canvas's camera-follow easing, giving a deliberate,
+   *  readable pace as the run walks the diagram. */
+  stepDelay = $state(750);
 
   private byId: Map<string, FlowNode>;
   /** The entry channel node the run started from (a flow can have several). */

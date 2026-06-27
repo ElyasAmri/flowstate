@@ -13,7 +13,6 @@
     NODE_H,
     HEADER_H,
     GROUP_PAD,
-    GROUP_GAP,
     GROUP_EMPTY_H,
   } from "../geometry";
   import { nodeColorClasses } from "../node-color";
@@ -93,34 +92,10 @@
   });
 
   // --- group container layout -----------------------------------------------
-  // A `group` is a frame that stacks its members as real cards. Each "item" is a
-  // standalone node (NODE_H) or a channel-group rendered as one card. The anchor
-  // node is the one whose position drives that card (the channel primary, or the
-  // node itself); the canvas writes anchor positions to stack them vertically.
-
-  interface GroupItem {
-    anchorId: string;
-    height: number;
-  }
-
-  function groupItems(group: FlowNode): GroupItem[] {
-    const members = nodeGroups.get(group.id) ?? [];
-    const consumed = new Set<string>();
-    const items: GroupItem[] = [];
-    for (const m of members) {
-      if (consumed.has(m.id)) continue;
-      if (m.kind === "channel" && m.channelId) {
-        const ch = channelGroups.get(m.channelId) ?? [m];
-        const entry = ch.find((c) => isEntryChannel(c, editor.channels, editor.flow.edges)) ?? ch[0];
-        for (const c of ch) consumed.add(c.id);
-        items.push({ anchorId: entry.id, height: groupCardHeight(ch.length) });
-        continue;
-      }
-      consumed.add(m.id);
-      items.push({ anchorId: m.id, height: NODE_H });
-    }
-    return items;
-  }
+  // A `group` is a free-form frame drawn behind its member cards: members keep
+  // their own positions (so any arrangement -- a vertical stack OR a compact
+  // grid -- is preserved), and the frame wraps their bounding box. Dragging the
+  // group moves the whole arrangement together.
 
   /** Frame size of a group: wraps its members' actual bounding box, so members
    *  laid out in any arrangement (a vertical stack OR a grid) are framed
@@ -147,22 +122,15 @@
     };
   }
 
-  /** Position updates that stack a group's members under its header. `originPos`
-   *  is the group's (possibly new) top-left; the group node is repositioned too. */
-  function groupLayoutUpdates(group: FlowNode, originPos: Point): { id: string; position: Point }[] {
-    const updates = [{ id: group.id, position: originPos }];
-    let y = originPos.y + HEADER_H + GROUP_PAD;
-    for (const it of groupItems(group)) {
-      updates.push({ id: it.anchorId, position: { x: originPos.x + GROUP_PAD, y } });
-      y += it.height + GROUP_GAP;
-    }
+  /** Move a group to `newPos`, shifting every member by the same delta so the
+   *  members' arrangement (grid or stack) is preserved. */
+  function groupTranslateUpdates(group: FlowNode, newPos: Point): { id: string; position: Point }[] {
+    const dx = newPos.x - group.position.x;
+    const dy = newPos.y - group.position.y;
+    const updates = [{ id: group.id, position: newPos }];
+    for (const m of nodeGroups.get(group.id) ?? [])
+      updates.push({ id: m.id, position: { x: m.position.x + dx, y: m.position.y + dy } });
     return updates;
-  }
-
-  /** Restack a group in place (after a member joins/leaves), one history step. */
-  function layoutGroup(groupId: string): void {
-    const group = editor.flow.nodes.find((n) => n.id === groupId);
-    if (group) editor.setPositions(groupLayoutUpdates(group, group.position));
   }
 
   /** All renderables. Group frames render first (behind); members render as their
@@ -362,9 +330,9 @@
         y: toWorld(e).y - interaction.grabOffsetWorld.y,
       };
       if (node?.kind === "group") {
-        // Dragging a group header moves the frame and restacks its members under
-        // it, all in one coalesced history step.
-        editor.setPositions(groupLayoutUpdates(node, pos), `drag:${node.id}`);
+        // Dragging a group header moves the frame and every member by the same
+        // delta (preserving their arrangement), in one coalesced history step.
+        editor.setPositions(groupTranslateUpdates(node, pos), `drag:${node.id}`);
       } else {
         editor.moveNode(nodeId, pos);
       }
@@ -386,15 +354,12 @@
         const chMembers = node.channelId ? channelGroups.get(node.channelId) : undefined;
         const members = chMembers && chMembers.length > 1 ? chMembers : [node];
 
+        // Membership changes on drop; the card keeps wherever it was dragged to
+        // (the frame wraps it), so a group stays a free-form container.
         if (target && target.id !== prev) {
           for (const m of members) editor.setNodeGroup(m.id, target.id);
-          layoutGroup(target.id);
-          if (prev) layoutGroup(prev);
-        } else if (target && target.id === prev) {
-          layoutGroup(prev); // snap back into the stack
         } else if (!target && prev) {
           for (const m of members) editor.setNodeGroup(m.id, null);
-          layoutGroup(prev);
         }
       }
     }

@@ -11,9 +11,12 @@
 //   3. Periodic update (middle-top): exceptions -> aggregate -> policy lookup ->
 //                                    propose -> POLICY-MAKER GATE -> approve.
 //
-// Prereq: dev server on http://localhost:1420 (npm run dev).
-// Run:    node video/record-app.mjs   ->  video/out/raw/flowstate-demo.webm
+// Prereq: dev server on http://localhost:1420 (npm run dev), run from repo root.
+// Run:    node video/record-app.mjs
+// Output: video/out/raw/flowstate-demo.webm  and  video/out/flowstate-demo.mp4
 import { chromium } from "playwright";
+import ffmpeg from "ffmpeg-static";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -64,19 +67,20 @@ try {
   await page.goto("http://localhost:1420/", { waitUntil: "networkidle" });
   await pause(1500);
   await page.getByText("Government services loop").click();
-  await page.waitForSelector("text=Assess address proof");
-  await pause(2600); // hold on the whole loop
+  await page.waitForSelector("text=Mine process model");
+  await page.getByLabel("Fit to view").click();
+  await pause(3500); // zoom out and hold on the whole loop (meta-flows)
 
-  // 1. Initial flow drafting (top-left meta-flow).
+  // 1. Initial flow drafting -- drafts the routine procedure onto the canvas.
   await runRegion({
-    door: "Receive event log",
+    door: "Process-mining feed",
     fields: [
       ["activities", "Create Fine, Send Fine, Payment, Appeal, Judge"],
       ["variant_stats", "97% pay-on-time; 3% appeal"],
     ],
   });
 
-  // 2. The running procedure (bottom) -- ambiguous proof escalates to the gate.
+  // 2. The running procedure (drafted above) -- ambiguous proof -> human gate.
   await runRegion({
     door: "Application intake",
     fields: [
@@ -87,14 +91,17 @@ try {
     gate: true,
   });
 
-  // 3. Periodic flow update (middle-top meta-flow) -- material change -> gate.
+  // 3. Periodic flow update -- material change -> policy-maker gate -> adds a step.
   await runRegion({
-    door: "Receive exception batch",
+    door: "Exception queue",
     fields: [["cases", "1,284 contested fines; article 7 appeals at 38%"]],
     gate: true,
   });
 
-  await pause(800);
+  // Final bookend: zoom out and hold on the whole loop -- all three flows plus
+  // the step the update just added.
+  await page.getByLabel("Fit to view").click();
+  await pause(4000);
 } catch (e) {
   console.log("ERROR:", e.message);
   await page.screenshot({ path: path.join(RAW, "ERR.png") }).catch(() => {});
@@ -104,5 +111,16 @@ try {
 }
 
 const file = fs.readdirSync(RAW).find((f) => f.endsWith(".webm"));
-if (file) fs.renameSync(path.join(RAW, file), path.join(RAW, "flowstate-demo.webm"));
-console.log(`recording saved: ${path.join(RAW, "flowstate-demo.webm")}`);
+const webm = path.join(RAW, "flowstate-demo.webm");
+if (file) fs.renameSync(path.join(RAW, file), webm);
+console.log(`recording saved: ${webm}`);
+
+// Transcode the webm to a web-friendly H.264 mp4 (faststart) so it drops
+// straight into a slide deck / player.
+const mp4 = path.join(process.cwd(), "video/out/flowstate-demo.mp4");
+execFileSync(ffmpeg, [
+  "-y", "-i", webm,
+  "-c:v", "libx264", "-preset", "slow", "-crf", "18",
+  "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4,
+], { stdio: "ignore" });
+console.log(`mp4 saved: ${mp4}`);
