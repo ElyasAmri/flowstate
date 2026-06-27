@@ -30,9 +30,18 @@
     activeNodeId?: string | null;
     /** Live-run highlight: edge currently being traversed. */
     activeEdgeId?: string | null;
+    /** Pan/zoom the camera to this node when set (e.g. a node a run just added),
+     *  even though no run is executing. Takes precedence over `activeNodeId`. */
+    focusNodeId?: string | null;
   }
 
-  let { editor, onnodeactivate, activeNodeId = null, activeEdgeId = null }: Props = $props();
+  let {
+    editor,
+    onnodeactivate,
+    activeNodeId = null,
+    activeEdgeId = null,
+    focusNodeId = null,
+  }: Props = $props();
 
   const viewport = new Viewport();
 
@@ -183,16 +192,19 @@
   // it so the diagram (not a modal) tells the story. Idle (no active node)
   // leaves the viewport where the author left it; manual gestures suppress the
   // follow so panning stays crisp.
+  // A node a run just added (focusNodeId) wins over the executing node, so the
+  // camera flies to show the change before the run's last node lingers.
+  const camTarget = $derived(focusNodeId ?? activeNodeId);
   $effect(() => {
-    const id = activeNodeId;
+    const id = camTarget;
     if (!id || interaction.kind !== "idle") return;
     const node = editor.flow.nodes.find((n) => n.id === id);
     if (!node) return;
     const centre = { x: node.position.x + NODE_W / 2, y: node.position.y + NODE_H / 2 };
     viewport.centerOn(centre, viewSize(), Math.max(viewport.zoom, 1));
   });
-  // Ease the transform only while following a run, so manual pan/zoom is instant.
-  const cameraEasing = $derived(activeNodeId != null && interaction.kind === "idle");
+  // Ease the transform only while following a run/focus, so manual pan is instant.
+  const cameraEasing = $derived(camTarget != null && interaction.kind === "idle");
 
   /** clientX/Y -> screen coords relative to the canvas element. */
   function toScreen(e: PointerEvent): Point {
