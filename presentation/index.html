@@ -9,6 +9,8 @@
     <div class="brand">Osama &amp; Elyas</div>
     <div class="reveal">
       <div class="slides">
+        <!-- ============================ MAIN (≈3 min) ============================ -->
+
         <!-- 1. TITLE -->
         <section data-background-gradient="radial-gradient(60% 60% at 50% 40%, #11161f 0%, #0a0d13 70%)" class="center">
           <h1>
@@ -37,61 +39,45 @@
             </span>
           </div>
           <aside class="notes">
-            One line: we turn a government procedure into a deterministic state machine an
-            agent harness runs. Routine cases flow through, only exceptions reach a human.
+            Hi, we're Osama and Elyas, team return 0. Today we're presenting Flowstate.
           </aside>
         </section>
 
         <!-- 2. PROBLEM -->
         <section>
           <p class="eyebrow">The problem</p>
-          <h2>Every case waits on a&nbsp;person.</h2>
-          <div class="cols" style="margin-top: 0.6em">
-            <ul>
-              <li class="fragment"><strong>Slow.</strong> Routine applications queue behind a human reviewer.</li>
-              <li class="fragment"><strong>Inconsistent.</strong> The same case decided two ways on two desks.</li>
-              <li class="fragment"><strong>Expensive.</strong> Human time spent on cases that never needed it.</li>
-              <li class="fragment"><strong>Opaque.</strong> No replayable, appealable record of <em>why</em>.</li>
-            </ul>
-            <div class="card fragment">
-              <h3>Yet…</h3>
-              <p style="font-size: 0.95em; color: var(--text)">
-                Most applications are <strong>routine</strong>. Only a few are genuine exceptions.
-                We pay the full human cost for all of them.
-              </p>
-            </div>
-          </div>
-          <aside class="notes">25% of scoring: importance, societal impact, value prop. Gulf/Arabic context: dialect + local procedures.</aside>
+          <h2>Why aren't agents running institutions?</h2>
+          <ul style="margin-top: 1em; font-size: 1.15em">
+            <li class="fragment"><strong>Unreliable</strong> on the tasks we hand them.</li>
+            <li class="fragment"><strong>Inconsistent:</strong> same input, two different answers.</li>
+            <li class="fragment"><strong>Unaccountable:</strong> no one answerable for the step.</li>
+          </ul>
+          <aside class="notes">The reliability framing (script): institutions rely on work being done correctly and someone being held accountable. Agents are not only fallible, they are inconsistent on the same input, so you can't drop one into the middle of a procedure.</aside>
         </section>
 
-        <!-- 3. INSIGHT -->
+        <!-- 3. ROOT CAUSE -->
         <section data-background-gradient="radial-gradient(60% 60% at 50% 50%, #11161f, #0a0d13)" class="center">
-          <p class="eyebrow">The insight</p>
-          <h2 style="font-size: 2em; max-width: 20ch; margin-inline: auto">
-            Automate the routine deterministically.<br />
-            <span class="accent">Escalate only the exceptions.</span>
+          <p class="eyebrow">The root cause</p>
+          <h2 style="font-size: 2em; max-width: 22ch; margin-inline: auto">
+            One agent, <span class="accent">too many responsibilities.</span>
           </h2>
-          <p class="lead" style="margin-top: 1em">Keep the whole thing accountable: replayable and appealable.</p>
-          <aside class="notes">This is the thesis of the entire project. Pause here.</aside>
+          <p class="lead" style="margin-top: 1em; max-width: 42ch; margin-inline: auto">
+            Most work is a fixed order of steps. Split the concerns; coordinate the agents.
+          </p>
+          <aside class="notes">Too many tools, too many tasks, expecting wonders. The thesis: separation of concerns over the agents buys consistent, reliable output. Pause here.</aside>
         </section>
 
-        <!-- 4. THE BIG IDEA: boundary rule -->
+        <!-- 4. FLOWSTATE -->
         <section>
-          <p class="eyebrow">The core idea</p>
-          <h2>One rule makes it auditable.</h2>
+          <p class="eyebrow">Flowstate</p>
+          <h2>Coordinate the steps, not one big agent.</h2>
           <div class="cols">
-            <div>
-              <p style="font-size: 0.95em">
-                The harness is <strong>deterministic and sealed.</strong> It never touches the outside
-                world directly.
-              </p>
-              <p style="font-size: 0.95em; color: var(--muted)">
-                Everything outside (a citizen's app, a registry, a bureaucrat's desk, even
-                another flow) is reached <strong style="color: var(--text)">only across a channel:</strong>
-                a named, typed boundary you can see on the canvas.
-              </p>
-              <p class="fragment"><span class="pill">Every external interaction is named, typed, and replayable.</span></p>
-            </div>
+            <ul style="font-size: 1.05em">
+              <li class="fragment">Author a workflow in an editor.</li>
+              <li class="fragment">Steps: <strong>code, agents, services, nested flows.</strong></li>
+              <li class="fragment">Crossed by typed <strong>channels</strong>; pause for a <strong>human</strong> anytime.</li>
+              <li class="fragment">One sealed harness runs it all.</li>
+            </ul>
             <div class="card fragment" style="text-align: center; padding: 1.4em">
               <div style="font-family: var(--font-mono); color: var(--muted); font-size: 0.8em; line-height: 2.2">
                 <span style="color: var(--faint)">◀⎯⎯▶</span> citizen app<br />
@@ -99,13 +85,114 @@
                 <span style="color: var(--faint)">◀⎯⎯▶</span> nested flow<br />
               </div>
               <div style="margin: 0.8em 0; border-top: 1px dashed var(--border)"></div>
-              <strong>sealed deterministic harness</strong>
+              <strong>one sealed, deterministic harness</strong>
             </div>
           </div>
-          <aside class="notes">The boundary rule is what buys auditability. Channels live in a registry, one file each, referenced by id.</aside>
+          <aside class="notes">Flowstate (script): agent-driven, inspired by Claude Code and n8n. An editor authors a workflow; input crosses channels; steps are code, agents, external services, nested flows; a step can pause for a human or message another channel; one harness gives maximum control.</aside>
         </section>
 
-        <!-- 5. NODE TAXONOMY -->
+        <!-- 5. FANAR -->
+        <section>
+          <p class="eyebrow">Use of Fanar</p>
+          <h2>Two roles in every flow.</h2>
+          <div class="cols">
+            <ul style="font-size: 1.05em">
+              <li class="fragment"><strong>Agentic LLM</strong> — drives the agent nodes (tool-calling).</li>
+              <li class="fragment"><strong>Document parsing</strong> — text, images, audio → a typed verdict.</li>
+            </ul>
+            <div class="card fragment" style="text-align: center">
+              <h3>Why Fanar</h3>
+              <p style="font-size: 0.95em; color: var(--text)">Arabic-first procedures. Fanar reads them best.</p>
+            </div>
+          </div>
+          <aside class="notes">Script: Fanar's two main roles are agentic tool-calling and document parsing (image / text / audio); its Arabic extraction is the perfect fit. Gulf procedures are Arabic-first and dialect-heavy. Hotline and the eID / registry / payment integrations are in the appendix.</aside>
+        </section>
+
+        <!-- 6. EVALUATION -->
+        <section>
+          <p class="eyebrow">Evaluation: road-traffic fines + Arabic legal judgement</p>
+          <h2>Tested live, on real Fanar.</h2>
+          <div class="chart fragment" data-fragment-index="0">
+            <div class="yaxis"><span>100</span><span>50</span><span>0</span></div>
+            <div class="plot">
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 84"><span class="fill"></span><span class="v">84</span></div>
+                </div>
+                <div class="xlabel">GPT-5.5</div>
+              </div>
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 74"><span class="fill"></span><span class="v">74</span></div>
+                </div>
+                <div class="xlabel">Claude</div>
+              </div>
+              <div class="bargroup">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
+                  <div class="bar judge" style="--v: 60"><span class="fill"></span><span class="v">60</span></div>
+                </div>
+                <div class="xlabel">DeepSeek</div>
+              </div>
+              <div class="bargroup ours">
+                <div class="pair">
+                  <div class="bar eval" style="--v: 98"><span class="fill"></span><span class="v">98</span></div>
+                  <div class="bar judge" style="--v: 56"><span class="fill"></span><span class="v">56</span></div>
+                </div>
+                <div class="xlabel">Fanar</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-legend fragment" data-fragment-index="0">
+            <span><i class="eval"></i> Arabic verdict — reads &amp; extracts</span>
+            <span><i class="judge"></i> Blind judgement — court reasoning stripped</span>
+          </div>
+          <aside class="notes">Datasets: a road-traffic-fines log and an Arabic legal-judgement dataset, both real procedures. On a single RunPod instance Fanar sits just under the frontier models. Arabic reading + structured output is its strength (98%); blind judgement is hard for everyone (the right bars), which is exactly why a human gate exists.</aside>
+        </section>
+
+        <!-- 7. CLOSE -->
+        <section data-background-gradient="radial-gradient(60% 70% at 50% 45%, #12182022, #0a0d13)">
+          <div class="cols" style="gap: 2em">
+            <div>
+              <h1 class="grad" style="font-size: 3.4em">Flowstate</h1>
+              <p style="font-size: 1.05em; color: var(--text)">Auditable. Replayable. Human-in-the-loop.</p>
+              <div class="poweredby" style="margin-top: 1.6em">
+                <span class="pb-label">Powered by</span>
+                <span class="fanar-lockup">
+                  <span class="fanar-mark"></span>
+                  <span class="fanar-word">Fanar</span>
+                </span>
+              </div>
+              <p class="lead" style="margin-top: 1.4em; color: var(--faint); font-size: 0.8em">
+                A presentation by team <code>return 0;</code> &nbsp; Thank you.
+              </p>
+            </div>
+            <div class="team">
+              <div class="member">
+                <span class="avatar"></span>
+                <span class="name">Elyas Al-Amri</span>
+              </div>
+              <div class="member">
+                <span class="avatar"></span>
+                <span class="name">Osama Hasoneh</span>
+              </div>
+            </div>
+          </div>
+          <aside class="notes">Land it: agents alone are inconsistent; Flowstate coordinates the steps, runs the routine deterministically, and escalates the exceptions. Thank you. (Everything after this is backup for questions.)</aside>
+        </section>
+
+        <!-- ============================ APPENDIX (backup for Q&A) ============================ -->
+
+        <!-- A0. DIVIDER -->
+        <section class="center">
+          <p class="eyebrow">Appendix</p>
+          <h2 style="color: var(--muted)">Backup: how it works in depth.</h2>
+          <aside class="notes">Past the close, on demand: the node model, a worked flow, the compiler, the architecture, and the live demo.</aside>
+        </section>
+
+        <!-- A1. NODE TAXONOMY -->
         <section>
           <p class="eyebrow">Four node kinds</p>
           <h2>Color encodes what's across the boundary.</h2>
@@ -137,7 +224,7 @@
           <aside class="notes">Channel color is derived from its binding, not stored on the node. Agent is the only non-deterministic node. Action/decision are pure logic.</aside>
         </section>
 
-        <!-- 6. FLOW DIAGRAM (worked example) -->
+        <!-- A2. FLOW DIAGRAM (worked example) -->
         <section class="center">
           <p class="eyebrow">Worked example</p>
           <h2>Residence Certificate Request</h2>
@@ -168,7 +255,7 @@
           <aside class="notes">Walk it left to right. Entry is the inbound channel "door": no global Run button. The dashed node is where a person is pulled in.</aside>
         </section>
 
-        <!-- 7. COMPILER -->
+        <!-- A3. COMPILER -->
         <section>
           <p class="eyebrow">From canvas to runtime</p>
           <h2>The editor compiles to a runnable flow.</h2>
@@ -212,7 +299,7 @@ nodes:
           <aside class="notes">Determinism lives in the graph, exactly as the harness expects. The compiler is real: compile.ts, among 68 passing unit tests.</aside>
         </section>
 
-        <!-- 8. WHY IT MATTERS -->
+        <!-- A4. WHY IT MATTERS -->
         <section class="center">
           <p class="eyebrow">Why this shape wins</p>
           <h2>Deterministic. Auditable. Appealable.</h2>
@@ -233,7 +320,7 @@ nodes:
           <aside class="notes">Replayability + a typed audit trail = appealable. Humans intervene only at gates.</aside>
         </section>
 
-        <!-- 9. ARCHITECTURE -->
+        <!-- A5. ARCHITECTURE -->
         <section class="center">
           <p class="eyebrow">Solution architecture</p>
           <img class="archimg" src="/architecture.png"
@@ -241,73 +328,7 @@ nodes:
           <aside class="notes">Discovery mines a draft flow from datasets + policy. Three user roles: policy maker authors, bureaucrat signs off, consumer is served. The sealed harness runs the flow; external and core services are reached only across channels (extract, call, persist, log); Fanar is the model backend. The edge labels are the contracts: ingest, discover, write, read, run, interact, intervene.</aside>
         </section>
 
-        <!-- 10. FANAR + TOOLS -->
-        <section>
-          <p class="eyebrow">Fanar &amp; external tools</p>
-          <h2>Where the model does the work.</h2>
-          <div class="cols">
-            <ul>
-              <li class="fragment"><strong>Harness backend:</strong> Fanar runs the agent nodes and the flow-mining step.</li>
-              <li class="fragment"><strong>Document parsing:</strong> reads uploaded evidence (text, images, transcripts) into the structured verdict a flow branches on.</li>
-              <li class="fragment"><strong>Arabic hotline:</strong> dialect-aware speech as a channel into the same flow.</li>
-              <li class="fragment"><strong>eID, registry, payment:</strong> wired as service channels.</li>
-            </ul>
-            <div class="card fragment">
-              <h3>Why Fanar</h3>
-              <p style="font-size: 0.95em; color: var(--text)">
-                Gulf government procedures are <strong>Arabic-first</strong> and dialect-heavy. The
-                model that reasons over the case must be too, and stay inside the audited boundary.
-              </p>
-            </div>
-          </div>
-          <aside class="notes">20% of scoring: meaningful integration, strengths, limits. Be honest about stubbed vs live for the demo.</aside>
-        </section>
-
-        <!-- 11. EVALUATION -->
-        <section>
-          <p class="eyebrow">Evaluation &amp; lessons</p>
-          <h2>Tested live, on real Fanar.</h2>
-          <div class="chart fragment" data-fragment-index="0">
-            <div class="yaxis"><span>100</span><span>50</span><span>0</span></div>
-            <div class="plot">
-              <div class="bargroup">
-                <div class="pair">
-                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
-                  <div class="bar judge" style="--v: 84"><span class="fill"></span><span class="v">84</span></div>
-                </div>
-                <div class="xlabel">GPT-5.5</div>
-              </div>
-              <div class="bargroup">
-                <div class="pair">
-                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
-                  <div class="bar judge" style="--v: 74"><span class="fill"></span><span class="v">74</span></div>
-                </div>
-                <div class="xlabel">Claude</div>
-              </div>
-              <div class="bargroup">
-                <div class="pair">
-                  <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
-                  <div class="bar judge" style="--v: 60"><span class="fill"></span><span class="v">60</span></div>
-                </div>
-                <div class="xlabel">DeepSeek</div>
-              </div>
-              <div class="bargroup ours">
-                <div class="pair">
-                  <div class="bar eval" style="--v: 98"><span class="fill"></span><span class="v">98</span></div>
-                  <div class="bar judge" style="--v: 56"><span class="fill"></span><span class="v">56</span></div>
-                </div>
-                <div class="xlabel">Fanar</div>
-              </div>
-            </div>
-          </div>
-          <div class="chart-legend fragment" data-fragment-index="0">
-            <span><i class="eval"></i> Arabic verdict — reads &amp; extracts</span>
-            <span><i class="judge"></i> Blind judgement — court reasoning stripped</span>
-          </div>
-          <aside class="notes">15% of scoring. Numbers are live: conformance is the deterministic split; Arabic is reading + structured output (Fanar's strength); the facts-only judgement track strips the court's reasoning so the model decides blind, and everyone drops. Recommendation for Fanar: native tool-calling and calibrated confidence to drive the gate.</aside>
-        </section>
-
-        <!-- 12. DEMO -->
+        <!-- A6. DEMO -->
         <section class="center">
           <p class="eyebrow">Live demo</p>
           <h2 style="font-size: 2.2em">See a case flow through.</h2>
@@ -324,33 +345,15 @@ nodes:
           <aside class="notes">Switch to the desktop app. Submit at the intake door. Show the diagram animate, then show an exception hit the human gate.</aside>
         </section>
 
-        <!-- 13. CLOSE -->
-        <section data-background-gradient="radial-gradient(60% 70% at 50% 45%, #12182022, #0a0d13)">
-          <div class="cols" style="gap: 2em">
-            <div>
-              <h1 class="grad" style="font-size: 3.4em">Flowstate</h1>
-              <p style="font-size: 1.05em; color: var(--text)">Auditable. Replayable. Human-in-the-loop.</p>
-              <div class="poweredby" style="margin-top: 1.6em">
-                <span class="pb-label">Powered by</span>
-                <span class="fanar-lockup">
-                  <span class="fanar-mark"></span>
-                  <span class="fanar-word">Fanar</span>
-                </span>
-              </div>
-              <p class="lead" style="margin-top: 1.4em; color: var(--faint); font-size: 0.8em">Thank you. Questions?</p>
-            </div>
-            <div class="team">
-              <div class="member">
-                <span class="avatar"></span>
-                <span class="name">Elyas Al-Amri</span>
-              </div>
-              <div class="member">
-                <span class="avatar"></span>
-                <span class="name">Osama Hasoneh</span>
-              </div>
-            </div>
-          </div>
-          <aside class="notes">Land the thesis again: automate the routine, escalate the exceptions, keep it accountable.</aside>
+        <!-- A7. QUESTIONS -->
+        <section class="center">
+          <p class="eyebrow">Q&amp;A</p>
+          <h2>Questions?</h2>
+          <p class="lead" style="max-width: 62ch; margin-inline: auto">
+            Ask us about the deterministic harness, the agent and channel model, the live Fanar
+            evaluation, or where Fanar would need to improve.
+          </p>
+          <aside class="notes">Anticipated Q&A in the team doc. Topics: extraction vs judgement, engine vs scripts, Fanar self-host + recommendations, the human-gate threshold.</aside>
         </section>
       </div>
     </div>
