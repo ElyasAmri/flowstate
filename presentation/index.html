@@ -234,27 +234,11 @@ nodes:
         </section>
 
         <!-- 9. ARCHITECTURE -->
-        <section>
+        <section class="center">
           <p class="eyebrow">Solution architecture</p>
-          <h2>Discover → run → record.</h2>
-          <div class="grid-3" style="margin-top: 0.4em">
-            <div class="card fragment">
-              <h3>Discovery</h3>
-              <p>Datasets &amp; policy → process mining → a draft flow a policy maker refines.</p>
-            </div>
-            <div class="card fragment">
-              <h3>Flow runtime</h3>
-              <p>Flow config + deterministic harness + interaction layer (app / hotline).</p>
-            </div>
-            <div class="card fragment">
-              <h3>Services</h3>
-              <p>Core: audit + case/identity store. External: registry, eID, payment, notify.</p>
-            </div>
-          </div>
-          <div class="card fragment" style="margin-top: 0.7em; text-align: center">
-            <strong>Fanar</strong> <span style="color: var(--muted)">is the Arabic-capable model backend powering the harness agents and the hotline channel.</span>
-          </div>
-          <aside class="notes">Three user roles: policy maker authors, bureaucrat intervenes, consumer is served. See docs/Diagram.canvas.</aside>
+          <img class="archimg" src="/architecture.png"
+            alt="Flowstate architecture: Discovery mines a draft flow from datasets and policy; users (policy maker, bureaucrat, consumer) interact and sign off; the sealed flow runtime executes; external and core services are reached across channels; Fanar is the model backend." />
+          <aside class="notes">Discovery mines a draft flow from datasets + policy. Three user roles: policy maker authors, bureaucrat signs off, consumer is served. The sealed harness runs the flow; external and core services are reached only across channels (extract, call, persist, log); Fanar is the model backend. The edge labels are the contracts: ingest, discover, write, read, run, interact, intervene.</aside>
         </section>
 
         <!-- 10. FANAR + TOOLS -->
