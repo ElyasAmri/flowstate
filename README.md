@@ -283,11 +283,44 @@ format artifact, not a wrong call). Two honest caveats:
   decision letters, accurate JSON extraction, and flow mining / improvement
   proposals comparable to Claude.
 
+### Genuine judgement (court reasoning stripped)
+
+To test real decision-making rather than extraction, we stripped the court's
+reasoning (`الأسباب`) from each input, leaving only the raw facts, and had the
+model predict the ruling blind:
+
+| Model | Extraction (reasoning in input) | Judgement (facts only) |
+| --- | --- | --- |
+| GPT-5.5 | 100% | 84% |
+| Claude | 100% | 74% |
+| DeepSeek | 100% | 60% |
+| Fanar | 100% | 56% |
+
+Stripping the reasoning drops every model 16-44 points, confirming the earlier
+100% was extraction. Now models separate by capability and fail in opposite
+directions (DeepSeek over-rejects, Fanar over-grants). The universal hard tail is
+jurisdiction (`route`, ~4-5/10 for all): you cannot infer the right court from
+raw facts. These are exactly the cases the human gate is for.
+
+### End-to-end run through the engine
+
+The numbers above come from scripts on the agent contract. To close the loop we
+ran a real case through the **actual interpreter**
+(`app/src/lib/flow/run/run.svelte.ts`) with the agent node wired to a live model
+(`eval/run_through_flowstate.mjs`): intake -> shell ID-check -> agent
+(`VERDICT: ambiguous`) -> decision -> **human gate suspends** -> operator approves
+-> resume -> issue -> a nested sub-flow drafts the citizen letter live ->
+`issued`. The judgement runs inside Flowstate, branches the flow, and escalates
+the borderline case, exactly as designed. (DeepSeek, our over-rejecting model,
+forced a reject on the same case; gpt-5.5 flagged it for review: the model's bias
+literally decides whether a case auto-resolves or reaches a human.)
+
 **Honest bottom line.** The conformance/automation thesis is validated and
-model-agnostic. The Arabic agent-node capability (read Arabic, emit a clean
-typed verdict, route out-of-scope) is solid. We did *not* demonstrate hard legal
-judgement, and we won't claim it. Sample sizes (60 / 50) are small, so treat the
-percentages as feasibility signals.
+model-agnostic. The Arabic agent-node capability (read Arabic, emit a clean typed
+verdict, route out-of-scope) is solid. Genuine judgement from raw facts is hard
+(56-84%) and the residual is a real ambiguous tail, which is why the human gate
+exists. Sample sizes (60 / 50) are small, so treat the percentages as
+feasibility signals.
 
 ## 6. Recommendations for Future Fanar Improvements
 
