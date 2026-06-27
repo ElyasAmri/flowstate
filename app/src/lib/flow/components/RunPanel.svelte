@@ -150,6 +150,17 @@
     reader.readAsDataURL(file);
   }
 
+  /** Static Tailwind classes for the verdict banner, by verdict family. */
+  function verdictClasses(v: string): string {
+    if (v.startsWith("APPROVED"))
+      return "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200";
+    if (v.startsWith("REJECTED"))
+      return "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200";
+    if (v.startsWith("ESCALATE"))
+      return "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200";
+    return "border-black/10 bg-zinc-50 text-zinc-700 dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-200";
+  }
+
   async function submit() {
     if (!entryNode) return;
     starting = true;
@@ -332,13 +343,37 @@
           </section>
         {/if}
 
+        <!-- What Fanar Oryx extracted from the receipt -->
+        {#if run && (run.vars.merchant || run.vars.total !== undefined)}
+          <section
+            class="space-y-1 rounded-lg border border-black/10 bg-zinc-50 p-3 text-sm dark:border-white/10 dark:bg-zinc-800/50"
+            data-testid="extracted"
+          >
+            <h3 class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Extracted by Fanar Oryx</h3>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-0.5" dir="auto">
+              {#if run.vars.merchant}<div><span class="text-zinc-400">merchant</span> {run.vars.merchant}</div>{/if}
+              {#if run.vars.date}<div><span class="text-zinc-400">date</span> {run.vars.date}</div>{/if}
+              {#if run.vars.total !== undefined}<div><span class="text-zinc-400">total</span> {run.vars.total} {run.vars.currency ?? ""}</div>{/if}
+              {#if run.vars.confidence !== undefined}<div><span class="text-zinc-400">confidence</span> {run.vars.confidence}</div>{/if}
+            </div>
+          </section>
+        {/if}
+
+        <!-- The deterministic policy verdict -->
+        {#if run && run.verdict}
+          <section class="rounded-lg border p-3 {verdictClasses(run.verdict)}" data-testid="verdict">
+            <span class="text-xs font-semibold uppercase tracking-wide opacity-70">Verdict</span>
+            <div class="font-mono text-sm font-semibold">{run.verdict}</div>
+          </section>
+        {/if}
+
         <!-- Final outcome -->
         {#if run && run.status === "done"}
           <section class="space-y-1 rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
             <h3 class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
               Outcome: {run.vars.outcome || "(none)"}
             </h3>
-            {#if run.result}
+            {#if run.result && !run.result.trimStart().startsWith("{") && !run.result.trimStart().startsWith("```")}
               <p class="whitespace-pre-wrap text-sm text-emerald-900 dark:text-emerald-100" dir="auto">{run.result}</p>
             {/if}
           </section>

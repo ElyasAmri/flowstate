@@ -151,6 +151,10 @@ export class FlowRun {
   );
   /** The citizen-facing result once done (the last drafted message, if any). */
   result = $state<string>("");
+  /** The decision constant a node emitted (e.g. APPROVED, REJECTED_OVER_CAP) --
+   *  captured generically from any node whose output text is an UPPER_SNAKE token,
+   *  which is exactly what the deterministic policy step prints. */
+  verdict = $state<string>("");
   error = $state<string>("");
 
   /** Per-step delay (ms) so the visual flow on the diagram is visible. */
@@ -200,6 +204,7 @@ export class FlowRun {
     this.vars = { ...payload };
     this.trace = [];
     this.result = "";
+    this.verdict = "";
     this.error = "";
     this.pending = null;
     this.activeEdgeId = null;
@@ -329,7 +334,10 @@ export class FlowRun {
         const { exit, text } = await this.exec.runShell(
           this.template(node.command ?? ""),
         );
-        this.log(node, `shell exit ${exit}`);
+        // Surface the command's output (e.g. the policy verdict) rather than a
+        // bare exit code, so the trace reads "-> REJECTED_OVER_CAP".
+        const first = text.split("\n")[0].trim().slice(0, 80);
+        this.log(node, first ? `→ ${first}` : `shell exit ${exit}`);
         return { exit, text };
       }
       case "set": {
@@ -458,6 +466,12 @@ export class FlowRun {
     // If the just-run node produced a citizen-facing message, remember it.
     if (typeof outcome.text === "string" && node.kind === "agent")
       this.result = outcome.text;
+    // Capture an UPPER_SNAKE decision constant (the deterministic policy verdict)
+    // so the UI can show it explicitly, e.g. REJECTED_OVER_CAP / ESCALATE_*.
+    if (typeof outcome.text === "string") {
+      const tok = outcome.text.trim();
+      if (/^[A-Z][A-Z0-9_]{2,}$/.test(tok)) this.verdict = tok;
+    }
     // Show the edge traversal, then move currentId so the next node lights up.
     this.activeEdgeId = taken.id;
     this.currentId = taken.to;
