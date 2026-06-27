@@ -192,96 +192,58 @@
           </aside>
         </section>
 
-        <!-- 5. Three procedures, one engine (breadth) — refine later -->
+        <!-- 4. Fanar integrations, by use-case (use-cases over the engine) -->
         <section>
           <span class="numeral">04</span>
           <div class="stack">
-            <div class="eyebrow">Flexibility</div>
-            <h2 style="text-align: left">Three procedures, one engine</h2>
-            <p class="lead" style="margin-bottom: 0.2em">
-              The same engine, validated on three real procedures across different modalities.
-            </p>
-            <div class="strip">
-              <div class="card">
-                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
-                <span class="k">Process</span><span class="v">Traffic fines</span>
+            <div class="eyebrow">Leveraging Fanar</div>
+            <h2 style="text-align: left">Fanar integrations</h2>
+            <div class="engine">
+              <div class="uc-row">
+                <div class="uc">
+                  <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg> Traffic fines</div>
+                  <div class="ucwhat">Routine vs exception conformance over the procedure.</div>
+                  <div class="ucdata"><b>Data:</b> Road-Traffic Fines (BPI) · 150,370 cases · 231 variants · case / activity / timestamp.</div>
+                  <span class="captag">reasoning</span>
+                </div>
+                <div class="uc">
+                  <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> Legal judgement</div>
+                  <div class="ucwhat">Predicts the ruling: accept / reject / route.</div>
+                  <div class="ucdata"><b>Data:</b> Saudi commercial court · 538 cases · Arabic case facts → verdict label.</div>
+                  <span class="captag">reasoning</span>
+                </div>
+                <div class="uc">
+                  <div class="uchead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/></svg> Receipt claims</div>
+                  <div class="ucwhat">Reads the Arabic receipt: OCR + key-info extraction.</div>
+                  <div class="ucdata"><b>Data:</b> CORU / ReceiptSense · ~20k receipts · Arabic + English · OCR + key-info boxes.</div>
+                  <span class="captag">vision</span>
+                </div>
               </div>
-              <div class="card">
-                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div>
-                <span class="k">Reasoning</span><span class="v">Arabic legal judgement</span>
+              <div class="conn-row">
+                <div class="conn"><div class="line"></div><div class="mchip">Fanar · chat</div><div class="line"></div></div>
+                <div class="conn"><div class="line"></div><div class="mchip">Fanar · chat</div><div class="line"></div></div>
+                <div class="conn"><div class="line"></div><div class="mchip">Fanar-Oryx-IVU</div><div class="line"></div></div>
               </div>
-              <div class="card">
-                <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/></svg></div>
-                <span class="k">Vision</span><span class="v">Receipt claims</span>
+              <div class="engine-bar">
+                <span class="fwm">FAN<b>AR</b></span>
+                <span class="sub">one OpenAI-compatible config · online ⇄ self-hosted</span>
               </div>
             </div>
           </div>
           <aside class="notes">
-            One engine, three procedures: traffic-fine management (process conformance),
-            Arabic legal judgement (reasoning), and receipt claims (vision). Same flow
-            model, different domains and modalities. We study the fine-management loop in
-            depth next. [Placeholder layout — to refine.]
+            Each use-case maps to the Fanar model and capability it uses. Traffic-fine
+            management: Fanar chat does routine-vs-exception reasoning over a 150,000-case
+            BPI event log. Arabic legal judgement: Fanar chat predicts accept, reject, or
+            route on 538 Saudi commercial-court cases of Arabic facts. Receipt claims: Oryx,
+            the Arabic vision model, reads receipts from the CORU dataset, OCR plus
+            key-info. All three reached through one OpenAI-compatible config, online or
+            self-hosted.
           </aside>
         </section>
 
-        <!-- 6. Leveraging Fanar -->
+        <!-- 5. Evaluation & Insights -->
         <section>
           <span class="numeral">05</span>
-          <div class="stack">
-            <div class="eyebrow">Leveraging Fanar</div>
-            <h2 style="text-align: left">Where Fanar fits</h2>
-            <p class="lead" style="margin-bottom: 0.1em">
-              We use Fanar's <strong style="color:#fff">model family</strong> where each task needs it, through one
-              OpenAI-compatible config, <span class="azure">online or self-hosted</span>.
-            </p>
-            <div class="fboard">
-              <div class="zone-l">
-                <div class="zlabel">Integrated</div>
-                <div class="mrow">
-                  <div class="mcard">
-                    <div class="mname">Fanar · chat</div>
-                    <div class="mcap">Arabic reasoning + drafting</div>
-                    <div class="mhow">Agent nodes: legal judgement, decision-letter generation.</div>
-                    <span class="mtag">domain reasoning</span>
-                  </div>
-                  <div class="mcard">
-                    <div class="mname">Fanar-Oryx-IVU · vision</div>
-                    <div class="mcap">Arabic document vision</div>
-                    <div class="mhow">Reads Arabic receipts, key-info + OCR.</div>
-                    <span class="mtag">Arabic-first · unique</span>
-                  </div>
-                </div>
-              </div>
-              <div class="zone-r">
-                <div class="zlabel dim">Opportunities · rest of the family</div>
-                <div class="opp">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                  <div class="ot"><b>Fanar-Aura</b> · speech <span>→ voice hotline</span></div>
-                </div>
-                <div class="opp">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
-                  <div class="ot"><b>Fanar-Shaheen</b> · translation <span>→ multilingual citizens</span></div>
-                </div>
-                <div class="opp">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C10.5 3.8 13 5 15 5a1 1 0 0 1 1 1z"/></svg>
-                  <div class="ot"><b>Fanar-Guard</b> · moderation <span>→ output safeguards</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <aside class="notes">
-            We integrate Fanar's model family where each task needs it, through one
-            OpenAI-compatible config, online or self-hosted. Two are integrated now: the
-            Fanar chat model does Arabic reasoning and drafting at the agent nodes, and
-            Oryx, the Arabic-first vision model, reads Arabic documents, that one is
-            uniquely Fanar. And the opportunities are the rest of the family, Aura speech
-            for a voice hotline, Shaheen for translation, and Guard for output safeguards.
-          </aside>
-        </section>
-
-        <!-- 6. Evaluation & Insights -->
-        <section>
-          <span class="numeral">06</span>
           <div class="stack">
             <div class="eyebrow">Evaluation &amp; insights</div>
             <h2 style="text-align: left">Does it work?</h2>
@@ -314,45 +276,34 @@
           </aside>
         </section>
 
-        <!-- 7. Bonus, Fanar specialized (vision) -->
+        <!-- 6. What's next — opportunities from the rest of the Fanar family -->
         <section>
-          <span class="numeral">07</span>
-          <div class="split">
-            <div class="stack">
-              <div class="eyebrow">Bonus</div>
-              <h2 style="text-align: left">Plugging in Fanar's vision model</h2>
-              <ul class="feat">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/></svg>
-                  <span><strong>Fanar-Oryx-IVU</strong> reads the Arabic receipt.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h6v6H9z"/></svg>
-                  <span>A <strong>deterministic policy</strong> turns fields → verdict.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7a4 4 0 1 0-8 0"/><rect width="18" height="12" x="3" y="10" rx="2"/></svg>
-                  <span>Routine auto-resolves; the rest hit a <strong>human gate</strong>.</span>
-                </li>
-              </ul>
-              <p class="lead">Validates Flowstate plugs into Fanar's <span class="azure">specialized agents</span>, not just chat.</p>
-            </div>
-            <div class="panel">
-              <div class="lbl">Extracted by Oryx</div>
-              <div class="row rtl"><b>المتجر</b> · صيدلية ارز رفيع</div>
-              <div class="row"><b>date</b> 2022-09-22 · <b>total</b> 29.90</div>
-              <div style="margin-top: 0.7em; display: flex; gap: 0.4em; flex-wrap: wrap">
-                <span class="chip ok">APPROVED</span>
-                <span class="chip warn">ESCALATE_UNKNOWN_MERCHANT</span>
+          <span class="numeral">06</span>
+          <div class="stack">
+            <div class="eyebrow">What's next</div>
+            <h2 style="text-align: left">The rest of the Fanar family</h2>
+            <p class="lead" style="margin-bottom: 0.5em">
+              Fanar capabilities we'd integrate next, through the same one-config pattern.
+            </p>
+            <div style="display: flex; gap: 0.8em">
+              <div class="opp" style="flex: 1; margin: 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                <div class="ot"><b>Fanar-Aura</b> · speech <span>→ voice hotline channel</span></div>
+              </div>
+              <div class="opp" style="flex: 1; margin: 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                <div class="ot"><b>Fanar-Shaheen</b> · translation <span>→ multilingual citizens</span></div>
+              </div>
+              <div class="opp" style="flex: 1; margin: 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C10.5 3.8 13 5 15 5a1 1 0 0 1 1 1z"/></svg>
+                <div class="ot"><b>Fanar-Guard</b> · moderation <span>→ output safeguards</span></div>
               </div>
             </div>
           </div>
           <aside class="notes">
-            As a bonus we wired a third procedure, expense-receipt reimbursement, to a
-            specialized Fanar model, Oryx, the vision-language model. Oryx reads the Arabic
-            receipt and extracts the fields; a deterministic policy turns those into a verdict
-           , approve, reject, or escalate an unknown merchant to a human. AI extracts what's
-            visible; code decides. Proves Flowstate composes with Fanar's whole model family.
+            Next, the rest of the Fanar family, same one-config pattern: Aura speech for a
+            voice hotline, Shaheen translation to serve multilingual citizens, and Guard for
+            output safeguards.
           </aside>
         </section>
 
