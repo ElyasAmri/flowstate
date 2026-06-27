@@ -84,7 +84,7 @@
         <!-- 6. EVALUATION -->
         <section>
           <p class="eyebrow">Evaluation: road-traffic fines + Arabic legal judgement</p>
-          <h2>Tested live, on real Fanar.</h2>
+          <h2>Comparing evaluations across models.</h2>
           <div class="chart fragment" data-fragment-index="0">
             <div class="yaxis"><span>100</span><span>50</span><span>0</span></div>
             <div class="plot">
@@ -159,8 +159,29 @@
         <!-- A0. DIVIDER -->
         <section class="center">
           <p class="eyebrow">Appendix</p>
-          <h2 style="color: var(--muted)">Backup: how it works in depth.</h2>
-          <aside class="notes">Past the close, on demand: the node model, a worked flow, the compiler, the architecture, and the live demo.</aside>
+          <h2 style="color: var(--muted)">Backup, for your questions.</h2>
+          <aside class="notes">Past the close, on demand: eval design, the node model, a worked flow, the refinement loop, and governance.</aside>
+        </section>
+
+        <!-- A1. EVAL DESIGN -->
+        <section>
+          <p class="eyebrow">Eval design</p>
+          <h2>Is the model deciding, or reading the answer?</h2>
+          <div class="cols">
+            <ul style="font-size: 0.95em">
+              <li>Two layers are <strong>extraction</strong>: the answer is already in the input.</li>
+              <li>One is real <strong>judgement</strong>: we strip the court's reasoning, so it decides blind.</li>
+              <li>Stripping it drops every model from 100% to 56-84%.</li>
+            </ul>
+            <div class="card">
+              <h3>What we learned</h3>
+              <p style="font-size: 0.9em; color: var(--text)">
+                Models fail in opposite directions (over-reject vs over-grant). Jurisdiction is the
+                universal hard tail, exactly the human-gate cases.
+              </p>
+            </div>
+          </div>
+          <aside class="notes">Conformance (routine vs exception) 100%, a deterministic guard. Arabic structured verdict 98-100%. Facts-only judgement 56-84%, the honest test. Bias direction sets the gate threshold; jurisdiction can't be inferred from raw facts.</aside>
         </section>
 
         <!-- A1. NODE TAXONOMY -->
@@ -226,48 +247,25 @@
           <aside class="notes">Walk it left to right. Entry is the inbound channel "door": no global Run button. The dashed node is where a person is pulled in.</aside>
         </section>
 
-        <!-- A3. COMPILER -->
+        <!-- A4. REFINEMENT -->
         <section>
-          <p class="eyebrow">From canvas to runtime</p>
-          <h2>The editor compiles to a runnable flow.</h2>
-          <div class="cols" style="grid-template-columns: 0.9fr 1.1fr">
-            <div>
-              <p style="font-size: 0.9em">
-                The authored graph compiles to <strong>maestro YAML</strong> the harness loads and
-                validates before running.
+          <p class="eyebrow">Refinement</p>
+          <h2>Flows improve themselves over time.</h2>
+          <div class="cols">
+            <ul style="font-size: 0.95em">
+              <li>Unrecognized patterns feed an <strong>update flow</strong>.</li>
+              <li>It proposes a flow change; a human approves it.</li>
+              <li>Inputs are channels, so it can also pull a <strong>policy document</strong> or a <strong>ticketing system</strong>.</li>
+            </ul>
+            <div class="card">
+              <h3>One iteration</h3>
+              <p style="font-size: 0.9em; color: var(--text)">
+                What you see is a single pass. The design is built to refine itself, and both the
+                document and ticketing inputs are a fit for Fanar.
               </p>
-              <ul style="font-size: 0.82em">
-                <li>guards become <code>when:</code></li>
-                <li>edge assignments become <code>set:</code></li>
-                <li>agent / action / human-gate map to harness node kinds</li>
-                <li>reachability + branch checks run at compile time</li>
-              </ul>
-            </div>
-            <div>
-              <p class="codecap">generated: .maestro/flows/residence-certificate.yaml</p>
-              <pre><code class="language-yaml" data-trim data-line-numbers="3-4|6-12|14-19">
-version: 1
-initial: intake
-nodes:
-  intake:
-    kind: action
-    action: log
-    message: Application received
-    on:
-      - to: validate-id
-  classify-proof:
-    kind: agent
-    agent: arabic-reasoner
-    prompt: |
-      Classify the proof of address. End with VERDICT: clear|unclear.
-    on:
-      - when: verdict == "clear"
-        to: issue
-      - to: bureaucrat
-              </code></pre>
             </div>
           </div>
-          <aside class="notes">Determinism lives in the graph, exactly as the harness expects. The compiler is real: compile.ts, among 68 passing unit tests.</aside>
+          <aside class="notes">The example feeds unrecognized patterns to the update flow. Because flows take any input through channels, refinement can reference a policy document or a ticketing system, both very applicable to Fanar.</aside>
         </section>
 
         <!-- A4. WHY IT MATTERS -->
@@ -289,6 +287,27 @@ nodes:
             </div>
           </div>
           <aside class="notes">Replayability + a typed audit trail = appealable. Humans intervene only at gates.</aside>
+        </section>
+
+        <!-- A6. GOVERNANCE -->
+        <section>
+          <p class="eyebrow">Governance</p>
+          <h2>Legal, private, secure by construction.</h2>
+          <div class="grid-3" style="margin-top: 0.5em">
+            <div class="card">
+              <h3>Legality</h3>
+              <p>Require human signoff on every procedure where the law demands it.</p>
+            </div>
+            <div class="card">
+              <h3>Privacy</h3>
+              <p>Self-host Fanar locally; case data never leaves the institution.</p>
+            </div>
+            <div class="card">
+              <h3>Security</h3>
+              <p>Drop a filter (a QCRI service like AiXamine) as a gate between inputs and agents.</p>
+            </div>
+          </div>
+          <aside class="notes">Legality: if signoff is legally required, every procedure can be signed off after processing. Privacy: running Fanar locally limits the concern. Security: the flexibility lets you put a filter like AiXamine between inputs and agents to screen malicious documents.</aside>
         </section>
 
       </div>
