@@ -91,6 +91,18 @@ export interface FlowNode {
   agentRef?: string;
   /** `agent`: the instruction sent to the agent for this step. */
   prompt?: string;
+  /**
+   * `agent`: name of a flow variable holding a base64 image (data URL or raw
+   * base64) to send alongside the prompt -- e.g. a receipt for OCR/extraction.
+   * When set, the agent call uses Fanar's multimodal (vision) request shape.
+   */
+  imageVar?: string;
+  /**
+   * `agent`: backend name override resolved from `.maestro/backends.json`.
+   * Defaults to `"fanar"` (text) at run time; set to a vision backend (e.g.
+   * `"fanar-oryx"`) for image nodes.
+   */
+  backend?: string;
   /** `action`: which deterministic operation this node performs. */
   op?: ActionOp;
   /** `action`/`op === "shell"`: the command to run. */

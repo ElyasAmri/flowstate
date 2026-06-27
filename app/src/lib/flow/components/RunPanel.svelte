@@ -74,7 +74,8 @@
           exit: -1,
           text: "shell unavailable",
         },
-      runAgent: async (prompt) => (await tryInvoke<string>("run_agent", { dir, prompt })) ?? "",
+      runAgent: async (prompt, _agentRef, image, backend) =>
+        (await tryInvoke<string>("run_agent", { dir, prompt, image, backend })) ?? "",
     };
   }
 

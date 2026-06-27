@@ -126,20 +126,55 @@ struct ChatMsg {
     content: Option<String>,
 }
 
-/// Run an agent node by calling the `fanar` backend's chat-completions endpoint
-/// with `prompt`. Returns the assistant's text. `dir` locates the backend config
-/// and secret. This is the only place flowstate talks to Fanar at run time.
+/// Run an agent node by calling a Fanar backend's chat-completions endpoint with
+/// `prompt`. Returns the assistant's text. `dir` locates the backend config and
+/// secret. This is the only place flowstate talks to Fanar at run time.
+///
+/// Two optional params extend the call without breaking existing callers (Tauri
+/// deserializes a missing arg as `None`, so `{dir, prompt}` still works exactly
+/// as before):
+///   - `backend`: backend name to resolve from `backends.json`; defaults to
+///     `"fanar"` (the text model). Pass e.g. `"fanar-oryx"` to target the vision
+///     model for receipt OCR/extraction.
+///   - `image`: a receipt image as a base64 `data:` URL (used as-is) or raw
+///     base64 (wrapped as a JPEG data URL). When present, the request switches to
+///     OpenAI multimodal content (`text` + `image_url` parts); when absent the
+///     request is the exact text-only shape as before.
 #[tauri::command]
-pub async fn run_agent(dir: String, prompt: String) -> Result<String, String> {
-    let backend = load_backend(&dir, "fanar")?;
+pub async fn run_agent(
+    dir: String,
+    prompt: String,
+    image: Option<String>,
+    backend: Option<String>,
+) -> Result<String, String> {
+    let backend = load_backend(&dir, backend.as_deref().unwrap_or("fanar"))?;
     let key = resolve_key(&dir, &backend)?;
     let url = format!(
         "{}/chat/completions",
         backend.base_url.trim_end_matches('/')
     );
+    // Text-only stays a plain string content; an image promotes the message to
+    // OpenAI multimodal parts so the vision model receives both prompt and image.
+    let messages = match &image {
+        Some(img) => {
+            let data_url = if img.starts_with("data:") {
+                img.clone()
+            } else {
+                format!("data:image/jpeg;base64,{img}")
+            };
+            serde_json::json!([{
+                "role": "user",
+                "content": [
+                    { "type": "text", "text": prompt },
+                    { "type": "image_url", "image_url": { "url": data_url } },
+                ],
+            }])
+        }
+        None => serde_json::json!([{ "role": "user", "content": prompt }]),
+    };
     let body = serde_json::json!({
         "model": backend.model,
-        "messages": [{ "role": "user", "content": prompt }],
+        "messages": messages,
         "max_tokens": 1024,
         "temperature": 0,
     });

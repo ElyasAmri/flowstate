@@ -44,7 +44,17 @@ export interface TraceEntry {
  *  core is testable and so the UI wires them to Tauri commands. */
 export interface Executors {
   runShell(command: string): Promise<{ exit: number; text: string }>;
-  runAgent(prompt: string, agentRef?: string): Promise<string>;
+  /**
+   * Call a Fanar agent. `image` (base64 data URL or raw base64) and `backend`
+   * (backend-name override, e.g. "fanar-oryx" for the vision model) are optional:
+   * omit both for the default text-only call against the "fanar" backend.
+   */
+  runAgent(
+    prompt: string,
+    agentRef?: string,
+    image?: string,
+    backend?: string,
+  ): Promise<string>;
 }
 
 /** Outcome of the immediately-executed node (what guards/sets read). */
@@ -54,6 +64,78 @@ type Outcome = Record<string, Value>;
 function parseVerdict(text: string): string {
   const m = text.match(/VERDICT:\s*([A-Za-z_]+)/);
   return m ? m[1].toLowerCase() : "";
+}
+
+/**
+ * Extract a structured object from an agent reply ("Approach 2 — code decides":
+ * an extraction agent answers with a JSON object that a deterministic policy
+ * then judges). Prefers the first ```json fenced block; falls back to the first
+ * balanced `{...}` object in the text. Total: returns `null` on any miss or
+ * parse failure -- never throws -- so a plain-text reply leaves the run unchanged.
+ */
+function extractFields(text: string): Record<string, unknown> | null {
+  const candidates: string[] = [];
+  const fence = text.match(/```json\s*([\s\S]*?)```/i);
+  if (fence) candidates.push(fence[1]);
+  const braced = firstBalancedObject(text);
+  if (braced) candidates.push(braced);
+  for (const raw of candidates) {
+    try {
+      const obj = JSON.parse(raw);
+      if (obj && typeof obj === "object" && !Array.isArray(obj))
+        return obj as Record<string, unknown>;
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null;
+}
+
+/** The first balanced `{...}` substring (string-aware), or null. */
+function firstBalancedObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') inStr = true;
+    else if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+/** UTF-8-safe base64 of a string. Plain `btoa` mangles non-Latin1 (Arabic)
+ *  text, so the string is encoded to UTF-8 bytes first. */
+function utf8ToBase64(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+/** Canonicalise a parsed value so its serialisation is stable regardless of
+ *  the key order the agent emitted (object keys sorted, recursively). */
+function canonicalize(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(canonicalize);
+  if (v && typeof v === "object") {
+    const src = v as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(src).sort()) out[k] = canonicalize(src[k]);
+    return out;
+  }
+  return v;
 }
 
 export class FlowRun {
@@ -181,8 +263,24 @@ export class FlowRun {
     switch (node.kind) {
       case "agent": {
         const prompt = this.template(node.prompt ?? "");
-        const text = await this.exec.runAgent(prompt, node.agentRef);
+        // An agent node may pull a base64 image from a flow variable (e.g. a
+        // receipt submitted across an inbound channel) and target a vision
+        // backend; both default to undefined so text-only nodes are unchanged.
+        const img = node.imageVar ? this.vars[node.imageVar] : undefined;
+        const image = typeof img === "string" && img ? img : undefined;
+        const text = await this.exec.runAgent(
+          prompt,
+          node.agentRef,
+          image,
+          node.backend,
+        );
         const verdict = parseVerdict(text);
+        // Approach 2 ("code decides"): if the reply carries a structured object
+        // (e.g. an extraction agent's receipt fields), lift its scalars into
+        // flow vars and stash the whole object as base64 (`fields_b64`) for a
+        // downstream deterministic policy. Total + backward compatible: a plain
+        // text reply sets nothing extra and the {text,verdict} outcome is unchanged.
+        this.ingestAgentFields(text);
         this.log(
           node,
           verdict
@@ -201,6 +299,27 @@ export class FlowRun {
       case "group":
         // A group is a visual container with no edges; it is never traversed.
         return {};
+    }
+  }
+
+  /** Parse an agent reply for a structured object and, if present, set each
+   *  top-level scalar field as a flow var plus `fields_b64` (UTF-8-safe base64
+   *  of the canonical object). Total: a non-JSON reply is a no-op. */
+  private ingestAgentFields(text: string): void {
+    const fields = extractFields(text);
+    if (!fields) return;
+    for (const [k, v] of Object.entries(fields)) {
+      if (
+        typeof v === "string" ||
+        typeof v === "number" ||
+        typeof v === "boolean"
+      )
+        this.vars[k] = v;
+    }
+    try {
+      this.vars.fields_b64 = utf8ToBase64(JSON.stringify(canonicalize(fields)));
+    } catch {
+      // Leave fields_b64 unset if encoding fails -- stay total.
     }
   }
 
