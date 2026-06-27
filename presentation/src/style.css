@@ -607,3 +607,16 @@ body::after {
   border-radius: 12px;
   box-shadow: none;
 }
+
+/* Demo video slide (before evaluation) */
+.reveal .demovid {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 660px;
+  margin: 0 auto;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: none;
+}
