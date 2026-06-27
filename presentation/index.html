@@ -82,40 +82,51 @@
                 <div class="frame">
                   <div class="screen rtl">
                     <div class="notch"></div>
-                    <div class="appbar"><span class="dot"></span><span>خدمات المرور</span></div>
+                    <div class="appbar"><span class="dot"></span><span>الخدمات الحكومية</span></div>
                     <div class="case">
-                      <div class="h">مخالفة مرورية</div>
-                      <div class="id">رقم ٢٠٢٢-٤٤٨١ · ٤٠٠ ر.ق</div>
+                      <div class="h">اعتراض على مخالفة</div>
+                      <div class="id">رقم ٢٠٢٦-٤٤٨١ · إثبات العنوان</div>
                     </div>
                     <ol class="stepper">
-                      <li>مخالفة</li>
-                      <li>اعتراض</li>
+                      <li>تقديم</li>
+                      <li>تحقّق</li>
                       <li>مراجعة</li>
                       <li>القرار</li>
                     </ol>
-                    <div class="cstep" data-step="0">
-                      <div class="big">لديك مخالفة جديدة</div>
-                      <div class="sub">يمكنك دفع المخالفة أو تقديم اعتراض خلال ٣٠ يومًا.</div>
+                    <!-- data-t = video time (s, normal speed) the state begins; data-dots = stepper fill -->
+                    <div class="cstep" data-t="0" data-dots="0">
+                      <div class="big">جاهز للتقديم</div>
+                      <div class="sub">أرفق إثبات العنوان ثم أرسل اعتراضك.</div>
                       <div class="cbtns">
-                        <div class="cbtn primary">اعتراض</div>
-                        <div class="cbtn ghost">دفع</div>
+                        <div class="cbtn primary">إرسال الاعتراض</div>
+                        <div class="cbtn ghost">إلغاء</div>
                       </div>
                     </div>
-                    <div class="cstep" data-step="1">
+                    <div class="cstep" data-t="22" data-dots="1">
                       <div class="big">تم تقديم الاعتراض</div>
-                      <div class="sub">استلمنا اعتراضك وأُرسل إلى الجهة المختصة.</div>
+                      <div class="sub">استلمنا اعتراضك مع إثبات العنوان.</div>
                       <span class="status review">قيد المعالجة</span>
                     </div>
-                    <div class="cstep" data-step="2">
+                    <div class="cstep" data-t="25" data-dots="2">
+                      <div class="big">التحقق من الهوية والعنوان</div>
+                      <div class="sub">يتحقق النظام آليًا من هويتك وعنوانك.</div>
+                      <span class="status review">تحقق آلي</span>
+                    </div>
+                    <div class="cstep" data-t="30" data-dots="3">
                       <div class="clock">⏳</div>
-                      <div class="big">قيد المراجعة لدى الموظف</div>
-                      <div class="sub">حالة استثنائية — يراجعها موظف مختص.</div>
+                      <div class="big">مراجعة حكومية للعنوان</div>
+                      <div class="sub">حالة تتطلب مراجعة موظف مختص للعنوان.</div>
                       <span class="status review">مراجعة بشرية</span>
                     </div>
-                    <div class="cstep" data-step="3">
-                      <div class="big">تم قبول الاعتراض ✓</div>
-                      <div class="sub">أُلغيت المخالفة. سيصلك إشعار بالقرار.</div>
-                      <span class="status ok">مقبول</span>
+                    <div class="cstep" data-t="39" data-dots="3">
+                      <div class="big">صياغة خطاب القرار</div>
+                      <div class="sub">يُعدّ القرار بناءً على المراجعة.</div>
+                      <span class="status review">قيد الإصدار</span>
+                    </div>
+                    <div class="cstep" data-t="43" data-dots="4">
+                      <div class="big">القرار: غير محسوم</div>
+                      <div class="sub">الإثبات يحمل تاريخًا غير واضح وعنوان صندوق بريد — مطلوب توضيح.</div>
+                      <span class="status review">بحاجة إلى توضيح</span>
                     </div>
                   </div>
                 </div>

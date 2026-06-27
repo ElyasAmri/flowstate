@@ -36,30 +36,41 @@ void deck.initialize().then(() => {
   syncCitizenView();
 });
 
-// Advance the citizen phone view on the demo slide in step with the video: split
-// the timeline into N equal phases (submitted -> under review -> decided), so it
-// loops together with the looping video. Approximate by design — robust to the
-// exact recording, and re-tunable to timestamps later if needed.
+// Advance the citizen phone view on the demo slide in step with the video. Each
+// `.cstep` carries `data-t` — the video time (seconds, at normal speed) the state
+// begins — and `data-dots`, how many stepper nodes are then filled. Sync is by
+// absolute media time (currentTime), so the 2x playbackRate is irrelevant, and it
+// re-syncs every time the looping video wraps. Edit the timings in the markup.
 function syncCitizenView(): void {
   const phone = document.querySelector("[data-citizen]");
   const video = document.querySelector<HTMLVideoElement>(".demo-split video");
   if (!phone || !video) return;
   const steps = Array.from(phone.querySelectorAll<HTMLElement>(".cstep"));
   const dots = Array.from(phone.querySelectorAll<HTMLElement>(".stepper li"));
-  const n = steps.length;
-  const set = (i: number): void => {
-    steps.forEach((s, k) => s.classList.toggle("active", k === i));
+  const cues = steps
+    .map((el, i) => ({ i, t: Number(el.dataset.t ?? 0), dots: Number(el.dataset.dots ?? 0) }))
+    .sort((a, b) => a.t - b.t);
+
+  const apply = (active: number, filled: number): void => {
+    steps.forEach((s, k) => s.classList.toggle("active", k === active));
     dots.forEach((d, k) => {
-      d.classList.toggle("done", k <= i);
-      d.classList.toggle("cur", k === i);
+      d.classList.toggle("done", k < filled);
+      d.classList.toggle("cur", k === filled - 1);
     });
   };
-  set(0);
-  video.addEventListener("timeupdate", () => {
-    if (!video.duration || !isFinite(video.duration)) return;
-    const p = video.currentTime / video.duration;
-    set(Math.max(0, Math.min(n - 1, Math.floor(p * n))));
-  });
+
+  let last = -1;
+  const tick = (): void => {
+    const t = video.currentTime;
+    let cur = cues[0];
+    for (const c of cues) if (t >= c.t) cur = c;
+    if (cur.i !== last) {
+      last = cur.i;
+      apply(cur.i, cur.dots);
+    }
+  };
+  apply(cues[0].i, cues[0].dots);
+  video.addEventListener("timeupdate", tick);
 }
 
 // Play deck videos at 2x so the ~1-min demo fits the ~30s slot. reveal restarts
