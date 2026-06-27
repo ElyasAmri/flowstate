@@ -1,8 +1,14 @@
 package com.example.crc
 
 import android.util.Base64
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -24,7 +30,12 @@ import java.security.MessageDigest
  */
 class ObsClient {
     private val client = OkHttpClient()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private var socket: WebSocket? = null
+    private var reconnectJob: Job? = null
+    @Volatile private var wanted = false
+    private var url: String = ""
     private var password: String = ""
 
     private val _state = MutableStateFlow(ConnState.Disconnected)
@@ -35,13 +46,33 @@ class ObsClient {
     val scene: StateFlow<String?> = _scene
 
     fun connect(url: String, password: String) {
-        disconnect()
+        this.url = url
         this.password = password
+        wanted = true
+        reconnectJob?.cancel()
+        open()
+    }
+
+    private fun open() {
+        socket?.cancel()
         _state.value = ConnState.Connecting
         socket = client.newWebSocket(Request.Builder().url(url).build(), Listener())
     }
 
+    /** Retry once after a delay (e.g. OBS launched after the phone), unless a
+     *  connection is no longer wanted. */
+    private fun scheduleReconnect() {
+        if (!wanted) return
+        reconnectJob?.cancel()
+        reconnectJob = scope.launch {
+            delay(RECONNECT_MS)
+            if (wanted) open()
+        }
+    }
+
     fun disconnect() {
+        wanted = false
+        reconnectJob?.cancel()
         socket?.close(NORMAL_CLOSURE, null)
         socket = null
         _scene.value = null
@@ -88,6 +119,8 @@ class ObsClient {
                     webSocket.send(JSONObject().put("op", OP_IDENTIFY).put("d", identify).toString())
                 }
                 OP_IDENTIFIED -> {
+                    socket = webSocket
+                    reconnectJob?.cancel() // a live socket cancels any pending retry
                     _state.value = ConnState.Connected
                     // Seed the current scene so the active button highlights now.
                     webSocket.send(request("GetCurrentProgramScene", "get-scene"))
@@ -109,17 +142,25 @@ class ObsClient {
             }
         }
 
+        // Ignore callbacks from a socket we have already replaced.
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            if (webSocket !== socket) return
+            _scene.value = null
             _state.value = ConnState.Disconnected
+            scheduleReconnect()
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            if (webSocket !== socket) return
+            _scene.value = null
             _state.value = ConnState.Error
+            scheduleReconnect()
         }
     }
 
     private companion object {
         const val NORMAL_CLOSURE = 1000
+        const val RECONNECT_MS = 2000L
         // obs-websocket v5 opcodes.
         const val OP_HELLO = 0
         const val OP_IDENTIFY = 1
