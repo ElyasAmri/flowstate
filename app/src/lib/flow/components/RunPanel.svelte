@@ -40,11 +40,11 @@
   // when the consumer submits.
   const payloadFields = channel ? entryPayloadFields(channel) : [];
 
-  // Editable payload, starting empty. The consumer fills these fields to
-  // submit across the inbound channel.
+  // Editable payload. Pre-filled from each field's `default` (handy for demos);
+  // the consumer can edit before submitting across the inbound channel.
   // svelte-ignore state_referenced_locally
   let values = $state<Record<string, string>>(
-    Object.fromEntries(payloadFields.map((f) => [f.name, ""])),
+    Object.fromEntries(payloadFields.map((f) => [f.name, f.default ?? ""])),
   );
 
   let run = $state<FlowRun | null>(null);

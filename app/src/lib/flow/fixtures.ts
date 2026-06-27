@@ -44,9 +44,14 @@ export const exampleChannels: ChannelDefinition[] = [
         name: "submit_application",
         description: "Initial submission that starts the flow.",
         fields: [
-          { name: "national_id", type: "string" },
-          { name: "applicant_name", type: "string" },
-          { name: "address_proof", type: "string" },
+          { name: "national_id", type: "string", default: "1098234765" },
+          { name: "applicant_name", type: "string", default: "Ahmad Al-Rashid" },
+          {
+            name: "address_proof",
+            type: "string",
+            default:
+              "Lease contract listing a P.O. Box as the address, with an unclear issue date.",
+          },
         ],
       },
     ],

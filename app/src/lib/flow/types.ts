@@ -163,6 +163,8 @@ export interface ChannelField {
   /** Whether the field must be present. Defaults to true when omitted. */
   required?: boolean;
   description?: string;
+  /** Optional value the run panel pre-fills into the submit form (demo/example). */
+  default?: string;
 }
 
 /** The primitive types a channel field may carry. */
