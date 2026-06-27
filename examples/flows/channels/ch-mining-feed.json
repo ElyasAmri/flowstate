@@ -1,0 +1,27 @@
+{
+  "id": "ch-mining-feed",
+  "title": "Process-mining feed",
+  "description": "External feed of an existing procedure's event log + variant stats.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "service",
+    "scope": "external"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "log",
+      "description": "The mined activities and variant statistics to draft from.",
+      "fields": [
+        {
+          "name": "activities",
+          "type": "string"
+        },
+        {
+          "name": "variant_stats",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

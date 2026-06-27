@@ -1,0 +1,12 @@
+{
+  "id": "ch-draft-letter",
+  "title": "Draft decision letter (nested flow)",
+  "description": "A channel bound to another flow: it runs the 'Draft decision letter' sub-flow, which takes the case as input and returns a drafted letter.",
+  "direction": "both",
+  "binding": {
+    "kind": "flow",
+    "flowId": "draft-decision-letter"
+  },
+  "accepts": [],
+  "returns": []
+}

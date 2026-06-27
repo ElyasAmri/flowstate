@@ -9,7 +9,7 @@
 // outbound UI channel (issued or rejected). Channels are first-class and live in
 // their own registry; nodes reference them by id.
 
-import type { ChannelDefinition, FlowDefinition } from "./types";
+import type { ChannelDefinition, FlowDefinition, FlowNode } from "./types";
 
 /**
  * The channels the worked example references. Seeded into the channel library on
@@ -143,6 +143,86 @@ export const exampleChannels: ChannelDefinition[] = [
         ],
       },
     ],
+  },
+
+  // --- channels for the two meta-flow regions of the loop demo ------------- //
+  {
+    id: "ch-mining-feed",
+    title: "Process-mining feed",
+    description: "External feed of an existing procedure's event log + variant stats.",
+    direction: "inbound",
+    binding: { kind: "service", scope: "external" },
+    accepts: [],
+    returns: [
+      {
+        name: "log",
+        description: "The mined activities and variant statistics to draft from.",
+        fields: [
+          { name: "activities", type: "string" },
+          { name: "variant_stats", type: "string" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ch-draft-out",
+    title: "Flow library",
+    description: "Internal store the meta-flows write drafted / updated flows to.",
+    direction: "outbound",
+    binding: { kind: "service", scope: "internal" },
+    accepts: [{ name: "write_flow", fields: [{ name: "flow_id", type: "string" }] }],
+    returns: [],
+  },
+  {
+    id: "ch-update-out",
+    title: "Flow library",
+    description: "Internal store the update meta-flow writes the approved flow to.",
+    direction: "outbound",
+    binding: { kind: "service", scope: "internal" },
+    accepts: [{ name: "write_flow", fields: [{ name: "flow_id", type: "string" }] }],
+    returns: [],
+  },
+  {
+    id: "ch-exception-queue",
+    title: "Exception queue",
+    description: "Inbound batch of accumulated non-routine cases to learn from.",
+    direction: "inbound",
+    binding: { kind: "service", scope: "internal" },
+    accepts: [],
+    returns: [
+      {
+        name: "batch",
+        description: "The accumulated exceptions to analyse.",
+        fields: [{ name: "cases", type: "string" }],
+      },
+    ],
+  },
+  {
+    id: "ch-policy-registry",
+    title: "Policy registry",
+    description: "External authority consulted before proposing a flow change.",
+    direction: "outbound",
+    binding: { kind: "service", scope: "external" },
+    accepts: [{ name: "lookup", fields: [{ name: "article", type: "string" }] }],
+    returns: [{ name: "ref", fields: [{ name: "citation", type: "string" }] }],
+  },
+  {
+    id: "ch-policy-authority",
+    title: "Policy maker",
+    description: "Human authority who approves or rejects a proposed flow update.",
+    direction: "both",
+    binding: { kind: "ui" },
+    accepts: [{ name: "review", fields: [{ name: "proposal", type: "string" }] }],
+    returns: [{ name: "decision", fields: [{ name: "approved", type: "boolean" }] }],
+  },
+  {
+    id: "ch-change-log",
+    title: "Change log",
+    description: "Outbound record when an update is left as-is (no change).",
+    direction: "outbound",
+    binding: { kind: "service", scope: "internal" },
+    accepts: [{ name: "record", fields: [{ name: "note", type: "string" }] }],
+    returns: [],
   },
 ];
 
@@ -402,6 +482,239 @@ export const residenceCertificateRunnable: FlowDefinition = {
       id: "e-draft-approved",
       from: "n-draft",
       to: "n-approved",
+    },
+  ],
+};
+
+// --------------------------------------------------------------------------- //
+// Loop demo: the whole self-improving loop on one canvas. The running procedure
+// (the residence spine) sits at the bottom; the two meta-flows that bookend it
+// -- "initial drafting" (data -> a routine flow) and "periodic update"
+// (exceptions -> an improved flow) -- are shown EXPANDED as labelled group
+// containers floating above it, each crossing external services. Running any
+// region pans/zooms the camera to it (see FlowCanvas live-run camera).
+// --------------------------------------------------------------------------- //
+
+// Group geometry, mirrored from geometry.ts (NODE_W/HEADER/PAD). The group frame
+// wraps its members' bounding box, so we can arrange them in a compact grid
+// rather than one tall column.
+const G_PAD = 12, G_HEADER = 40, NODE_W = 300, ROW_H = 96, COL_GAP = 28, ROW_GAP = 16;
+
+/** Lay `members` out in a `cols`-wide grid inside `group` (assigning groupId +
+ *  positions). The group node's position is the frame's top-left; the canvas
+ *  sizes the frame from the members. Returns [group, ...positioned members]. */
+function grid(group: FlowNode, members: FlowNode[], cols = 2): FlowNode[] {
+  const x0 = group.position.x + G_PAD;
+  const y0 = group.position.y + G_HEADER + G_PAD;
+  members.forEach((m, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    m.position = { x: x0 + col * (NODE_W + COL_GAP), y: y0 + row * (ROW_H + ROW_GAP) };
+    m.groupId = group.id;
+  });
+  return [group, ...members];
+}
+
+const draftingRegion = grid(
+  {
+    id: "g-drafting",
+    kind: "group",
+    label: "Initial flow drafting (meta-flow)",
+    color: "purple",
+    position: { x: 80, y: -360 },
+  },
+  [
+    {
+      id: "fd-door",
+      kind: "channel",
+      channelId: "ch-mining-feed",
+      label: "Receive event log",
+      description: "Inbound: an existing procedure's mined activities + variant stats.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fd-mine",
+      kind: "agent",
+      agentRef: "arabic-reasoner",
+      label: "Mine process model",
+      description: "Identify the routine spine and the exception forks from the event log.",
+      prompt:
+        "Mine the dominant routine path and exception forks from this event log.\n\n" +
+        "Activities: {{activities}}\nVariants: {{variant_stats}}\n\nEnd with one line:\n  VERDICT: mined",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fd-draft",
+      kind: "agent",
+      agentRef: "arabic-reasoner",
+      label: "Draft routine flow",
+      description: "Emit a deterministic spine + an agent node on exceptions + a human gate.",
+      prompt:
+        "Using the mined model, draft a Flowstate routine flow (deterministic spine, " +
+        "agent on exceptions, a human gate). Return the flow JSON.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fd-out",
+      kind: "channel",
+      channelId: "ch-draft-out",
+      label: "Write draft to library",
+      outcome: "issued",
+      description: "Outbound service: persist the drafted routine flow.",
+      position: { x: 0, y: 0 },
+    },
+  ],
+);
+
+const updateRegion = grid(
+  {
+    id: "g-update",
+    kind: "group",
+    label: "Periodic flow update (meta-flow)",
+    color: "yellow",
+    position: { x: 820, y: -560 },
+  },
+  [
+    {
+      id: "fu-door",
+      kind: "channel",
+      channelId: "ch-exception-queue",
+      label: "Receive exception batch",
+      description: "Inbound: accumulated non-routine cases to learn from.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-agg",
+      kind: "action",
+      op: "shell",
+      label: "Aggregate exceptions",
+      description: "Compute appeal rates by article / amount band.",
+      command: "python3 aggregate_exceptions.py '{{cases}}' || echo aggregated",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-policy",
+      kind: "channel",
+      channelId: "ch-policy-registry",
+      label: "Query policy registry",
+      description: "External authority: pull the governing citation before proposing a change.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-analyze",
+      kind: "agent",
+      agentRef: "arabic-reasoner",
+      label: "Propose flow update",
+      description: "Turn the aggregates into a concrete, cited flow change.",
+      prompt:
+        "Given the aggregates, propose a concrete flow update (new guard / pre-check). " +
+        "End with one line:\n  VERDICT: material   -- worth a policy review\n" +
+        "  VERDICT: minor      -- leave the flow as-is",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-material",
+      kind: "decision",
+      label: "Material change?",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-gate",
+      kind: "channel",
+      channelId: "ch-policy-authority",
+      label: "Policy-maker approval",
+      description:
+        "The policy maker reviews the proposed update.\n\nApprove to write it back, or reject to leave the flow as-is.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-out",
+      kind: "channel",
+      channelId: "ch-update-out",
+      label: "Write updated flow",
+      outcome: "issued",
+      description: "Outbound service: persist the approved flow update.",
+      position: { x: 0, y: 0 },
+    },
+    {
+      id: "fu-nochange",
+      kind: "channel",
+      channelId: "ch-change-log",
+      label: "No change",
+      outcome: "rejected",
+      description: "Outbound: leave the routine flow as-is.",
+      position: { x: 0, y: 0 },
+    },
+  ],
+);
+
+export const loopDemo: FlowDefinition = {
+  id: "loop-demo",
+  title: "Government services loop",
+  description:
+    "The whole self-improving loop on one canvas: a routine procedure (bottom) " +
+    "bracketed by two meta-flows shown expanded -- initial drafting (top-left) " +
+    "and periodic update (middle-top) -- crossing external services. Run any " +
+    "region to watch the camera follow it.",
+  nodes: [
+    ...residenceCertificateRunnable.nodes,
+    ...draftingRegion,
+    ...updateRegion,
+  ],
+  edges: [
+    ...residenceCertificateRunnable.edges,
+    // drafting region (linear)
+    { id: "fde-door-mine", from: "fd-door", to: "fd-mine" },
+    {
+      id: "fde-mine-draft",
+      from: "fd-mine",
+      to: "fd-draft",
+      set: [{ var: "process_model", expr: "outcome.text" }],
+    },
+    {
+      id: "fde-draft-out",
+      from: "fd-draft",
+      to: "fd-out",
+      set: [{ var: "flow_json", expr: "outcome.text" }],
+    },
+    // update region (aggregate -> external policy lookup -> propose -> gate)
+    { id: "fue-door-agg", from: "fu-door", to: "fu-agg" },
+    { id: "fue-agg-policy", from: "fu-agg", to: "fu-policy" },
+    { id: "fue-policy-analyze", from: "fu-policy", to: "fu-analyze" },
+    {
+      id: "fue-analyze-material",
+      from: "fu-analyze",
+      to: "fu-material",
+      set: [{ var: "materiality", expr: "outcome.verdict" }],
+    },
+    {
+      id: "fue-material-yes",
+      from: "fu-material",
+      to: "fu-gate",
+      label: "material",
+      guard: 'materiality == "material"',
+    },
+    {
+      id: "fue-material-no",
+      from: "fu-material",
+      to: "fu-nochange",
+      label: "minor",
+      set: [{ var: "outcome", expr: '"no_change"' }],
+    },
+    {
+      id: "fue-gate-approve",
+      from: "fu-gate",
+      to: "fu-out",
+      label: "approved",
+      guard: 'outcome.verdict == "approve"',
+      set: [{ var: "outcome", expr: '"updated"' }],
+    },
+    {
+      id: "fue-gate-reject",
+      from: "fu-gate",
+      to: "fu-nochange",
+      label: "rejected",
+      set: [{ var: "outcome", expr: '"no_change"' }],
     },
   ],
 };

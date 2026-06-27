@@ -122,13 +122,29 @@
     return items;
   }
 
-  /** Frame size of a group, derived from the stacked member cards it holds. */
+  /** Frame size of a group: wraps its members' actual bounding box, so members
+   *  laid out in any arrangement (a vertical stack OR a grid) are framed
+   *  correctly. The frame's top-left is the group node's position; we measure to
+   *  the far edge of the furthest member and pad. */
   function groupFrameSize(group: FlowNode): Size {
-    const items = groupItems(group);
-    const body = items.length
-      ? items.reduce((s, it) => s + it.height, 0) + GROUP_GAP * (items.length - 1)
-      : GROUP_EMPTY_H;
-    return { width: NODE_W + 2 * GROUP_PAD, height: HEADER_H + 2 * GROUP_PAD + body };
+    const members = nodeGroups.get(group.id) ?? [];
+    if (members.length === 0) {
+      return { width: NODE_W + 2 * GROUP_PAD, height: HEADER_H + 2 * GROUP_PAD + GROUP_EMPTY_H };
+    }
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const m of members) {
+      const h =
+        m.kind === "channel" && m.channelId
+          ? groupCardHeight((channelGroups.get(m.channelId) ?? [m]).length)
+          : NODE_H;
+      maxX = Math.max(maxX, m.position.x + NODE_W);
+      maxY = Math.max(maxY, m.position.y + h);
+    }
+    return {
+      width: maxX - group.position.x + GROUP_PAD,
+      height: maxY - group.position.y + GROUP_PAD,
+    };
   }
 
   /** Position updates that stack a group's members under its header. `originPos`
@@ -194,6 +210,21 @@
     | { kind: "connecting"; fromNodeId: string; cursorWorld: Point };
 
   let interaction = $state<Interaction>({ kind: "idle" });
+
+  // Live-run camera: when a node starts executing, smoothly pan/zoom to centre
+  // it so the diagram (not a modal) tells the story. Idle (no active node)
+  // leaves the viewport where the author left it; manual gestures suppress the
+  // follow so panning stays crisp.
+  $effect(() => {
+    const id = activeNodeId;
+    if (!id || interaction.kind !== "idle") return;
+    const node = editor.flow.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const centre = { x: node.position.x + NODE_W / 2, y: node.position.y + NODE_H / 2 };
+    viewport.centerOn(centre, viewSize(), Math.max(viewport.zoom, 1));
+  });
+  // Ease the transform only while following a run, so manual pan/zoom is instant.
+  const cameraEasing = $derived(activeNodeId != null && interaction.kind === "idle");
 
   /** clientX/Y -> screen coords relative to the canvas element. */
   function toScreen(e: PointerEvent): Point {
@@ -387,7 +418,7 @@
   <!-- World layer: single transform keeps nodes and edges aligned at any zoom. -->
   <div
     class="absolute left-0 top-0 origin-top-left"
-    style="transform: translate({viewport.pan.x}px, {viewport.pan.y}px) scale({viewport.zoom});"
+    style="transform: translate({viewport.pan.x}px, {viewport.pan.y}px) scale({viewport.zoom}); transition: {cameraEasing ? 'transform 900ms cubic-bezier(0.33, 0, 0.2, 1)' : 'none'};"
   >
     <FlowEdges
       flow={editor.flow}

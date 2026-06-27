@@ -60,6 +60,12 @@
       return {
         runShell: async () => ({ exit: 0, text: "(dev: shell stub)" }),
         runAgent: async (p) => {
+          if (p.includes("Mine") || p.includes("event log"))
+            return "Routine spine: create -> notify -> pay; appeals fork out.\nVERDICT: mined";
+          if (p.includes("draft a Flowstate"))
+            return '{"id":"fine-management-routine","nodes":["spine","agent","gate"]}';
+          if (p.includes("propose a concrete flow update") || p.includes("VERDICT: material"))
+            return "Add a pre-appeal check on article 7 (38% appeal rate).\nVERDICT: material";
           if (p.includes("P.O. Box") || p.includes("ambiguous"))
             return "Reasoning...\nThe provided proof has an unclear date and uses a P.O. Box address.\nVERDICT: ambiguous";
           if (p.includes("utility bill"))
@@ -138,11 +144,9 @@
     run !== null && (run.status === "running" || run.status === "done" || run.status === "error"),
   );
 
-  /** Collapse to the mini-bar when a run is active (the diagram shows the action). */
+  /** Collapse to the mini-bar on demand. The panel is a side drawer, so the
+   *  diagram stays visible during a run without collapsing. */
   let collapsed = $state(false);
-  $effect(() => {
-    if (run && run.status === "running") collapsed = true;
-  });
 </script>
 
 {#if run && collapsed}
@@ -178,14 +182,16 @@
     </div>
   </div>
 {:else}
+  <!-- Side drawer: anchored right so the diagram stays visible (and the camera
+       can pan/zoom to the active node) during a run. The wrapper ignores pointer
+       events so the canvas behind it stays interactive; only the panel catches them. -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
+    class="pointer-events-none fixed inset-y-0 right-0 z-40 flex items-stretch p-4"
     role="dialog"
-    aria-modal="true"
     data-testid="run-panel"
   >
     <div
-      class="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-black/10 bg-white shadow-xl dark:border-white/10 dark:bg-zinc-900"
+      class="pointer-events-auto flex h-full w-[400px] max-w-[92vw] flex-col overflow-hidden rounded-xl border border-black/10 bg-white shadow-2xl dark:border-white/10 dark:bg-zinc-900"
     >
       <header class="flex items-center justify-between border-b border-black/10 px-4 py-3 dark:border-white/10">
         <div>

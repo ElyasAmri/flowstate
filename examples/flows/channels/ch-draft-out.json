@@ -1,0 +1,22 @@
+{
+  "id": "ch-draft-out",
+  "title": "Flow library",
+  "description": "Internal store the meta-flows write drafted / updated flows to.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [
+    {
+      "name": "write_flow",
+      "fields": [
+        {
+          "name": "flow_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

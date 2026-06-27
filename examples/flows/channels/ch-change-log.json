@@ -1,0 +1,22 @@
+{
+  "id": "ch-change-log",
+  "title": "Change log",
+  "description": "Outbound record when an update is left as-is (no change).",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [
+    {
+      "name": "record",
+      "fields": [
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

@@ -1,0 +1,22 @@
+{
+  "id": "ch-update-out",
+  "title": "Flow library",
+  "description": "Internal store the update meta-flow writes the approved flow to.",
+  "direction": "outbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [
+    {
+      "name": "write_flow",
+      "fields": [
+        {
+          "name": "flow_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "returns": []
+}

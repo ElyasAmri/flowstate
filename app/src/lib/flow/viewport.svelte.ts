@@ -82,6 +82,19 @@ export class Viewport {
   }
 
   /**
+   * Centre a world point in the viewport, optionally easing the zoom toward
+   * `targetZoom`. Used by the live-run camera to follow the active node.
+   */
+  centerOn(world: Point, viewSize: Size, targetZoom?: number): void {
+    if (viewSize.width <= 0 || viewSize.height <= 0) return;
+    if (targetZoom != null) this.zoom = clamp(targetZoom, MIN_ZOOM, MAX_ZOOM);
+    this.pan = {
+      x: viewSize.width / 2 - world.x * this.zoom,
+      y: viewSize.height / 2 - world.y * this.zoom,
+    };
+  }
+
+  /**
    * Frame a world-space bounding box within a viewport of `viewSize`, leaving
    * `padding` screen pixels around it and centring the content -- the n8n
    * "fit view" behaviour. No-op for an empty/degenerate box.

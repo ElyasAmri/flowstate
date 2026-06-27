@@ -1,0 +1,23 @@
+{
+  "id": "ch-exception-queue",
+  "title": "Exception queue",
+  "description": "Inbound batch of accumulated non-routine cases to learn from.",
+  "direction": "inbound",
+  "binding": {
+    "kind": "service",
+    "scope": "internal"
+  },
+  "accepts": [],
+  "returns": [
+    {
+      "name": "batch",
+      "description": "The accumulated exceptions to analyse.",
+      "fields": [
+        {
+          "name": "cases",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,498 @@
+{
+  "id": "loop-demo",
+  "title": "Government services loop",
+  "description": "The whole self-improving loop on one canvas: a routine procedure (bottom) bracketed by two meta-flows shown expanded -- initial drafting (top-left) and periodic update (middle-top) -- crossing external services. Run any region to watch the camera follow it.",
+  "nodes": [
+    {
+      "id": "n-input",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Application intake",
+      "description": "Inbound door: the citizen submits their application across the consumer app to trigger the flow.",
+      "position": {
+        "x": 80,
+        "y": 160
+      }
+    },
+    {
+      "id": "n-approved",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Certificate issued",
+      "outcome": "issued",
+      "position": {
+        "x": 80,
+        "y": -999
+      }
+    },
+    {
+      "id": "n-rejected",
+      "kind": "channel",
+      "channelId": "ch-intake",
+      "label": "Application rejected",
+      "outcome": "rejected",
+      "position": {
+        "x": 80,
+        "y": -999
+      }
+    },
+    {
+      "id": "n-escalate",
+      "kind": "channel",
+      "channelId": "ch-bureaucrat",
+      "label": "Reviewer reviews address",
+      "description": "Review {{applicant_name}} (ID {{national_id}}). Proof: {{address_proof}}\n\nNotes: {{decision_reason}}\n\nApprove to issue the certificate, or reject to deny.",
+      "position": {
+        "x": 80,
+        "y": 420
+      }
+    },
+    {
+      "id": "n-issue",
+      "kind": "channel",
+      "channelId": "ch-notify",
+      "label": "Issue certificate",
+      "description": "Generate the certificate document.",
+      "position": {
+        "x": 80,
+        "y": 560
+      }
+    },
+    {
+      "id": "n-draft",
+      "kind": "channel",
+      "channelId": "ch-draft-letter",
+      "label": "Draft decision letter",
+      "description": "Nested flow: hands the decided case to the 'Draft decision letter' sub-flow, which returns a citizen-facing letter (double-click to open).",
+      "position": {
+        "x": 520,
+        "y": 560
+      }
+    },
+    {
+      "id": "n-check-id",
+      "kind": "action",
+      "op": "shell",
+      "label": "Validate ID against registry",
+      "description": "Deterministic registry check: a valid ID is 8 digits, not leading zero.",
+      "command": "id=\"{{national_id}}\"\nif echo \"$id\" | grep -Eq '^[1-9][0-9]{7}$'; then echo MATCH; exit 0; fi\necho \"national id not found in registry\" >&2; exit 1",
+      "position": {
+        "x": 520,
+        "y": 160
+      }
+    },
+    {
+      "id": "n-score-address",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Assess address proof",
+      "description": "Fanar reads the proof and returns a verdict.",
+      "prompt": "Assess whether the proof of address confirms the applicant resides at the stated address.\n\nApplicant: {{applicant_name}}\nNational ID: {{national_id}}\nProof: {{address_proof}}\n\nExplain briefly, then end with EXACTLY one line:\n  VERDICT: sufficient    -- clearly proves residence; auto-issue\n  VERDICT: ambiguous     -- unclear; a reviewer must review\n  VERDICT: insufficient  -- does not prove residence; reject",
+      "position": {
+        "x": 960,
+        "y": 160
+      }
+    },
+    {
+      "id": "n-decision",
+      "kind": "decision",
+      "label": "Address proof sufficient?",
+      "position": {
+        "x": 1400,
+        "y": 160
+      }
+    },
+    {
+      "id": "g-drafting",
+      "kind": "group",
+      "label": "Initial flow drafting (meta-flow)",
+      "color": "purple",
+      "position": {
+        "x": 80,
+        "y": -360
+      }
+    },
+    {
+      "id": "fd-door",
+      "kind": "channel",
+      "channelId": "ch-mining-feed",
+      "label": "Receive event log",
+      "description": "Inbound: an existing procedure's mined activities + variant stats.",
+      "position": {
+        "x": 92,
+        "y": -308
+      },
+      "groupId": "g-drafting"
+    },
+    {
+      "id": "fd-mine",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Mine process model",
+      "description": "Identify the routine spine and the exception forks from the event log.",
+      "prompt": "Mine the dominant routine path and exception forks from this event log.\n\nActivities: {{activities}}\nVariants: {{variant_stats}}\n\nEnd with one line:\n  VERDICT: mined",
+      "position": {
+        "x": 420,
+        "y": -308
+      },
+      "groupId": "g-drafting"
+    },
+    {
+      "id": "fd-draft",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Draft routine flow",
+      "description": "Emit a deterministic spine + an agent node on exceptions + a human gate.",
+      "prompt": "Using the mined model, draft a Flowstate routine flow (deterministic spine, agent on exceptions, a human gate). Return the flow JSON.",
+      "position": {
+        "x": 92,
+        "y": -196
+      },
+      "groupId": "g-drafting"
+    },
+    {
+      "id": "fd-out",
+      "kind": "channel",
+      "channelId": "ch-draft-out",
+      "label": "Write draft to library",
+      "outcome": "issued",
+      "description": "Outbound service: persist the drafted routine flow.",
+      "position": {
+        "x": 420,
+        "y": -196
+      },
+      "groupId": "g-drafting"
+    },
+    {
+      "id": "g-update",
+      "kind": "group",
+      "label": "Periodic flow update (meta-flow)",
+      "color": "yellow",
+      "position": {
+        "x": 820,
+        "y": -560
+      }
+    },
+    {
+      "id": "fu-door",
+      "kind": "channel",
+      "channelId": "ch-exception-queue",
+      "label": "Receive exception batch",
+      "description": "Inbound: accumulated non-routine cases to learn from.",
+      "position": {
+        "x": 832,
+        "y": -508
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-agg",
+      "kind": "action",
+      "op": "shell",
+      "label": "Aggregate exceptions",
+      "description": "Compute appeal rates by article / amount band.",
+      "command": "python3 aggregate_exceptions.py '{{cases}}' || echo aggregated",
+      "position": {
+        "x": 1160,
+        "y": -508
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-policy",
+      "kind": "channel",
+      "channelId": "ch-policy-registry",
+      "label": "Query policy registry",
+      "description": "External authority: pull the governing citation before proposing a change.",
+      "position": {
+        "x": 832,
+        "y": -396
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-analyze",
+      "kind": "agent",
+      "agentRef": "arabic-reasoner",
+      "label": "Propose flow update",
+      "description": "Turn the aggregates into a concrete, cited flow change.",
+      "prompt": "Given the aggregates, propose a concrete flow update (new guard / pre-check). End with one line:\n  VERDICT: material   -- worth a policy review\n  VERDICT: minor      -- leave the flow as-is",
+      "position": {
+        "x": 1160,
+        "y": -396
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-material",
+      "kind": "decision",
+      "label": "Material change?",
+      "position": {
+        "x": 832,
+        "y": -284
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-gate",
+      "kind": "channel",
+      "channelId": "ch-policy-authority",
+      "label": "Policy-maker approval",
+      "description": "The policy maker reviews the proposed update.\n\nApprove to write it back, or reject to leave the flow as-is.",
+      "position": {
+        "x": 1160,
+        "y": -284
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-out",
+      "kind": "channel",
+      "channelId": "ch-update-out",
+      "label": "Write updated flow",
+      "outcome": "issued",
+      "description": "Outbound service: persist the approved flow update.",
+      "position": {
+        "x": 832,
+        "y": -172
+      },
+      "groupId": "g-update"
+    },
+    {
+      "id": "fu-nochange",
+      "kind": "channel",
+      "channelId": "ch-change-log",
+      "label": "No change",
+      "outcome": "rejected",
+      "description": "Outbound: leave the routine flow as-is.",
+      "position": {
+        "x": 1160,
+        "y": -172
+      },
+      "groupId": "g-update"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-input-check",
+      "from": "n-input",
+      "to": "n-check-id"
+    },
+    {
+      "id": "e-check-score",
+      "from": "n-check-id",
+      "to": "n-score-address",
+      "label": "ID valid",
+      "guard": "outcome.exit == 0"
+    },
+    {
+      "id": "e-check-reject",
+      "from": "n-check-id",
+      "to": "n-rejected",
+      "label": "ID invalid",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"National ID failed registry validation.\""
+        }
+      ]
+    },
+    {
+      "id": "e-score-decision",
+      "from": "n-score-address",
+      "to": "n-decision",
+      "set": [
+        {
+          "var": "addr_verdict",
+          "expr": "outcome.verdict"
+        },
+        {
+          "var": "decision_reason",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "e-decision-issue",
+      "from": "n-decision",
+      "to": "n-issue",
+      "label": "sufficient",
+      "guard": "addr_verdict == \"sufficient\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"issued\""
+        }
+      ]
+    },
+    {
+      "id": "e-decision-escalate",
+      "from": "n-decision",
+      "to": "n-escalate",
+      "label": "ambiguous",
+      "guard": "addr_verdict == \"ambiguous\""
+    },
+    {
+      "id": "e-decision-reject",
+      "from": "n-decision",
+      "to": "n-rejected",
+      "label": "insufficient",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        }
+      ]
+    },
+    {
+      "id": "e-escalate-issue",
+      "from": "n-escalate",
+      "to": "n-issue",
+      "label": "approved",
+      "guard": "outcome.verdict == \"approve\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"issued\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"Approved by the reviewer after review.\""
+        }
+      ]
+    },
+    {
+      "id": "e-escalate-reject",
+      "from": "n-escalate",
+      "to": "n-rejected",
+      "label": "denied",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"rejected\""
+        },
+        {
+          "var": "decision_reason",
+          "expr": "\"Denied by the reviewer after review.\""
+        }
+      ]
+    },
+    {
+      "id": "e-issue-draft",
+      "from": "n-issue",
+      "to": "n-draft",
+      "set": [
+        {
+          "var": "certificate_url",
+          "expr": "\"cert://residence/issued\""
+        }
+      ]
+    },
+    {
+      "id": "e-draft-approved",
+      "from": "n-draft",
+      "to": "n-approved"
+    },
+    {
+      "id": "fde-door-mine",
+      "from": "fd-door",
+      "to": "fd-mine"
+    },
+    {
+      "id": "fde-mine-draft",
+      "from": "fd-mine",
+      "to": "fd-draft",
+      "set": [
+        {
+          "var": "process_model",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "fde-draft-out",
+      "from": "fd-draft",
+      "to": "fd-out",
+      "set": [
+        {
+          "var": "flow_json",
+          "expr": "outcome.text"
+        }
+      ]
+    },
+    {
+      "id": "fue-door-agg",
+      "from": "fu-door",
+      "to": "fu-agg"
+    },
+    {
+      "id": "fue-agg-policy",
+      "from": "fu-agg",
+      "to": "fu-policy"
+    },
+    {
+      "id": "fue-policy-analyze",
+      "from": "fu-policy",
+      "to": "fu-analyze"
+    },
+    {
+      "id": "fue-analyze-material",
+      "from": "fu-analyze",
+      "to": "fu-material",
+      "set": [
+        {
+          "var": "materiality",
+          "expr": "outcome.verdict"
+        }
+      ]
+    },
+    {
+      "id": "fue-material-yes",
+      "from": "fu-material",
+      "to": "fu-gate",
+      "label": "material",
+      "guard": "materiality == \"material\""
+    },
+    {
+      "id": "fue-material-no",
+      "from": "fu-material",
+      "to": "fu-nochange",
+      "label": "minor",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-approve",
+      "from": "fu-gate",
+      "to": "fu-out",
+      "label": "approved",
+      "guard": "outcome.verdict == \"approve\"",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"updated\""
+        }
+      ]
+    },
+    {
+      "id": "fue-gate-reject",
+      "from": "fu-gate",
+      "to": "fu-nochange",
+      "label": "rejected",
+      "set": [
+        {
+          "var": "outcome",
+          "expr": "\"no_change\""
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@
     blankFlow,
     draftDecisionLetter,
     exampleChannels,
+    loopDemo,
     residenceCertificateRunnable,
   } from "../flow/fixtures";
   import { seedChannelsIfEmpty } from "../flow/channels";
@@ -35,7 +36,7 @@
   // flow (always shown in the selector) and the nested "Draft decision letter"
   // sub-flow it references via a flow-bound channel (seeded so it resolves when
   // opened/run, even though it's a building block rather than a top-level flow).
-  const bundled = [residenceCertificateRunnable, draftDecisionLetter];
+  const bundled = [loopDemo, residenceCertificateRunnable, draftDecisionLetter];
 
   async function refresh() {
     const dir = await tryInvoke<string>("project_dir");

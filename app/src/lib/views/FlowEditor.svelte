@@ -5,6 +5,7 @@
     blankFlow,
     draftDecisionLetter,
     exampleChannels,
+    loopDemo,
     residenceCertificateRunnable,
   } from "../flow/fixtures";
   import { loadRegistry, toRegistry } from "../flow/channels";
@@ -34,7 +35,7 @@
   // wraps this view in {#key route.id}, so a different flow remounts it fresh.
   // svelte-ignore state_referenced_locally
   const initialId = flowId;
-  const bundled = [residenceCertificateRunnable, draftDecisionLetter];
+  const bundled = [loopDemo, residenceCertificateRunnable, draftDecisionLetter];
   const fixture = bundled.find((f) => f.id === initialId);
   const seed = fixture ? structuredClone(fixture) : blankFlow(initialId);
   const editor = new FlowEditor(seed);
