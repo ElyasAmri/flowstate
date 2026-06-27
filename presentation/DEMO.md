@@ -19,9 +19,11 @@ phone and the laptop must be on the **same Wi-Fi**.
 ## This machine (already set up)
 
 - LAN IP: **192.168.0.192** (re-check at demo time: `ipconfig getifaddr en0`).
-- OBS WebSocket: **enabled**, port **4455**, auth **on**, password **`FGbaqqshE9s6j2yg`**
+- OBS WebSocket: **enabled**, port **4455**, auth **on**, password **`conn3cting`**
   (Tools -> WebSocket Server Settings to view/change; config at
   `~/Library/Application Support/obs-studio/plugin_config/obs-websocket/config.json`).
+- The phone (crc) is already pointed here: relay `ws://192.168.0.192:5173/remote`,
+  OBS `ws://192.168.0.192:4455`, password `conn3cting`.
 
 ## 1. Start the deck and the app
 
@@ -61,10 +63,11 @@ Android SDK). In the app's **Settings**, set:
 
 - **Deck relay**: `ws://192.168.0.192:5173/remote`
 - **OBS WebSocket**: `ws://192.168.0.192:4455`
-- **OBS password**: `FGbaqqshE9s6j2yg`
+- **OBS password**: `conn3cting`
 
-(The app ships defaulting to `192.168.0.121`; update both IPs to the laptop's
-current address.) Two green status dots = both legs connected.
+These are already saved on the connected phone (SM-S938B). If the laptop's IP
+changes, update both URLs (find it with `ipconfig getifaddr en0`). Two green
+status dots = both legs connected.
 
 ## 4. Run of show
 
