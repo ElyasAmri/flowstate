@@ -293,6 +293,81 @@
   font-size: 0.9em;
 }
 
+/* ---------- Agentic anatomy diagram (capabilities mapped to the flow) ---------- */
+.reveal .anatomy {
+  margin-top: 0.5em;
+}
+.reveal .cap-band {
+  text-align: center;
+  font-size: 0.5em;
+  letter-spacing: 0.04em;
+  color: var(--azure);
+  border: 1px dashed rgba(43, 169, 224, 0.4);
+  border-radius: 9px;
+  padding: 0.4em 0.5em;
+  background: rgba(43, 169, 224, 0.05);
+}
+.reveal .cap-band b {
+  color: var(--paper);
+  font-weight: 600;
+}
+.reveal .flowrow {
+  display: flex;
+  align-items: stretch;
+  margin: 0.45em 0;
+}
+.reveal .fnode {
+  flex: 1;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 0.6em;
+  background: var(--panel);
+  padding: 0.5em 0.25em;
+}
+.reveal .fnode .kind {
+  font-size: 0.42em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.reveal .fnode .nm {
+  font-size: 0.62em;
+  font-weight: 600;
+  margin: 0.12em 0 0.18em;
+}
+.reveal .fnode .cap {
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--azure);
+  line-height: 1.2;
+}
+.reveal .fnode.agent { border-color: rgba(43, 169, 224, 0.55); background: rgba(43, 169, 224, 0.07); }
+.reveal .fnode.channel { border-color: rgba(52, 211, 153, 0.45); }
+.reveal .fnode.gate { border-color: rgba(251, 191, 36, 0.5); }
+.reveal .fconn {
+  align-self: center;
+  color: var(--azure);
+  padding: 0 0.3em;
+  font-size: 0.7em;
+}
+.reveal .cap-chips {
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+  margin-top: 0.55em;
+  flex-wrap: wrap;
+}
+.reveal .cap-chips .cc {
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 0.25em 0.8em;
+  background: var(--panel);
+}
+.reveal .cap-chips .cc b { color: var(--azure); }
+
 /* ---------- Browser chrome frame (video) ---------- */
 .reveal .browser {
   border-radius: 13px;

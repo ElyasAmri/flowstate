@@ -151,23 +151,56 @@
           </aside>
         </section>
 
-        <!-- 4. Agentic design + breadth -->
+        <!-- 4. Agentic design — capabilities mapped to the flow anatomy -->
         <section>
           <span class="numeral">03</span>
           <div class="stack">
             <div class="eyebrow">Agentic design</div>
-            <h2 style="text-align: left">Separation of concerns</h2>
-            <p class="lead" style="margin-bottom: 0.2em">
-              A flow is a <strong style="color:#fff">deterministic state machine</strong>, not one overloaded agent.
-              A self-improving loop:
+            <h2 style="text-align: left">Agentic by construction</h2>
+            <p class="lead" style="margin-bottom: 0.1em">
+              <strong style="color: #fff">Task decomposition:</strong> one procedure becomes typed nodes the harness runs.
             </p>
-            <div class="loop">
-              <div class="step"><div class="t">Draft</div><div class="s">mine the procedure</div></div>
-              <div class="arrow">→</div>
-              <div class="step"><div class="t">Run</div><div class="s">routine auto · exceptions to human</div></div>
-              <div class="arrow">→</div>
-              <div class="step"><div class="t">Update</div><div class="s">improve from exceptions</div></div>
+            <div class="anatomy">
+              <div class="cap-band"><b>Autonomous execution</b> · the harness runs the whole flow end to end</div>
+              <div class="flowrow">
+                <div class="fnode channel"><div class="kind">Channel</div><div class="nm">Door</div></div>
+                <div class="fconn">→</div>
+                <div class="fnode"><div class="kind">Action</div><div class="nm">Validate</div><div class="cap">Tool orchestration</div></div>
+                <div class="fconn">→</div>
+                <div class="fnode agent"><div class="kind">Agent · Fanar</div><div class="nm">Assess</div><div class="cap">Planning &amp; reasoning</div></div>
+                <div class="fconn">→</div>
+                <div class="fnode"><div class="kind">Decision</div><div class="nm">Branch</div></div>
+                <div class="fconn">→</div>
+                <div class="fnode channel gate"><div class="kind">Channel · UI</div><div class="nm">Human gate</div></div>
+                <div class="fconn">→</div>
+                <div class="fnode channel"><div class="kind">Channel</div><div class="nm">Outcome</div></div>
+              </div>
+              <div class="cap-band"><b>Memory &amp; state</b> · flow variables carried across every node</div>
+              <div class="cap-chips">
+                <span class="cc"><b>Multi-agent collaboration</b> · draft · run · update flows cooperate</span>
+              </div>
             </div>
+          </div>
+          <aside class="notes">
+            Flowstate is agentic by construction. Task decomposition: a whole procedure
+            becomes typed nodes. The harness runs the flow autonomously end to end. Action
+            nodes do tool orchestration — calling code and services under allow/ask/deny
+            gating. Agent nodes are where Fanar does the planning and reasoning. Flow
+            variables give memory and state across the run. And three flows — draft, run,
+            update — cooperate as multiple agents. Every node tagged here is one of the
+            agentic capabilities the rubric asks for.
+          </aside>
+        </section>
+
+        <!-- 5. Three procedures, one engine (breadth) — refine later -->
+        <section>
+          <span class="numeral">04</span>
+          <div class="stack">
+            <div class="eyebrow">Flexibility</div>
+            <h2 style="text-align: left">Three procedures, one engine</h2>
+            <p class="lead" style="margin-bottom: 0.2em">
+              The same engine, validated on three real procedures across different modalities.
+            </p>
             <div class="strip">
               <div class="card">
                 <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
@@ -182,21 +215,18 @@
                 <span class="k">Vision</span><span class="v">Receipt claims</span>
               </div>
             </div>
-            <p class="strip-note">Three procedures, one engine.</p>
           </div>
           <aside class="notes">
-            Instead of one agent with every tool, Flowstate models separation of concerns:
-            the control flow is a deterministic state machine; agents handle only the
-            judgement steps. A closed loop, draft the procedure, run it, update it from its
-            own exceptions. Maps to the agentic requirements: planning, orchestration,
-            memory, autonomous execution, human-in-the-loop. We validated it on three
-            different procedures.
+            One engine, three procedures: traffic-fine management (process conformance),
+            Arabic legal judgement (reasoning), and receipt claims (vision). Same flow
+            model, different domains and modalities. We study the fine-management loop in
+            depth next. [Placeholder layout — to refine.]
           </aside>
         </section>
 
-        <!-- 5. Leveraging Fanar -->
+        <!-- 6. Leveraging Fanar -->
         <section>
-          <span class="numeral">04</span>
+          <span class="numeral">05</span>
           <div class="split text-wide">
             <div class="stack">
               <div class="eyebrow">Leveraging Fanar</div>
@@ -232,7 +262,7 @@
 
         <!-- 6. Evaluation & Insights -->
         <section>
-          <span class="numeral">05</span>
+          <span class="numeral">06</span>
           <div class="stack">
             <div class="eyebrow">Evaluation &amp; insights</div>
             <h2 style="text-align: left">Does it work?</h2>
@@ -267,7 +297,7 @@
 
         <!-- 7. Bonus, Fanar specialized (vision) -->
         <section>
-          <span class="numeral">06</span>
+          <span class="numeral">07</span>
           <div class="split">
             <div class="stack">
               <div class="eyebrow">Bonus</div>
