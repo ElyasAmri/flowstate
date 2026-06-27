@@ -8,11 +8,15 @@ appealable). See docs/receipt-claims-policy.md for the full spec.
 """
 from __future__ import annotations
 
+import os
 from datetime import date, datetime, timedelta
 from typing import Optional
 
 # ── Policy parameters (source: docs/receipt-claims-policy.md §Policy parameters) ──
-CLAIM_WINDOW_DAYS    = 90       # receipt date must fall within 90 days of submission, not future
+# 90 days is the production default; FLOWSTATE_WINDOW_DAYS overrides it so a demo
+# can widen the window (e.g. to admit the 2022-dated CORU receipts) without
+# editing the spec or breaking the unit-test matrix, which runs at the default.
+CLAIM_WINDOW_DAYS    = int(os.environ.get("FLOWSTATE_WINDOW_DAYS", "90"))
 PER_CLAIM_CAP        = 1000.0   # maximum reimbursable total, QAR
 BORDERLINE_BAND      = 0.05     # ±5 % of cap triggers human review
 MIN_FIELD_CONFIDENCE = 0.70     # per-field OCR/extraction confidence floor
