@@ -620,3 +620,30 @@ body::after {
   border-radius: 12px;
   box-shadow: none;
 }
+
+/* Compact data table (eval failure reasons) */
+.reveal .failtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.6em;
+  margin: 0;
+}
+.reveal .failtable td {
+  text-align: left;
+  padding: 0.5em 0.55em;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.reveal .failtable tr:last-child td {
+  border-bottom: none;
+}
+.reveal .failtable td:first-child {
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+  width: 1%;
+  padding-right: 1em;
+}
+.reveal .failtable td:last-child {
+  color: var(--muted);
+}

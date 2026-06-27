@@ -129,7 +129,21 @@
         <section data-background-gradient="radial-gradient(60% 70% at 50% 45%, #12182022, #0a0d13)">
           <div class="cols" style="gap: 2em">
             <div>
-              <h1 class="grad" style="font-size: 3.4em">Flowstate</h1>
+              <h1 style="margin-bottom: 0.35em">
+                <svg class="title-svg" viewBox="0 0 620 140" role="img" aria-label="Flowstate" style="width: 380px; max-width: 100%; margin: 0">
+                  <defs>
+                    <linearGradient id="fsg2" x1="0" y1="0" x2="1" y2="0.18">
+                      <stop offset="0%" stop-color="#34d399" />
+                      <stop offset="52%" stop-color="#a78bfa" />
+                      <stop offset="100%" stop-color="#f5c451" />
+                    </linearGradient>
+                  </defs>
+                  <text x="310" y="76" text-anchor="middle" dominant-baseline="middle"
+                    fill="none" stroke="url(#fsg2)" stroke-width="1.1"
+                    font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700"
+                    font-size="104" letter-spacing="-3">Flowstate</text>
+                </svg>
+              </h1>
               <p style="font-size: 1.05em; color: var(--text)">Auditable. Replayable. Human-in-the-loop.</p>
               <div class="poweredby" style="margin-top: 1.6em">
                 <span class="pb-label">Powered by</span>
@@ -156,13 +170,6 @@
 
         <!-- ============================ APPENDIX (backup for Q&A) ============================ -->
 
-        <!-- A0. DIVIDER -->
-        <section class="center">
-          <p class="eyebrow">Appendix</p>
-          <h2 style="color: var(--muted)">Backup, for your questions.</h2>
-          <aside class="notes">Past the close, on demand: eval design, the node model, a worked flow, the refinement loop, and governance.</aside>
-        </section>
-
         <!-- A1. EVAL DESIGN -->
         <section>
           <p class="eyebrow">Eval design</p>
@@ -174,14 +181,38 @@
               <li>Stripping it drops every model from 100% to 56-84%.</li>
             </ul>
             <div class="card">
-              <h3>What we learned</h3>
-              <p style="font-size: 0.9em; color: var(--text)">
-                Models fail in opposite directions (over-reject vs over-grant). Jurisdiction is the
-                universal hard tail, exactly the human-gate cases.
-              </p>
+              <h3>Where judgement fails</h3>
+              <table class="failtable" style="margin-top: 0.5em">
+                <tbody>
+                  <tr><td>Jurisdiction</td><td>no model picks the right court (4-5/10)</td></tr>
+                  <tr><td>Over-rejection</td><td>DeepSeek denies valid claims</td></tr>
+                  <tr><td>Over-granting</td><td>Fanar grants too readily (2/16 recall)</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
           <aside class="notes">Conformance (routine vs exception) 100%, a deterministic guard. Arabic structured verdict 98-100%. Facts-only judgement 56-84%, the honest test. Bias direction sets the gate threshold; jurisdiction can't be inferred from raw facts.</aside>
+        </section>
+
+        <!-- A1b. IMPROVING FANAR -->
+        <section>
+          <p class="eyebrow">Improving Fanar</p>
+          <h2>What would make it a stronger backend.</h2>
+          <div class="grid-3" style="margin-top: 0.5em">
+            <div class="card">
+              <h3>Native tool calling</h3>
+              <p>The hosted API has none, so we self-host. First-class function calling removes that step.</p>
+            </div>
+            <div class="card">
+              <h3>Controllable reasoning</h3>
+              <p>It always emits a think trace that eats the token budget. A bounded or off mode would help.</p>
+            </div>
+            <div class="card">
+              <h3>Calibrated confidence</h3>
+              <p>Self-reported confidence reads "high" even when wrong. Logprobs would drive the gate threshold.</p>
+            </div>
+          </div>
+          <aside class="notes">Distilled from the evaluation. Native tool-calling (no self-host), a controllable reasoning budget, and a calibrated confidence signal we can gate on, are the three changes that would most help Fanar here.</aside>
         </section>
 
         <!-- A1. NODE TAXONOMY -->
@@ -271,18 +302,22 @@
         <!-- A4. WHY IT MATTERS -->
         <section>
           <p class="eyebrow">Why this shape wins</p>
-          <div class="grid-3" style="margin-top: 2.4em">
-            <div class="card" style="text-align: center; padding: 1.5em 1em">
-              <h3 style="font-size: 1.5em; color: #fff">Deterministic</h3>
-              <p style="margin-top: 0.5em">The routine path is guards. Same input, same path, every time.</p>
+          <div class="grid-3" style="margin-top: 2.2em; grid-template-columns: repeat(4, 1fr); gap: 0.5em">
+            <div class="card" style="text-align: center; padding: 1.3em 0.8em">
+              <h3 style="font-size: 1.25em; color: #fff">Deterministic</h3>
+              <p style="margin-top: 0.5em">Routine path is guards. Same input, same path.</p>
             </div>
-            <div class="card" style="text-align: center; padding: 1.5em 1em">
-              <h3 style="font-size: 1.5em; color: #fff">Auditable</h3>
+            <div class="card" style="text-align: center; padding: 1.3em 0.8em">
+              <h3 style="font-size: 1.25em; color: #fff">Auditable</h3>
               <p style="margin-top: 0.5em">Every step leaves a typed, replayable trace.</p>
             </div>
-            <div class="card" style="text-align: center; padding: 1.5em 1em">
-              <h3 style="font-size: 1.5em; color: #fff">Appealable</h3>
-              <p style="margin-top: 0.5em">A citizen sees why; a human gate can review it.</p>
+            <div class="card" style="text-align: center; padding: 1.3em 0.8em">
+              <h3 style="font-size: 1.25em; color: #fff">Appealable</h3>
+              <p style="margin-top: 0.5em">A citizen sees why; it can be reviewed.</p>
+            </div>
+            <div class="card" style="text-align: center; padding: 1.3em 0.8em">
+              <h3 style="font-size: 1.25em; color: #fff">Human-in-the-loop</h3>
+              <p style="margin-top: 0.5em">Genuine exceptions pause for a person.</p>
             </div>
           </div>
           <aside class="notes">One non-deterministic node (the agent); everything else is pure logic. Replayability plus a typed audit trail is what makes a decision appealable. Humans intervene only at gates.</aside>
