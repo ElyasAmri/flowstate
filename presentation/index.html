@@ -247,37 +247,6 @@
           <aside class="notes">Channel color is derived from its binding, not stored on the node. Agent is the only non-deterministic node. Action/decision are pure logic.</aside>
         </section>
 
-        <!-- A2. FLOW DIAGRAM (worked example) -->
-        <section class="center">
-          <p class="eyebrow">Worked example</p>
-          <h2>Residence Certificate Request</h2>
-          <div class="pipe">
-            <div class="pnode ui"><b>Intake</b><small>citizen submits</small></div>
-            <div class="arrow"></div>
-            <div class="pnode action"><b>Validate ID</b><small>action: shell</small></div>
-            <div class="arrow"></div>
-            <div class="pnode agent"><b>Classify proof</b><small>Fanar agent</small></div>
-            <div class="arrow"></div>
-            <div class="pnode decision"><b>Decision</b><small>branch on verdict</small></div>
-            <div class="arrow"></div>
-            <div class="branchcol">
-              <div class="pnode service"><b>Issue</b><small>outcome: issued</small></div>
-              <div class="pnode ui" style="border-style: dashed"><b>Bureaucrat</b><small>human gate ⚑</small></div>
-            </div>
-          </div>
-          <div class="legend">
-            <span><i style="background: var(--ui)"></i> ui</span>
-            <span><i style="background: var(--service)"></i> service</span>
-            <span><i style="background: var(--agent)"></i> agent</span>
-            <span><i style="background: var(--static)"></i> action / decision</span>
-          </div>
-          <p class="lead" style="margin: 0.7em auto 0; max-width: 44ch; text-align: center">
-            Clear cases route straight to <strong>issue</strong>. Only the
-            <strong>ambiguous</strong> ones reach a human.
-          </p>
-          <aside class="notes">Walk it left to right. Entry is the inbound channel "door": no global Run button. The dashed node is where a person is pulled in.</aside>
-        </section>
-
         <!-- A4. REFINEMENT -->
         <section>
           <p class="eyebrow">Refinement</p>
