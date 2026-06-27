@@ -392,6 +392,32 @@
 }
 .reveal .cap-chips .cc b { color: var(--azure); }
 
+/* Thin "Built with" stack strip under the anatomy. */
+.reveal .stackstrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  margin-top: 0.7em;
+  font-size: 0.42em;
+  letter-spacing: 0.02em;
+}
+.reveal .stackstrip .lbl {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.reveal .stackstrip .t {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.2em 0.6em;
+  background: var(--panel);
+}
+.reveal .stackstrip .sep { color: var(--muted); }
+
 /* ---------- Fanar model-family board ---------- */
 .reveal .fboard {
   display: flex;
