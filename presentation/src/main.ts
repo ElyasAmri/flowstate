@@ -32,7 +32,21 @@ void deck.initialize().then(() => {
   // Expose the deck for ad-hoc control from the devtools console.
   (window as unknown as { deck: DeckApi }).deck = deck;
   connectRemote(deck);
+  playVideosAtDouble();
 });
+
+// Play deck videos at 2x so the ~1-min demo fits the ~30s slot. reveal restarts
+// autoplay videos on slide entry, so re-assert the rate on every `play`.
+function playVideosAtDouble(): void {
+  const RATE = 2;
+  document.querySelectorAll("video").forEach((v) => {
+    v.playbackRate = RATE;
+    v.addEventListener("play", () => (v.playbackRate = RATE));
+    v.addEventListener("ratechange", () => {
+      if (v.playbackRate !== RATE) v.playbackRate = RATE;
+    });
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Remote control: connect to the relay mounted on the dev server at `/remote`
