@@ -498,13 +498,13 @@ body::after {
   display: flex;
   align-items: flex-end;
   gap: 1.1em;
-  margin-top: 2.6em;
+  margin-top: 2em;
 }
 .chart .yaxis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 200px;
+  height: 250px;
   font-family: var(--font-mono);
   font-size: 0.5em;
   color: var(--faint);
@@ -515,14 +515,14 @@ body::after {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
-  height: 200px;
+  height: 250px;
   border-bottom: 1px solid var(--border);
 }
 .bargroup { display: flex; flex-direction: column; align-items: center; }
 .bargroup .pair { display: flex; align-items: flex-end; gap: 0.45em; }
 .bar {
   width: 1.5em;
-  height: calc(var(--v) * 2px);
+  height: calc(var(--v) * 2.5px);
   border-radius: 5px 5px 0 0;
   position: relative;
 }
