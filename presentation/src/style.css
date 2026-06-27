@@ -523,11 +523,29 @@ body::after {
 .bar {
   width: 1.5em;
   height: calc(var(--v) * 2.5px);
-  border-radius: 5px 5px 0 0;
   position: relative;
 }
-.bar.eval { background: var(--agent); opacity: 0.4; }
-.bar.judge { background: var(--accent); }
+.bar .fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px 5px 0 0;
+  transform-origin: bottom;
+}
+.bar.eval .fill { background: var(--agent); opacity: 0.4; }
+.bar.judge .fill { background: var(--accent); }
+/* Grow the bars up from the baseline when the chart fragment appears,
+   staggered left to right. Only the fill scales, so labels stay crisp. */
+@keyframes bargrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.chart.visible .bar .fill {
+  animation: bargrow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chart.visible .bargroup:nth-child(1) .bar .fill { animation-delay: 0.04s; }
+.chart.visible .bargroup:nth-child(2) .bar .fill { animation-delay: 0.15s; }
+.chart.visible .bargroup:nth-child(3) .bar .fill { animation-delay: 0.26s; }
+.chart.visible .bargroup:nth-child(4) .bar .fill { animation-delay: 0.37s; }
 .bar .v {
   position: absolute;
   top: -1.7em;
