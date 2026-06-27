@@ -295,30 +295,59 @@
 
 /* ---------- Browser chrome frame (video) ---------- */
 .reveal .browser {
-  border-radius: 12px;
+  border-radius: 13px;
   overflow: hidden;
-  border: 1px solid var(--line);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.62),
+    0 2px 1px rgba(255, 255, 255, 0.05) inset;
   background: #0b1330;
 }
 .reveal .browser .bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.4em;
-  padding: 0.45em 0.7em;
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid var(--line);
+  gap: 0.5em;
+  padding: 0.55em 0.85em;
+  background: linear-gradient(#222b50, #161d3c);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
 }
 .reveal .browser .bar i {
-  width: 0.6em;
-  height: 0.6em;
+  width: 0.62em;
+  height: 0.62em;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
   display: inline-block;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.3);
 }
-.reveal .browser .bar i:nth-child(1) { background: #fb7185; }
-.reveal .browser .bar i:nth-child(2) { background: #fbbf24; }
-.reveal .browser .bar i:nth-child(3) { background: #34d399; }
+.reveal .browser .bar i:nth-child(1) { background: #ff5f57; }
+.reveal .browser .bar i:nth-child(2) { background: #febc2e; }
+.reveal .browser .bar i:nth-child(3) { background: #28c840; }
+.reveal .browser .url {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  max-width: 58%;
+  padding: 0.28em 1.1em;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+  font-size: 0.46em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reveal .browser .url svg {
+  width: 0.9em;
+  height: 0.9em;
+  stroke: #34d399;
+  flex: none;
+}
 .reveal .browser video {
   display: block;
   width: 100%;
@@ -340,34 +369,74 @@
   width: 220px;
 }
 .reveal .phone .frame {
-  border: 7px solid #11183a;
-  border-radius: 30px;
-  background: #11183a;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
-  padding: 7px;
+  position: relative;
+  border-radius: 40px;
+  padding: 11px;
+  background: linear-gradient(155deg, #3a4060 0%, #14182c 45%, #05070f 100%);
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.62),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.07),
+    inset 0 0 16px rgba(0, 0, 0, 0.7);
+}
+/* power button (right) */
+.reveal .phone .frame::before {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 104px;
+  width: 3px;
+  height: 56px;
+  border-radius: 0 3px 3px 0;
+  background: #20243a;
+}
+/* volume buttons (left) */
+.reveal .phone .frame::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 86px;
+  width: 3px;
+  height: 32px;
+  border-radius: 3px 0 0 3px;
+  background: #20243a;
+  box-shadow: 0 44px 0 #20243a;
 }
 .reveal .phone .screen {
   position: relative;
   height: 452px;
-  border-radius: 22px;
+  border-radius: 30px;
   background: #f4f7fc;
   color: #0b1330;
   direction: rtl;
   font-family: "IBM Plex Sans Arabic", "Inter", sans-serif;
   font-size: 12px;
-  padding: 12px 12px 14px;
+  padding: 26px 13px 18px;
   overflow: hidden;
   text-align: right;
 }
+/* dynamic island */
 .reveal .phone .notch {
   position: absolute;
-  top: 6px;
+  top: 9px;
   left: 50%;
   transform: translateX(-50%);
-  width: 70px;
-  height: 5px;
+  width: 52px;
+  height: 15px;
+  border-radius: 10px;
+  background: #05070f;
+  z-index: 5;
+}
+/* home indicator */
+.reveal .phone .screen::after {
+  content: "";
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38%;
+  height: 4px;
   border-radius: 3px;
-  background: rgba(11, 19, 48, 0.25);
+  background: rgba(11, 19, 48, 0.3);
 }
 .reveal .phone .appbar {
   display: flex;
