@@ -67,45 +67,12 @@
           <aside class="notes">Too many tools, too many tasks, expecting wonders. The thesis: separation of concerns over the agents buys consistent, reliable output. Pause here.</aside>
         </section>
 
-        <!-- 4. FLOWSTATE -->
-        <section>
-          <p class="eyebrow">Flowstate</p>
-          <h2>Coordinate the steps, not one big agent.</h2>
-          <div class="cols">
-            <ul style="font-size: 1.05em">
-              <li class="fragment">Author a workflow in an editor.</li>
-              <li class="fragment">Steps: <strong>code, agents, services, nested flows.</strong></li>
-              <li class="fragment">Crossed by typed <strong>channels</strong>; pause for a <strong>human</strong> anytime.</li>
-              <li class="fragment">One sealed harness runs it all.</li>
-            </ul>
-            <div class="card fragment" style="text-align: center; padding: 1.4em">
-              <div style="font-family: var(--font-mono); color: var(--muted); font-size: 0.8em; line-height: 2.2">
-                <span style="color: var(--faint)">◀⎯⎯▶</span> citizen app<br />
-                <span style="color: var(--faint)">▶⎯⎯</span> eID / registry<br />
-                <span style="color: var(--faint)">◀⎯⎯▶</span> nested flow<br />
-              </div>
-              <div style="margin: 0.8em 0; border-top: 1px dashed var(--border)"></div>
-              <strong>one sealed, deterministic harness</strong>
-            </div>
-          </div>
-          <aside class="notes">Flowstate (script): agent-driven, inspired by Claude Code and n8n. An editor authors a workflow; input crosses channels; steps are code, agents, external services, nested flows; a step can pause for a human or message another channel; one harness gives maximum control.</aside>
-        </section>
-
-        <!-- 5. FANAR -->
-        <section>
-          <p class="eyebrow">Use of Fanar</p>
-          <h2>Two roles in every flow.</h2>
-          <div class="cols">
-            <ul style="font-size: 1.05em">
-              <li class="fragment"><strong>Agentic LLM</strong> — drives the agent nodes (tool-calling).</li>
-              <li class="fragment"><strong>Document parsing</strong> — text, images, audio → a typed verdict.</li>
-            </ul>
-            <div class="card fragment" style="text-align: center">
-              <h3>Why Fanar</h3>
-              <p style="font-size: 0.95em; color: var(--text)">Arabic-first procedures. Fanar reads them best.</p>
-            </div>
-          </div>
-          <aside class="notes">Script: Fanar's two main roles are agentic tool-calling and document parsing (image / text / audio); its Arabic extraction is the perfect fit. Gulf procedures are Arabic-first and dialect-heavy. Hotline and the eID / registry / payment integrations are in the appendix.</aside>
+        <!-- 4. ARCHITECTURE (the diagram) -->
+        <section class="center">
+          <p class="eyebrow">How Flowstate works</p>
+          <img class="archimg" src="/architecture.png"
+            alt="Flowstate architecture: Discovery mines a draft flow from datasets and policy; users (policy maker, bureaucrat, consumer) interact and sign off; the sealed flow runtime executes; external and core services are reached across channels; Fanar is the model backend." />
+          <aside class="notes">An agent-driven program, inspired by Claude Code and n8n. Discovery mines a draft flow from datasets + policy. Three user roles: policy maker authors, bureaucrat signs off, consumer is served. The sealed harness runs the flow; external and core services are reached only across channels. Fanar is the model backend, in two roles: agentic tool-calling and document parsing (text / images / audio), and it reads Arabic best.</aside>
         </section>
 
         <!-- 5b. DEMO VIDEO -->
@@ -133,14 +100,14 @@
                   <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
                   <div class="bar judge" style="--v: 74"><span class="fill"></span><span class="v">74</span></div>
                 </div>
-                <div class="xlabel">Claude</div>
+                <div class="xlabel">Opus 4.8</div>
               </div>
               <div class="bargroup">
                 <div class="pair">
                   <div class="bar eval" style="--v: 100"><span class="fill"></span><span class="v">100</span></div>
                   <div class="bar judge" style="--v: 60"><span class="fill"></span><span class="v">60</span></div>
                 </div>
-                <div class="xlabel">DeepSeek</div>
+                <div class="xlabel">DeepSeek V4 Flash</div>
               </div>
               <div class="bargroup ours">
                 <div class="pair">
@@ -233,17 +200,17 @@
           <p class="eyebrow">Worked example</p>
           <h2>Residence Certificate Request</h2>
           <div class="pipe">
-            <div class="pnode ui fragment"><b>Intake</b><small>citizen submits</small></div>
-            <div class="arrow fragment"></div>
-            <div class="pnode action fragment"><b>Validate ID</b><small>action: shell</small></div>
-            <div class="arrow fragment"></div>
-            <div class="pnode agent fragment"><b>Classify proof</b><small>Fanar agent</small></div>
-            <div class="arrow fragment"></div>
-            <div class="pnode decision fragment"><b>Decision</b><small>branch on verdict</small></div>
-            <div class="arrow fragment"></div>
+            <div class="pnode ui"><b>Intake</b><small>citizen submits</small></div>
+            <div class="arrow"></div>
+            <div class="pnode action"><b>Validate ID</b><small>action: shell</small></div>
+            <div class="arrow"></div>
+            <div class="pnode agent"><b>Classify proof</b><small>Fanar agent</small></div>
+            <div class="arrow"></div>
+            <div class="pnode decision"><b>Decision</b><small>branch on verdict</small></div>
+            <div class="arrow"></div>
             <div class="branchcol">
-              <div class="pnode service fragment"><b>Issue</b><small>outcome: issued</small></div>
-              <div class="pnode ui fragment" style="border-style: dashed"><b>Bureaucrat</b><small>human gate ⚑</small></div>
+              <div class="pnode service"><b>Issue</b><small>outcome: issued</small></div>
+              <div class="pnode ui" style="border-style: dashed"><b>Bureaucrat</b><small>human gate ⚑</small></div>
             </div>
           </div>
           <div class="legend">
@@ -252,7 +219,7 @@
             <span><i style="background: var(--agent)"></i> agent</span>
             <span><i style="background: var(--static)"></i> action / decision</span>
           </div>
-          <p class="fragment lead" style="margin: 0.7em auto 0; max-width: 44ch; text-align: center">
+          <p class="lead" style="margin: 0.7em auto 0; max-width: 44ch; text-align: center">
             Clear cases route straight to <strong>issue</strong>. Only the
             <strong>ambiguous</strong> ones reach a human.
           </p>
@@ -318,47 +285,12 @@ nodes:
             </div>
             <div class="card stat fragment">
               <div class="num">0</div>
-              <div class="lbl">global "run" buttons; a flow is triggered by a typed payload at a channel door</div>
+              <div class="lbl">manual "run" buttons: a flow only starts when real input arrives at a channel</div>
             </div>
           </div>
           <aside class="notes">Replayability + a typed audit trail = appealable. Humans intervene only at gates.</aside>
         </section>
 
-        <!-- A5. ARCHITECTURE -->
-        <section class="center">
-          <p class="eyebrow">Solution architecture</p>
-          <img class="archimg" src="/architecture.png"
-            alt="Flowstate architecture: Discovery mines a draft flow from datasets and policy; users (policy maker, bureaucrat, consumer) interact and sign off; the sealed flow runtime executes; external and core services are reached across channels; Fanar is the model backend." />
-          <aside class="notes">Discovery mines a draft flow from datasets + policy. Three user roles: policy maker authors, bureaucrat signs off, consumer is served. The sealed harness runs the flow; external and core services are reached only across channels (extract, call, persist, log); Fanar is the model backend. The edge labels are the contracts: ingest, discover, write, read, run, interact, intervene.</aside>
-        </section>
-
-        <!-- A6. DEMO -->
-        <section class="center">
-          <p class="eyebrow">Live demo</p>
-          <h2 style="font-size: 2.2em">See a case flow through.</h2>
-          <div class="grid-2" style="max-width: 64%; margin: 1em auto 0">
-            <div class="card fragment">
-              <h3>Happy path</h3>
-              <p>Routine application → validated → classified → <strong>issued automatically.</strong></p>
-            </div>
-            <div class="card fragment">
-              <h3>Exception path</h3>
-              <p>Ambiguous proof → <strong>escalates to a bureaucrat</strong> → decision recorded.</p>
-            </div>
-          </div>
-          <aside class="notes">Switch to the desktop app. Submit at the intake door. Show the diagram animate, then show an exception hit the human gate.</aside>
-        </section>
-
-        <!-- A7. QUESTIONS -->
-        <section class="center">
-          <p class="eyebrow">Q&amp;A</p>
-          <h2>Questions?</h2>
-          <p class="lead" style="max-width: 62ch; margin-inline: auto">
-            Ask us about the deterministic harness, the agent and channel model, the live Fanar
-            evaluation, or where Fanar would need to improve.
-          </p>
-          <aside class="notes">Anticipated Q&A in the team doc. Topics: extraction vs judgement, engine vs scripts, Fanar self-host + recommendations, the human-gate threshold.</aside>
-        </section>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
