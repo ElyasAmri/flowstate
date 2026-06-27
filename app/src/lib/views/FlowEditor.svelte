@@ -13,6 +13,7 @@
   import { loadRegistry, toRegistry } from "../flow/channels";
   import type { FlowNode, NodeKind } from "../flow/types";
   import { isEntryChannel } from "../flow/types";
+  import type { BoundingBox } from "../flow/viewport.svelte";
   import FlowCanvas from "../flow/components/FlowCanvas.svelte";
   import NodePalette from "../flow/components/NodePalette.svelte";
   import NodeInspector from "../flow/components/NodeInspector.svelte";
@@ -167,8 +168,9 @@
   // current node and edge so the user can follow the execution visually.
   let activeNodeId = $state<string | null>(null);
   let activeEdgeId = $state<string | null>(null);
-  // Bumped when a completed run adds nodes, to frame the whole flow (loop demo).
-  let fitToken = $state(0);
+  // The world box to frame before a completed run adds its sub-flow (loop demo),
+  // so the new nodes appear against a settled scene rather than during the pan.
+  let fitBox = $state<BoundingBox | null>(null);
 
   function handleRunActive(nodeId: string | null, edgeId: string | null) {
     activeNodeId = nodeId;
@@ -178,7 +180,21 @@
   function handleRunClose() {
     activeNodeId = null;
     activeEdgeId = null;
+    fitBox = null;
     submitTarget = null;
+  }
+
+  /** World bounding box of `nodes` (approx node size), for framing. */
+  function boxOf(nodes: FlowNode[]): BoundingBox {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of nodes) {
+      if (n.position.y < -5000) continue; // skip off-canvas sentinels
+      minX = Math.min(minX, n.position.x);
+      minY = Math.min(minY, n.position.y);
+      maxX = Math.max(maxX, n.position.x + 300);
+      maxY = Math.max(maxY, n.position.y + 96);
+    }
+    return { minX, minY, maxX, maxY };
   }
 
   // Loop-demo only: a completed meta-flow run grows the main flow on the canvas,
@@ -186,18 +202,20 @@
   // into existence, and the periodic-update flow adds a step to it.
   function handleRunComplete(entryId: string) {
     if (editor.flow.id !== "loop-demo") return;
+    // Settle the camera on the final framing first, then add the sub-flow a beat
+    // later, so the audience sees it appear against a static scene (not mid-pan).
     if (entryId === "svc-mining") {
-      // The init drafting run drafts the routine procedure onto the canvas; fit
-      // the whole flow so the audience sees the new main flow appear in context.
-      editor.addSubgraph(loopDemoSpine.nodes, loopDemoSpine.edges);
-      editor.select("n-input");
-      fitToken += 1;
+      fitBox = boxOf([...editor.flow.nodes, ...loopDemoSpine.nodes]);
+      setTimeout(() => {
+        editor.addSubgraph(loopDemoSpine.nodes, loopDemoSpine.edges);
+        editor.select("n-input");
+      }, 1200);
     } else if (entryId === "svc-exceptions") {
-      // The periodic-update run adds a step to the routine procedure; fit so the
-      // new step is visible appearing within the whole flow.
-      editor.addSubgraph(loopDemoUpdate.nodes, loopDemoUpdate.edges);
-      editor.select("n-fasttrack");
-      fitToken += 1;
+      fitBox = boxOf([...editor.flow.nodes, ...loopDemoUpdate.nodes]);
+      setTimeout(() => {
+        editor.addSubgraph(loopDemoUpdate.nodes, loopDemoUpdate.edges);
+        editor.select("n-fasttrack");
+      }, 1200);
     }
   }
 
@@ -379,7 +397,7 @@
   <div class="flex min-h-0 flex-1">
     <NodePalette onadd={handleAdd} />
     <div class="min-h-0 flex-1">
-      <FlowCanvas {editor} {activeNodeId} {activeEdgeId} {fitToken} onnodeactivate={handleNodeActivate} />
+      <FlowCanvas {editor} {activeNodeId} {activeEdgeId} {fitBox} onnodeactivate={handleNodeActivate} />
     </div>
     <NodeInspector {editor} onsubmit={openSubmit} onopenflow={openNested} />
   </div>

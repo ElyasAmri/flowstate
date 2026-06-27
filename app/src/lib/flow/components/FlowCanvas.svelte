@@ -3,7 +3,7 @@
   import type { FlowNode } from "../types";
   import { isEntryChannel } from "../types";
   import { onMount } from "svelte";
-  import { Viewport, type Point, type Size } from "../viewport.svelte";
+  import { Viewport, type Point, type Size, type BoundingBox } from "../viewport.svelte";
   import {
     nodesBounds,
     portPosition,
@@ -30,9 +30,10 @@
     activeNodeId?: string | null;
     /** Live-run highlight: edge currently being traversed. */
     activeEdgeId?: string | null;
-    /** Bump this to frame the whole flow (eased) -- e.g. after a run adds nodes,
-     *  so the audience sees the new flow appear in context, not zoomed in. */
-    fitToken?: number;
+    /** Frame this world box (eased) when it changes. Used to settle the camera
+     *  on where a sub-flow is about to be added BEFORE it appears, so the
+     *  audience sees it pop in against a static scene rather than during a pan. */
+    fitBox?: BoundingBox | null;
   }
 
   let {
@@ -40,7 +41,7 @@
     onnodeactivate,
     activeNodeId = null,
     activeEdgeId = null,
-    fitToken = 0,
+    fitBox = null,
   }: Props = $props();
 
   const viewport = new Viewport();
@@ -201,14 +202,15 @@
     viewport.centerOn(centre, viewSize(), Math.max(viewport.zoom, 1));
   });
 
-  // Fit-to-view on demand (eased): when fitToken changes, frame the whole flow
-  // so a just-added sub-flow is visible appearing in context. The easing flag is
-  // raised first, then the fit runs next frame so the transform animates.
+  // Fit a target box (eased): frame where a sub-flow will land before it is
+  // added, so it appears against a settled scene. The easing flag is raised
+  // first, then the fit runs next frame so the transform animates.
   let fitting = $state(false);
   $effect(() => {
-    if (!fitToken || interaction.kind !== "idle") return;
+    const box = fitBox;
+    if (!box || interaction.kind !== "idle") return;
     fitting = true;
-    requestAnimationFrame(fitView);
+    requestAnimationFrame(() => viewport.fitTo(box, viewSize()));
     const t = setTimeout(() => (fitting = false), 1100);
     return () => clearTimeout(t);
   });
