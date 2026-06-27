@@ -368,6 +368,83 @@
 }
 .reveal .cap-chips .cc b { color: var(--azure); }
 
+/* ---------- Fanar model-family board ---------- */
+.reveal .fboard {
+  display: flex;
+  gap: 1em;
+  align-items: stretch;
+  margin-top: 0.6em;
+}
+.reveal .fboard .zone-l { flex: 1.4; }
+.reveal .fboard .zone-r { flex: 1; }
+.reveal .zlabel {
+  font-size: 0.42em;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--azure);
+  font-weight: 600;
+  margin-bottom: 0.55em;
+}
+.reveal .zlabel.dim { color: var(--muted); }
+.reveal .mrow { display: flex; gap: 0.7em; }
+.reveal .mcard {
+  flex: 1;
+  border: 1px solid rgba(43, 169, 224, 0.42);
+  border-radius: 0.7em;
+  background: rgba(43, 169, 224, 0.08);
+  padding: 0.7em 0.75em;
+}
+.reveal .mcard .mname {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.48em;
+  color: var(--azure);
+}
+.reveal .mcard .mcap {
+  font-size: 0.72em;
+  font-weight: 700;
+  margin: 0.18em 0 0.22em;
+}
+.reveal .mcard .mhow {
+  font-size: 0.54em;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.reveal .mcard .mtag {
+  display: inline-block;
+  margin-top: 0.55em;
+  font-size: 0.44em;
+  font-weight: 600;
+  color: var(--azure);
+  border: 1px solid rgba(43, 169, 224, 0.45);
+  border-radius: 20px;
+  padding: 0.16em 0.7em;
+}
+.reveal .limit {
+  margin-top: 0.7em;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 0.6em;
+  padding: 0.55em 0.75em;
+  font-size: 0.52em;
+  color: #f3c969;
+  line-height: 1.45;
+}
+.reveal .limit b { color: #fde9b0; }
+.reveal .opp {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  border: 1px dashed var(--line);
+  border-radius: 0.6em;
+  padding: 0.5em 0.7em;
+  margin-bottom: 0.45em;
+  background: var(--panel);
+}
+.reveal .opp svg { width: 1em; height: 1em; stroke: var(--muted); flex: none; }
+.reveal .opp .ot { font-size: 0.6em; line-height: 1.3; }
+.reveal .opp .ot b { color: var(--paper); font-weight: 600; }
+.reveal .opp .ot span { color: var(--muted); }
+
 /* ---------- Browser chrome frame (video) ---------- */
 .reveal .browser {
   border-radius: 13px;
