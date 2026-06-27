@@ -325,21 +325,22 @@
   background: var(--panel);
   padding: 0.5em 0.25em;
 }
-.reveal .fnode .fanar-badge {
+.reveal .fnode .fbadge {
   position: absolute;
   top: -0.6em;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.44em;
+  font-size: 0.42em;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--azure);
+  letter-spacing: 0.04em;
   background: #0b1a40;
-  border: 1px solid rgba(43, 169, 224, 0.55);
   border-radius: 20px;
-  padding: 0.12em 0.75em;
+  padding: 0.12em 0.7em;
   white-space: nowrap;
 }
+.reveal .fnode .fbadge.azure { color: var(--azure); border: 1px solid rgba(43, 169, 224, 0.55); }
+.reveal .fnode .fbadge.amber { color: var(--warn); border: 1px solid rgba(251, 191, 36, 0.55); }
+.reveal .fnode .fbadge.green { color: var(--ok); border: 1px solid rgba(52, 211, 153, 0.55); }
 .reveal .fnode .kind {
   font-size: 0.42em;
   text-transform: uppercase;
