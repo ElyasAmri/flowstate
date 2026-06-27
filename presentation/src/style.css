@@ -1029,3 +1029,21 @@ body::after {
 .reveal .fam .ot { font-size: 0.5em; line-height: 1.3; }
 .reveal .fam .ot b { color: var(--paper); font-weight: 600; }
 .reveal .fam .ot span { color: var(--muted); }
+
+/* Hollow highlight boxes over the architecture diagram (coords are %; tune visually) */
+.reveal .archwrap { position: relative; display: inline-block; line-height: 0; }
+.reveal .archwrap .archimg { margin: 0; }
+.reveal .hbox {
+  position: absolute;
+  border: 2px solid rgba(233, 237, 243, 0.5);
+  border-radius: 8px;
+  pointer-events: none;
+}
+.reveal .hbox.fanar {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(52, 211, 153, 0.45);
+}
+
+/* Phone appears only once the second flow starts (toggled by data-show-at in main.ts) */
+.reveal .demo-split .phone { opacity: 0; transition: opacity 0.5s ease; }
+.reveal .demo-split .phone.live { opacity: 1; }

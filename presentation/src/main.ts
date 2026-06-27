@@ -58,9 +58,14 @@ function syncCitizenView(): void {
     });
   };
 
+  // The phone only appears once the second (citizen-facing) flow starts running
+  // in the video. Set data-show-at on [data-citizen] to that timestamp (seconds).
+  const showAt = Number((phone as HTMLElement).dataset.showAt ?? 0);
+
   let last = -1;
   const tick = (): void => {
     const t = video.currentTime;
+    phone.classList.toggle("live", t >= showAt);
     let cur = cues[0];
     for (const c of cues) if (t >= c.t) cur = c;
     if (cur.i !== last) {
@@ -69,6 +74,7 @@ function syncCitizenView(): void {
     }
   };
   apply(cues[0].i, cues[0].dots);
+  phone.classList.toggle("live", video.currentTime >= showAt);
   video.addEventListener("timeupdate", tick);
 }
 
